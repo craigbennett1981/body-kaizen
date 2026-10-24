@@ -213,7 +213,7 @@ WHY = {
     "wbc": "Full blood count. White cells, lymphocyte %, MCV and RDW are four PhenoAge inputs.",
     "lymph_pct": None, "mcv": None, "rdw": None,
     "uric_acid": "Linked to blood pressure and metabolic health.",
-    "vitd": "Keep it in range; recheck yearly.", "b12": "Above range last time, most likely from your methyl-B12 supplement. Tell the doctor you take it; recheck yearly.",
+    "vitd": "Keep it in range; recheck yearly.", "b12": "Above range is usually from supplements: tell your doctor what you take. Recheck yearly.",
     "folate": "Pairs with B12 and homocysteine.", "homocysteine": "Recheck to confirm it stays down.",
     "omega3_index": "Optional finger-prick test.",
     "total_chol": "Total, LDL, HDL and triglycerides. Ask for it with ApoB.", "ldl": None, "hdl": None, "tg": None, "tc_hdl_ratio": None,
