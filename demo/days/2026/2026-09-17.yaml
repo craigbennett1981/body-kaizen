@@ -1,0 +1,79 @@
+date: '2026-09-17'
+status: complete
+day_type: rest
+weight: {kg: 79.9, fasted: true, time: '07:14', bf_pct: 21.0, muscle_kg: 60.0, visceral: 7, water_pct: 57.3, bmi: 25.2, source: scale-app}
+recovery:
+  sleep: 7h48m
+  sleep_stages_min: {deep: 117, light: 221, rem: 130}
+  awake_min: 6
+  in_bed: 23:12–07:06
+  sleep_start: 2026-09-16T23:12
+  sleep_end: 2026-09-17T07:06
+  sleep_score: 80
+  overnight_hr: 59
+  hrv_ms: 54
+  hrv_7d_ms: 58
+  hrv_status: balanced
+  rhr: 55
+  body_battery: 78
+  stress_avg: 24
+  source: garmin
+feel: {overall: 3, energy: 4, mood: 5, gut: 4, stress: 2}
+vitals:
+  bp:
+  - {time: '07:54', sys: 125, dia: 77, pulse: 65, source: bp-app}
+steps: 12430
+meals:
+  breakfast:
+  - raw: 172g yogurt + 99g soaked chia seeds
+    time: 07:06
+    parsed:
+    - {item: yogurt, g: 172}
+    - {item: chia-soaked, g: 99}
+  - raw: English breakfast tea and low fat milk
+    time: 07:06
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:06
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 229g pasta
+    time: '12:38'
+    parsed:
+    - {item: pasta, g: 229}
+  - raw: 166g chicken breast
+    time: '12:38'
+    parsed:
+    - {item: chicken-breast, g: 166}
+  - raw: 75g tomato pepper sauce
+    time: '12:38'
+    parsed:
+    - {item: tomato-pepper-sauce, g: 75}
+  dinner:
+  - raw: 204g pasta
+    time: '19:25'
+    parsed:
+    - {item: pasta, g: 204}
+  - raw: 124g bolognese beef
+    time: '19:25'
+    parsed:
+    - {item: bolognese-beef, g: 124}
+  snacks:
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '10:36'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 125g apple
+    time: '15:39'
+    parsed:
+    - {item: apple, g: 125}
+  - raw: 149g guava
+    time: '21:08'
+    parsed:
+    - {item: guava, g: 149}
+totals: {kcal: 1935, protein_g: 151.7, carbs_g: 244.3, fat_g: 39.6, satfat_g: 13.1, fibre_g: 32.2, sodium_mg: 1105, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2292, active: 559, bmr: 1733, source: garmin}
+intensity_min: {moderate: 0, vigorous: 0, source: garmin}

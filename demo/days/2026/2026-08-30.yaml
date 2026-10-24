@@ -1,0 +1,84 @@
+date: '2026-08-30'
+status: complete
+day_type: rest
+weight: {kg: 81.4, fasted: true, time: '07:15', bf_pct: 21.4, muscle_kg: 60.7, visceral: 8, water_pct: 56.0, bmi: 25.7, source: scale-app}
+recovery:
+  sleep: 8h48m
+  sleep_stages_min: {deep: 128, light: 236, rem: 164}
+  awake_min: 12
+  in_bed: 22:21–07:21
+  sleep_start: 2026-08-29T22:21
+  sleep_end: 2026-08-30T07:21
+  sleep_score: 95
+  overnight_hr: 58
+  hrv_ms: 59
+  hrv_7d_ms: 60
+  hrv_status: balanced
+  rhr: 54
+  body_battery: 85
+  stress_avg: 25
+  source: garmin
+feel: {overall: 5, energy: 5, mood: 4, gut: 4, stress: 2}
+vitals:
+  bp:
+  - {time: '07:41', sys: 120, dia: 79, pulse: 63, source: bp-app}
+steps: 11467
+meals:
+  breakfast:
+  - raw: 166g yogurt + 81g soaked chia seeds
+    time: 07:45
+    parsed:
+    - {item: yogurt, g: 166}
+    - {item: chia-soaked, g: 81}
+  - raw: English breakfast tea and low fat milk
+    time: 07:45
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:45
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 165g rice
+    time: '12:49'
+    parsed:
+    - {item: rice, g: 165}
+  - raw: 144g salmon
+    time: '12:49'
+    parsed:
+    - {item: salmon, g: 144}
+  - raw: 119g spinach
+    time: '12:49'
+    parsed:
+    - {item: veg-stirfried, g: 119}
+  dinner:
+  - raw: 220g potato
+    time: '18:40'
+    parsed:
+    - {item: potato, g: 220}
+  - raw: 140g lean beef
+    time: '18:40'
+    parsed:
+    - {item: beef-lean, g: 140}
+  - raw: 125g green bean
+    time: '18:40'
+    parsed:
+    - {item: veg-stirfried, g: 125}
+  snacks:
+  - raw: 180g yogurt + half scoop protein powder
+    time: '10:43'
+    parsed:
+    - {item: scoop, n: 0.5}
+    - {item: yogurt, g: 180}
+  - raw: 193g guava
+    time: '16:49'
+    parsed:
+    - {item: guava, g: 193}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '17:08'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+totals: {kcal: 1966, protein_g: 174.0, carbs_g: 199.7, fat_g: 53.5, satfat_g: 15.3, fibre_g: 32.6, sodium_mg: 1313, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2258, active: 516, bmr: 1742, source: garmin}
+intensity_min: {moderate: 0, vigorous: 0, source: garmin}

@@ -1,0 +1,108 @@
+date: '2026-08-21'
+status: complete
+day_type: training
+recovery:
+  sleep: 7h38m
+  sleep_stages_min: {deep: 125, light: 230, rem: 103}
+  awake_min: 0
+  in_bed: 22:57–06:35
+  sleep_start: 2026-08-20T22:57
+  sleep_end: 2026-08-21T06:35
+  sleep_score: 71
+  overnight_hr: 59
+  hrv_ms: 59
+  hrv_7d_ms: 56
+  hrv_status: balanced
+  rhr: 55
+  body_battery: 73
+  stress_avg: 15
+  source: garmin
+steps: 12647
+exercise:
+- type: gym
+  garmin_id: 30000000019
+  source: garmin
+  start: '18:39'
+  duration_min: 68
+  hr: {avg: 115, max: 146}
+  kcal: {total: 281, active: 219}
+  zones_min: {z1: 13, z2: 31, z3: 3}
+  garmin_name: Strength
+  name: Lower + pull
+  lifts:
+  - ex: smith-squat
+    sets: [52.5x9, 52.5x9, 52.5x9]
+  - ex: seated-row
+    sets: [36.3x8, 36.3x8, 36.3x8]
+  - ex: shoulder-press
+    sets: [31.7x8, 31.7x8, 31.7x8]
+  - ex: leg-curl
+    sets: [63.5x9, 63.5x9, 63.5x9]
+  - ex: cable-fly
+    sets: [40.8x8, 40.8x8, 40.8x8]
+  - ex: biceps-curl
+    sets: [38.5x10, 38.5x10, 38.5x10]
+  - ex: farmers-walk
+    sets: [50kg@40m, 50kg@40m, 50kg@40m]
+meals:
+  breakfast:
+  - raw: 50g sourdough
+    time: 07:56
+    parsed:
+    - {item: sourdough, g: 50}
+  - raw: 2 eggs
+    time: 07:56
+    parsed:
+    - {item: egg, n: 2}
+  - raw: English breakfast tea and low fat milk
+    time: 07:56
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  lunch:
+  - raw: 221g pasta
+    time: '12:34'
+    parsed:
+    - {item: pasta, g: 221}
+  - raw: 167g chicken breast
+    time: '12:34'
+    parsed:
+    - {item: chicken-breast, g: 167}
+  - raw: 59g tomato pepper sauce
+    time: '12:34'
+    parsed:
+    - {item: tomato-pepper-sauce, g: 59}
+  dinner:
+  - raw: 169g rice
+    time: '19:14'
+    parsed:
+    - {item: rice, g: 169}
+  - raw: 101g pork loin
+    time: '19:14'
+    parsed:
+    - {item: pork-loin, g: 101}
+  - raw: 126g broccoli
+    time: '19:14'
+    parsed:
+    - {item: veg-stirfried, g: 126}
+  snacks:
+  - raw: 49g dates
+    time: '10:40'
+    parsed:
+    - {item: dates, g: 49}
+  - raw: 155g yogurt + half scoop protein powder
+    time: '10:50'
+    parsed:
+    - {item: scoop, n: 0.5}
+    - {item: yogurt, g: 155}
+  - raw: 44g dates
+    time: '10:52'
+    parsed:
+    - {item: dates, g: 44}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:34'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+totals: {kcal: 2111, protein_g: 183.0, carbs_g: 250.3, fat_g: 40.9, satfat_g: 14.4, fibre_g: 20.2, sodium_mg: 1468, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2534, active: 788, bmr: 1746, source: garmin}
+intensity_min: {moderate: 68, vigorous: 0, source: garmin}

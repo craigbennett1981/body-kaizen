@@ -1,0 +1,104 @@
+date: '2026-10-03'
+status: complete
+day_type: big
+weight: {kg: 78.8, fasted: true, time: '07:10', bf_pct: 20.1, muscle_kg: 59.9, visceral: 7, water_pct: 57.5, bmi: 24.9, source: scale-app}
+recovery:
+  sleep: 8h51m
+  sleep_stages_min: {deep: 146, light: 246, rem: 139}
+  awake_min: 3
+  in_bed: 22:01–06:55
+  sleep_start: 2026-10-02T22:01
+  sleep_end: 2026-10-03T06:55
+  sleep_score: 95
+  overnight_hr: 54
+  hrv_ms: 68
+  hrv_7d_ms: 60
+  hrv_status: balanced
+  rhr: 50
+  body_battery: 90
+  stress_avg: 27
+  source: garmin
+feel: {overall: 4, energy: 4, mood: 4, gut: 4, stress: 3}
+vitals:
+  bp:
+  - {time: '08:09', sys: 115, dia: 77, pulse: 57, source: bp-app}
+steps: 13159
+exercise:
+- type: run
+  garmin_id: 30000000045
+  source: garmin
+  mode: outdoor
+  effort: long
+  start: 06:50
+  duration_min: 68
+  distance_km: 9.97
+  time: '68:17'
+  distance_source: gps
+  hr: {avg: 141, max: 152}
+  kcal: {total: 747, active: 638}
+  cadence: 164
+  zones_min: {z1: 2, z2: 23, z3: 37, z4: 6}
+  garmin_name: Running
+meals:
+  breakfast:
+  - raw: 146g yogurt + 95g soaked chia seeds
+    time: 07:33
+    parsed:
+    - {item: yogurt, g: 146}
+    - {item: chia-soaked, g: 95}
+  - raw: English breakfast tea and low fat milk
+    time: 07:33
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:33
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 154g rice
+    time: '12:34'
+    parsed:
+    - {item: rice, g: 154}
+  - raw: 168g chicken breast
+    time: '12:34'
+    parsed:
+    - {item: chicken-breast, g: 168}
+  - raw: 122g broccoli
+    time: '12:34'
+    parsed:
+    - {item: veg-stirfried, g: 122}
+  dinner:
+  - raw: 156g rice
+    time: '19:16'
+    parsed:
+    - {item: rice, g: 156}
+  - raw: 112g fish
+    time: '19:16'
+    parsed:
+    - {item: fish, g: 112}
+  - raw: 119g bok choy
+    time: '19:16'
+    parsed:
+    - {item: veg-stirfried, g: 119}
+  snacks:
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:34'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 124g apple
+    time: '17:05'
+    parsed:
+    - {item: apple, g: 124}
+  - raw: ice cream 180 cal
+    time: '20:33'
+    parsed:
+    - {item: ice-cream, kcal: 180, conf: med}
+  - raw: 25g almonds and cashews
+    time: '21:19'
+    parsed:
+    - {item: nuts-mixed, g: 25}
+totals: {kcal: 1882, protein_g: 151.8, carbs_g: 198.1, fat_g: 54.3, satfat_g: 16.9, fibre_g: 24.3, sodium_mg: 1487, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2955, active: 1230, bmr: 1725, source: garmin}
+intensity_min: {moderate: 0, vigorous: 68, source: garmin}
+fitness: {vo2max: 46.8, source: garmin}

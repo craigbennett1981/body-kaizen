@@ -1,0 +1,104 @@
+date: '2026-09-26'
+status: complete
+day_type: training
+weight: {kg: 79.3, fasted: true, time: '07:00', bf_pct: 20.4, muscle_kg: 60.0, visceral: 7, water_pct: 56.7, bmi: 25.0, source: scale-app}
+recovery:
+  sleep: 8h02m
+  sleep_stages_min: {deep: 126, light: 211, rem: 145}
+  awake_min: 6
+  in_bed: 22:56–07:04
+  sleep_start: 2026-09-25T22:56
+  sleep_end: 2026-09-26T07:04
+  sleep_score: 89
+  overnight_hr: 56
+  hrv_ms: 67
+  hrv_7d_ms: 64
+  hrv_status: balanced
+  rhr: 52
+  body_battery: 87
+  stress_avg: 26
+  source: garmin
+vitals:
+  bp:
+  - {time: '07:51', sys: 118, dia: 75, pulse: 61, source: bp-app}
+steps: 5821
+exercise:
+- type: swim
+  garmin_id: 30000000040
+  source: garmin
+  start: 08:00
+  duration_min: 33
+  distance_m: 1000
+  pool_m: 25
+  hr: {avg: 128, max: 148}
+  kcal: {total: 320, active: 270}
+  garmin_name: Pool Swim
+meals:
+  breakfast:
+  - raw: 145g yogurt + 72g soaked chia seeds
+    time: 07:04
+    parsed:
+    - {item: yogurt, g: 145}
+    - {item: chia-soaked, g: 72}
+  - raw: English breakfast tea and low fat milk
+    time: 07:04
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:04
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 179g rice
+    time: '12:19'
+    parsed:
+    - {item: rice, g: 179}
+  - raw: 150g salmon
+    time: '12:19'
+    parsed:
+    - {item: salmon, g: 150}
+  - raw: 122g spinach
+    time: '12:19'
+    parsed:
+    - {item: veg-stirfried, g: 122}
+  dinner:
+  - raw: 140g rice
+    time: '19:17'
+    parsed:
+    - {item: rice, g: 140}
+  - raw: 146g fish
+    time: '19:17'
+    parsed:
+    - {item: fish, g: 146}
+  - raw: 121g bok choy
+    time: '19:17'
+    parsed:
+    - {item: veg-stirfried, g: 121}
+  snacks:
+  - raw: 158g yogurt + half scoop protein powder
+    time: '10:59'
+    parsed:
+    - {item: scoop, n: 0.5}
+    - {item: yogurt, g: 158}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:19'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 1 kiwi
+    time: '16:48'
+    parsed:
+    - {item: kiwi, n: 1}
+  - raw: 46g granola + 150ml low fat milk
+    time: '16:57'
+    parsed:
+    - {item: granola, g: 46}
+    - {item: milk-lowfat, ml: 150}
+  - raw: 2 slices pepperoni pizza
+    time: '20:10'
+    parsed:
+    - {item: pizza-pepperoni-stuffed, n: 2}
+totals: {kcal: 2691, protein_g: 197.0, carbs_g: 272.4, fat_g: 89.6, satfat_g: 29.1, fibre_g: 27.2, sodium_mg: 3206, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2259, active: 531, bmr: 1728, source: garmin}
+intensity_min: {moderate: 33, vigorous: 0, source: garmin}
+fitness: {vo2max: 46.0, source: garmin}

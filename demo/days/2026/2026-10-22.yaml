@@ -1,0 +1,94 @@
+date: '2026-10-22'
+status: complete
+day_type: rest
+weight: {kg: 78.2, fasted: true, time: '07:24', bf_pct: 19.2, muscle_kg: 60.0, visceral: 7, water_pct: 56.9, bmi: 24.7, source: scale-app}
+recovery:
+  sleep: 7h22m
+  sleep_stages_min: {deep: 127, light: 206, rem: 109}
+  awake_min: 3
+  in_bed: 22:59–06:24
+  sleep_start: 2026-10-21T22:59
+  sleep_end: 2026-10-22T06:24
+  sleep_score: 72
+  overnight_hr: 56
+  hrv_ms: 65
+  hrv_7d_ms: 66
+  hrv_status: balanced
+  rhr: 52
+  body_battery: 78
+  stress_avg: 33
+  source: garmin
+feel: {overall: 4, energy: 4, mood: 3, gut: 4, stress: 2}
+vitals:
+  bp:
+  - {time: '07:53', sys: 120, dia: 75, pulse: 61, source: bp-app}
+steps: 9859
+meals:
+  breakfast:
+  - raw: 45g oats
+    time: 07:34
+    parsed:
+    - {item: oats-rolled, g: 45}
+  - raw: 2 eggs
+    time: 07:34
+    parsed:
+    - {item: egg, n: 2}
+  - raw: English breakfast tea and low fat milk
+    time: 07:34
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 65g blueberries
+    time: 07:34
+    parsed:
+    - {item: blueberries, g: 65}
+  - raw: 1 banana
+    time: 07:34
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 177g rice
+    time: '12:32'
+    parsed:
+    - {item: rice, g: 177}
+  - raw: 85g tofu
+    time: '12:32'
+    parsed:
+    - {item: tofu, g: 85}
+  - raw: 134g cabbage
+    time: '12:32'
+    parsed:
+    - {item: veg-stirfried, g: 134}
+  - raw: 101g pork loin
+    time: '12:32'
+    parsed:
+    - {item: pork-loin, g: 101}
+  dinner:
+  - raw: 180g potato
+    time: '19:35'
+    parsed:
+    - {item: potato, g: 180}
+  - raw: 145g lean beef
+    time: '19:35'
+    parsed:
+    - {item: beef-lean, g: 145}
+  - raw: 98g green bean
+    time: '19:35'
+    parsed:
+    - {item: veg-stirfried, g: 98}
+  snacks:
+  - raw: 158g apple
+    time: '15:36'
+    parsed:
+    - {item: apple, g: 158}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '15:53'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 53g dates
+    time: '16:49'
+    parsed:
+    - {item: dates, g: 53}
+totals: {kcal: 1994, protein_g: 151.2, carbs_g: 244.6, fat_g: 49.3, satfat_g: 16.1, fibre_g: 29.5, sodium_mg: 1131, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2158, active: 443, bmr: 1715, source: garmin}
+intensity_min: {moderate: 0, vigorous: 0, source: garmin}

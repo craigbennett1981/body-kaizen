@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Body Kaizen</title>
+<script src="vendor/echarts.min.js"></script>  <!-- ECharts 5.5.1, Apache-2.0: vendor/LICENSE-echarts.txt -->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="brand">Body Kaizen <button class="who" id="who" hidden title="Your profile: name, start date, timezone"></button></div>
+  <nav role="tablist">
+    <button role="tab" data-tab="day" aria-selected="true">Day</button>
+    <button role="tab" data-tab="advice">Advice</button>
+    <button role="tab" data-tab="longevity">Longevity</button>
+    <button role="tab" data-tab="week">Week</button>
+    <button role="tab" data-tab="trends">Trends</button>
+    <button role="tab" data-tab="training">Training</button>
+    <button role="tab" data-tab="recovery">Recovery</button>
+    <button role="tab" data-tab="wellbeing">Wellbeing</button>
+    <button role="tab" data-tab="body">Body</button>
+    <button role="tab" data-tab="timeline">Timeline</button>
+  </nav>
+  <div class="sync" id="sync" aria-live="polite"><span class="dot" id="syncdot"></span><span id="syncmsg">Garmin</span><button id="syncbtn" hidden>Sync now</button></div>
+</header>
+<dialog id="setup" aria-labelledby="setup-h">
+  <form method="dialog" id="setupform">
+    <h2 id="setup-h">Welcome to Body Kaizen</h2>
+    <p class="sub">Three details, saved in <code>settings.yaml</code> in your data folder. You can change them later from the name in the header.</p>
+    <label>Your name<input name="name" maxlength="60" required autocomplete="name"></label>
+    <label>Tracking started<input name="start_date" type="date" required><small>The first day you logged. Watch data before it is ignored.</small></label>
+    <label>Timezone<input name="timezone" required list="tzlist" autocomplete="off"><small>Detected from this computer. An IANA name like Europe/London.</small></label>
+    <datalist id="tzlist"></datalist>
+    <p class="err" id="setuperr" role="alert"></p>
+    <div class="row"><button value="cancel" formnovalidate id="setupcancel">Later</button><button value="save" class="primary" id="setupsave">Save</button></div>
+  </form>
+</dialog>
+<main>
+  <section id="tab-day">
+    <div class="daynav">
+      <button id="prev" aria-label="Previous day">‹</button>
+      <input type="date" id="pick">
+      <button id="next" aria-label="Next day">›</button>
+      <button id="latest">Latest</button>
+    </div>
+    <div id="day"></div>
+  </section>
+  <section id="tab-wellbeing" hidden>
+    <h1>Wellbeing</h1>
+    <div id="wb-head"></div>
+    <div id="wbchart" class="chart" style="height:280px"></div>
+    <div id="wb-body"></div>
+  </section>
+  <section id="tab-advice" hidden>
+    <div id="advice"></div>
+  </section>
+  <section id="tab-longevity" hidden>
+    <div id="longevity"></div>
+    <dialog id="mk-dlg" aria-labelledby="mk-title"><div id="mk-body"></div></dialog>
+  </section>
+  <section id="tab-week" hidden>
+    <div class="daynav"><button id="wprev" aria-label="Previous week">‹</button><button id="wnext" aria-label="Next week">›</button><button id="wlatest">This week</button></div>
+    <div id="week"></div>
+  </section>
+  <section id="tab-trends" hidden>
+    <div class="row"><h1>Trends</h1>
+      <div class="seg" id="range"><button data-d="14">14 days</button><button data-d="30" aria-pressed="true">30 days</button><button data-d="60">60 days</button><button data-d="0">All</button></div>
+    </div>
+    <div class="legend-row"><span><i class="ok"></i>On target</span><span><i class="miss"></i>Missed</span><span><i class="part"></i>Partial day, not judged</span><span><i class="tgt"></i>Target zone</span><span><i class="ln"></i>Saturated fat</span><span class="sub">Click any day to open it.</span></div>
+    <div id="trend" class="chart"></div>
+    <h2>Day by day</h2>
+    <div id="weektable"></div>
+  </section>
+  <section id="tab-training" hidden>
+    <div class="row"><h1>Training</h1>
+      <div class="seg" id="trange"><button data-d="30" aria-pressed="true">30 days</button><button data-d="60">60 days</button><button data-d="0">All</button></div>
+    </div>
+    <h2>Workouts</h2>
+    <div class="wo-pick" id="wopick" role="tablist" aria-label="Workout"></div>
+    <div id="wodetail"></div>
+    <h2>Calories burnt</h2>
+    <div class="chips" id="trainchips" role="tablist" aria-label="Chart"></div>
+    <p class="sub" id="trainnote"></p>
+    <div id="trainchart" class="chart" style="height:440px"></div>
+    <div id="traintable"></div>
+    <h2>Next session</h2>
+    <div id="plan"></div>
+    <h2>Lifts</h2>
+    <p class="sub">Click a lift to chart its progression above.</p>
+    <div id="lifttable"></div>
+    <h2>Runs</h2>
+    <p class="sub">Better aerobic fitness shows up as faster pace at the same or lower heart rate.</p>
+    <div id="runchart" class="chart" style="height:470px"></div>
+  </section>
+  <section id="tab-recovery" hidden>
+    <h1>Recovery</h1>
+    <h2>Readiness</h2>
+    <p class="sub" id="readynote"></p>
+    <div id="readychart" class="chart" style="height:260px"></div>
+    <h2>Sleep, HRV and resting heart rate</h2>
+    <p class="sub" id="recnote"></p>
+    <div id="recchart" class="chart" style="height:520px"></div>
+  </section>
+  <section id="tab-timeline" hidden>
+    <h1>Timeline</h1>
+    <p class="sub">Weight (7-day average) with what might explain it: blood tests, scans, target changes, off episodes (shaded) and training changes. Tell me about other events and I'll add them.</p>
+    <div id="tlchart" class="chart" style="height:300px"></div>
+    <h2>Health score</h2>
+    <div id="tlhs" class="chart" style="height:200px"></div>
+    <div id="tllist"></div>
+  </section>
+  <section id="tab-body" hidden>
+    <h1>Body</h1>
+    <div id="bodychart" class="chart" style="height:420px"></div>
+    <h2>InBody scans</h2>
+    <div id="inbodytable"></div>
+    <h2>Blood pressure</h2>
+    <p class="sub" id="bpnote"></p>
+    <div id="bpchart" class="chart" style="height:300px"></div>
+    <div id="bptable"></div>
+    <h2>Glucose</h2>
+    <p class="sub" id="gnote"></p>
+    <div id="gdays"></div>
+    <div id="gprofile" class="chart" style="height:260px"></div>
+    <div id="gmeals"></div>
+  </section>
+</main>
+<div class="toasts" id="toasts" role="region" aria-label="Notifications"></div>
+<script src="app.js"></script>
+</body>
+</html>

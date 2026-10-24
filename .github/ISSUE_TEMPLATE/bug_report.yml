@@ -1,0 +1,42 @@
+name: Bug report
+description: Something doesn't work or shows the wrong numbers
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Don't paste real health data.** Reproduce the problem with the `demo/` folder or a made-up day file.
+        For a security or privacy problem, use private vulnerability reporting instead (see SECURITY.md).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you saw instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: Steps, ideally with the demo data. Attach a minimal made-up day file if it's a food-matching or totals problem.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Server log and browser console
+      description: Remove anything personal first.
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: v0.1.0 or a commit hash
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [macOS, Linux, Windows, Other]
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      placeholder: "3.12"

@@ -1,0 +1,101 @@
+date: '2026-09-12'
+status: complete
+day_type: big
+weight: {kg: 80.4, fasted: true, time: '07:24', bf_pct: 21.3, muscle_kg: 60.1, visceral: 7, water_pct: 57.4, bmi: 25.4, source: scale-app}
+recovery:
+  sleep: 9h17m
+  sleep_stages_min: {deep: 150, light: 252, rem: 155}
+  awake_min: 9
+  in_bed: 22:18–07:44
+  sleep_start: 2026-09-11T22:18
+  sleep_end: 2026-09-12T07:44
+  sleep_score: 95
+  overnight_hr: 58
+  hrv_ms: 60
+  hrv_7d_ms: 59
+  hrv_status: balanced
+  rhr: 54
+  body_battery: 92
+  stress_avg: 28
+  source: garmin
+steps: 11978
+exercise:
+- type: run
+  garmin_id: 30000000033
+  source: garmin
+  mode: outdoor
+  effort: long
+  start: 07:16
+  duration_min: 62
+  distance_km: 8.86
+  time: '62:00'
+  distance_source: gps
+  hr: {avg: 149, max: 164}
+  kcal: {total: 664, active: 567}
+  cadence: 160
+  zones_min: {z1: 2, z2: 21, z3: 34, z4: 6}
+  garmin_name: Running
+meals:
+  breakfast:
+  - raw: 154g yogurt + 108g soaked chia seeds
+    time: 07:00
+    parsed:
+    - {item: yogurt, g: 154}
+    - {item: chia-soaked, g: 108}
+  - raw: English breakfast tea and low fat milk
+    time: 07:00
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:00
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 205g pasta
+    time: '12:15'
+    parsed:
+    - {item: pasta, g: 205}
+  - raw: 173g chicken breast
+    time: '12:15'
+    parsed:
+    - {item: chicken-breast, g: 173}
+  - raw: 58g tomato pepper sauce
+    time: '12:15'
+    parsed:
+    - {item: tomato-pepper-sauce, g: 58}
+  dinner:
+  - raw: 190g rice
+    time: '18:38'
+    parsed:
+    - {item: rice, g: 190}
+  - raw: 138g fish
+    time: '18:38'
+    parsed:
+    - {item: fish, g: 138}
+  - raw: 130g bok choy
+    time: '18:38'
+    parsed:
+    - {item: veg-stirfried, g: 130}
+  snacks:
+  - raw: 174g apple
+    time: '10:52'
+    parsed:
+    - {item: apple, g: 174}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:15'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: ice cream 180 cal
+    time: '20:54'
+    parsed:
+    - {item: ice-cream, kcal: 180, conf: med}
+  - raw: 54g granola + 150ml low fat milk
+    time: '21:25'
+    parsed:
+    - {item: granola, g: 54}
+    - {item: milk-lowfat, ml: 150}
+totals: {kcal: 2266, protein_g: 174.9, carbs_g: 267.2, fat_g: 55.2, satfat_g: 18.3, fibre_g: 30.0, sodium_mg: 1551, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2841, active: 1106, bmr: 1735, source: garmin}
+intensity_min: {moderate: 0, vigorous: 62, source: garmin}
+fitness: {vo2max: 45.7, source: garmin}

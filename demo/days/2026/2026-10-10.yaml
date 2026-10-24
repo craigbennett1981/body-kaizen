@@ -1,0 +1,107 @@
+date: '2026-10-10'
+status: complete
+day_type: big
+weight: {kg: 79.1, fasted: true, time: '06:45', bf_pct: 19.6, muscle_kg: 60.4, visceral: 7, water_pct: 57.1, bmi: 25.0, source: scale-app}
+recovery:
+  sleep: 8h54m
+  sleep_stages_min: {deep: 147, light: 239, rem: 148}
+  awake_min: 6
+  in_bed: 22:08–07:08
+  sleep_start: 2026-10-09T22:08
+  sleep_end: 2026-10-10T07:08
+  sleep_score: 95
+  overnight_hr: 55
+  hrv_ms: 67
+  hrv_7d_ms: 64
+  hrv_status: balanced
+  rhr: 51
+  body_battery: 93
+  stress_avg: 25
+  source: garmin
+steps: 9631
+exercise:
+- type: run
+  garmin_id: 30000000050
+  source: garmin
+  mode: outdoor
+  effort: long
+  start: 06:42
+  duration_min: 71
+  distance_km: 10.46
+  time: '71:56'
+  distance_source: gps
+  hr: {avg: 142, max: 153}
+  kcal: {total: 784, active: 669}
+  cadence: 159
+  zones_min: {z1: 2, z2: 25, z3: 39, z4: 7}
+  garmin_name: Running
+meals:
+  breakfast:
+  - raw: 52g oats
+    time: 07:20
+    parsed:
+    - {item: oats-rolled, g: 52}
+  - raw: 2 eggs
+    time: 07:20
+    parsed:
+    - {item: egg, n: 2}
+  - raw: English breakfast tea and low fat milk
+    time: 07:20
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 75g blueberries
+    time: 07:20
+    parsed:
+    - {item: blueberries, g: 75}
+  - raw: 1 banana
+    time: 07:20
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 154g rice
+    time: '12:46'
+    parsed:
+    - {item: rice, g: 154}
+  - raw: 131g salmon
+    time: '12:46'
+    parsed:
+    - {item: salmon, g: 131}
+  - raw: 127g spinach
+    time: '12:46'
+    parsed:
+    - {item: veg-stirfried, g: 127}
+  dinner:
+  - raw: 161g rice
+    time: '18:42'
+    parsed:
+    - {item: rice, g: 161}
+  - raw: 99g pork loin
+    time: '18:42'
+    parsed:
+    - {item: pork-loin, g: 99}
+  - raw: 114g broccoli
+    time: '18:42'
+    parsed:
+    - {item: veg-stirfried, g: 114}
+  snacks:
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:46'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: brownie 250 cal
+    time: '20:06'
+    parsed:
+    - {item: brownie, kcal: 250, conf: med}
+  - raw: 1 kiwi
+    time: '21:15'
+    parsed:
+    - {item: kiwi, n: 1}
+  - raw: 52g dates
+    time: '21:18'
+    parsed:
+    - {item: dates, g: 52}
+totals: {kcal: 2188, protein_g: 134.6, carbs_g: 263.6, fat_g: 68.4, satfat_g: 20.2, fibre_g: 27.3, sodium_mg: 1297, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2823, active: 1102, bmr: 1721, source: garmin}
+intensity_min: {moderate: 0, vigorous: 71, source: garmin}
+fitness: {vo2max: 46.6, source: garmin}

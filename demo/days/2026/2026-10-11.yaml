@@ -1,0 +1,82 @@
+date: '2026-10-11'
+status: complete
+day_type: rest
+weight: {kg: 79.3, fasted: true, time: '07:23', bf_pct: 19.9, muscle_kg: 60.4, visceral: 7, water_pct: 56.9, bmi: 25.0, source: scale-app}
+recovery:
+  sleep: 9h38m
+  sleep_stages_min: {deep: 140, light: 259, rem: 179}
+  awake_min: 0
+  in_bed: 22:01–07:39
+  sleep_start: 2026-10-10T22:01
+  sleep_end: 2026-10-11T07:39
+  sleep_score: 95
+  overnight_hr: 57
+  hrv_ms: 57
+  hrv_7d_ms: 63
+  hrv_status: balanced
+  rhr: 53
+  body_battery: 98
+  stress_avg: 27
+  source: garmin
+vitals:
+  bp:
+  - {time: '07:48', sys: 120, dia: 80, pulse: 66, source: bp-app}
+steps: 15148
+meals:
+  breakfast:
+  - raw: 150g yogurt + 104g soaked chia seeds
+    time: 07:30
+    parsed:
+    - {item: yogurt, g: 150}
+    - {item: chia-soaked, g: 104}
+  - raw: English breakfast tea and low fat milk
+    time: 07:30
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:30
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 193g rice
+    time: '13:08'
+    parsed:
+    - {item: rice, g: 193}
+  - raw: 178g chicken breast
+    time: '13:08'
+    parsed:
+    - {item: chicken-breast, g: 178}
+  - raw: 102g broccoli
+    time: '13:08'
+    parsed:
+    - {item: veg-stirfried, g: 102}
+  dinner:
+  - raw: 247g potato
+    time: '19:10'
+    parsed:
+    - {item: potato, g: 247}
+  - raw: 129g lean beef
+    time: '19:10'
+    parsed:
+    - {item: beef-lean, g: 129}
+  - raw: 137g green bean
+    time: '19:10'
+    parsed:
+    - {item: veg-stirfried, g: 137}
+  snacks:
+  - raw: 38g dates
+    time: '10:51'
+    parsed:
+    - {item: dates, g: 38}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:45'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 39g dates
+    time: '17:11'
+    parsed:
+    - {item: dates, g: 39}
+totals: {kcal: 1926, protein_g: 165.1, carbs_g: 233.1, fat_g: 39.1, satfat_g: 12.2, fibre_g: 30.2, sodium_mg: 1176, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2402, active: 681, bmr: 1721, source: garmin}
+intensity_min: {moderate: 0, vigorous: 0, source: garmin}

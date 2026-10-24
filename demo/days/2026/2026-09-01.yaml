@@ -1,0 +1,108 @@
+date: '2026-09-01'
+status: complete
+day_type: training
+weight: {kg: 80.9, fasted: true, time: '06:48', bf_pct: 20.9, muscle_kg: 60.8, visceral: 8, water_pct: 56.3, bmi: 25.5, source: scale-app}
+recovery:
+  sleep: 6h44m
+  sleep_stages_min: {deep: 121, light: 181, rem: 102}
+  awake_min: 6
+  in_bed: 23:23–06:13
+  sleep_start: 2026-08-31T23:23
+  sleep_end: 2026-09-01T06:13
+  sleep_score: 66
+  overnight_hr: 59
+  hrv_ms: 60
+  hrv_7d_ms: 60
+  hrv_status: balanced
+  rhr: 55
+  body_battery: 65
+  stress_avg: 26
+  source: garmin
+feel: {overall: 4, energy: 4, mood: 5, gut: 3, stress: 3}
+steps: 10776
+exercise:
+- type: run
+  garmin_id: 30000000027
+  source: garmin
+  mode: outdoor
+  effort: easy
+  start: '18:41'
+  duration_min: 40
+  distance_km: 5.86
+  time: '40:46'
+  distance_source: gps
+  hr: {avg: 142, max: 159}
+  kcal: {total: 439, active: 375}
+  cadence: 166
+  zones_min: {z1: 2, z2: 14, z3: 22, z4: 4}
+  garmin_name: Running
+meals:
+  breakfast:
+  - raw: 60g sourdough
+    time: 07:09
+    parsed:
+    - {item: sourdough, g: 60}
+  - raw: 2 eggs
+    time: 07:09
+    parsed:
+    - {item: egg, n: 2}
+  - raw: English breakfast tea and low fat milk
+    time: 07:09
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  lunch:
+  - raw: salad 171g
+    time: '13:00'
+    parsed:
+    - {item: salad, g: 171}
+  - raw: 137g chicken breast
+    time: '13:00'
+    parsed:
+    - {item: chicken-breast, g: 137}
+  - raw: 57g sourdough
+    time: '13:00'
+    parsed:
+    - {item: sourdough, g: 57}
+  - raw: 72g avocado
+    time: '13:00'
+    parsed:
+    - {item: avocado, g: 72}
+  dinner:
+  - raw: 177g rice
+    time: '19:26'
+    parsed:
+    - {item: rice, g: 177}
+  - raw: 130g chicken breast
+    time: '19:26'
+    parsed:
+    - {item: chicken-breast, g: 130}
+  - raw: 111g spinach
+    time: '19:26'
+    parsed:
+    - {item: veg-stirfried, g: 111}
+  - raw: 200ml miso soup
+    time: '19:26'
+    parsed:
+    - {item: miso-soup, ml: 200}
+  snacks:
+  - raw: 168g guava
+    time: '10:45'
+    parsed:
+    - {item: guava, g: 168}
+  - raw: 178g yogurt + half scoop protein powder
+    time: '15:41'
+    parsed:
+    - {item: scoop, n: 0.5}
+    - {item: yogurt, g: 178}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '17:00'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 157g guava
+    time: '21:12'
+    parsed:
+    - {item: guava, g: 157}
+totals: {kcal: 2168, protein_g: 192.9, carbs_g: 214.1, fat_g: 58.6, satfat_g: 16.0, fibre_g: 35.4, sodium_mg: 2439, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2600, active: 859, bmr: 1741, source: garmin}
+intensity_min: {moderate: 0, vigorous: 40, source: garmin}

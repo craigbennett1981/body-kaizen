@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Health Summary</title>
+<link rel="stylesheet" href="vendor/fonts.css">
+<style>
+:root{--ink:#1a1f2b;--muted:#5d6675;--rule:#d9dde3;--bad:#C8372D;--bg:#fff}
+*{box-sizing:border-box} body{font:14px/1.45 Archivo,system-ui,sans-serif;color:var(--ink);background:var(--bg);margin:0;padding:24px 16px}
+main{max-width:860px;margin:0 auto} h1{font-size:24px;margin:0} h2{font-size:16px;margin:22px 0 6px;border-bottom:2px solid var(--ink);padding-bottom:3px}
+.sub{color:var(--muted);font-size:13px} table{border-collapse:collapse;width:100%;font-size:13px} th,td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-weight:600;color:var(--muted)} td.n,th.n{text-align:right;font-variant-numeric:tabular-nums} .flag{color:var(--bad);font-weight:700}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 24px} ol{margin:4px 0;padding-left:20px} li{margin:3px 0}
+.bar{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap} button{font:inherit;padding:6px 14px;border:1px solid var(--rule);border-radius:8px;background:#fff;cursor:pointer}
+.wrap{overflow-x:auto} .foot{margin-top:24px;color:var(--muted);font-size:12px}
+@media print{body{padding:0;font-size:11.5px} .noprint{display:none} h2{break-after:avoid} table{break-inside:auto} tr{break-inside:avoid} @page{margin:14mm}}
+@media (max-width:600px){.grid{grid-template-columns:1fr}}
+</style></head>
+<body><main id="r"><p class="sub">Loading…</p></main>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const sd = s => new Date(s+'T00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+const f = (v, d) => v==null ? '–' : (+v).toLocaleString('en-GB',{maximumFractionDigits:d??2});
+fetch('/api/doctor').then(r => r.json()).then(R => {
+  const p = R.profile, t = R.trends, w = R.weight;
+  let h = `<div class="bar"><div><h1>Health summary${R.name ? ': ' + esc(R.name) : ''}</h1>
+    <div class="sub">${p.sex||'male'}, ${p.age} y, ${p.height_cm} cm · data to ${sd(R.as_of)} · printed ${sd(R.generated)}</div></div>
+    <div class="noprint"><button onclick="window.print()">Print / save as PDF</button> <a href="/#longevity">Back</a></div></div>`;
+  h += `<h2>Questions for today</h2><ol>${R.questions.map(q=>`<li>${q}</li>`).join('')}</ol>`;
+  h += `<h2>Blood results</h2><div class="wrap"><table><tr><th>Test</th><th>Unit</th>${R.lab_dates.map(d=>`<th class="n">${sd(d)}</th>`).join('')}<th>Lab range</th></tr>` +
+    R.labs.map(r => `<tr><td>${r.name}</td><td>${r.unit}</td>${r.values.map((v,i)=>`<td class="n">${v==null?'':`${f(v)}${r.flags[i]?` <span class="flag">${r.flags[i]}</span>`:''}`}</td>`).join('')}<td>${r.ref||''}</td></tr>`).join('') + `</table></div>
+    <p class="sub">${R.lab_names.length ? esc(R.lab_names.join(', ')) + '. ' : ''}H/L = flagged by the lab.</p>`;
+  h += `<h2>Not yet tested</h2><p>${R.untested.map(u=>u.name).join(', ')}.</p>`;
+  const b = R.bp;
+  h += `<h2>Blood pressure</h2><p>Average of ${b.n} recent reading${b.n!==1?'s':''}: <b>${b.avg_sys}/${b.avg_dia} mmHg</b> (${b.category}, ACC/AHA 2017). Home cuff.</p>
+    <table><tr><th>Date</th><th>Time</th><th class="n">Systolic</th><th class="n">Diastolic</th><th class="n">Pulse</th></tr>${b.readings.slice().reverse().map(x=>`<tr><td>${sd(x.date)}</td><td>${x.time||''}</td><td class="n">${x.sys}</td><td class="n">${x.dia}</td><td class="n">${x.pulse??''}</td></tr>`).join('')}</table>`;
+  h += `<h2>Body composition (InBody 770)</h2><table><tr><th>Date</th><th class="n">Weight kg</th><th class="n">Muscle kg</th><th class="n">Fat kg</th><th class="n">Body fat %</th><th class="n">Visceral</th><th class="n">Phase angle</th></tr>${R.inbody.slice().reverse().map(x=>`<tr><td>${sd(x.date)}</td><td class="n">${f(x.weight_kg,1)}</td><td class="n">${f(x.smm_kg,1)}</td><td class="n">${f(x.fat_kg,1)}</td><td class="n">${f(x.pbf_pct,1)}</td><td class="n">${x.visceral_level??''}</td><td class="n">${x.phase_angle??''}</td></tr>`).join('')}</table>
+    ${w.first&&w.last?`<p class="sub">Home scale: ${f(w.first[1],1)} kg on ${sd(w.first[0])} → ${f(w.last[1],1)} kg on ${sd(w.last[0])}.</p>`:''}`;
+  h += `<h2>Last 30 days (watch and food log)</h2><div class="grid">${t.map(x=>`<div>${x.name}: <b>${x.value==null?'–':f(x.value, x.unit==='h/night'||x.unit==='bpm'||x.unit==='ms'?1:0)} ${x.unit}</b> <span class="sub">(${x.n} days)</span></div>`).join('')}
+    <div>Training: <b>${R.training.gym_30d} gym, ${R.training.cardio_30d} cardio sessions</b></div></div>`;
+  h += `<p class="foot">Self-tracked with a Garmin watch, home BP cuff and food log. Lab values are as reported by the lab; nothing has been converted.</p>`;
+  $('#r').innerHTML = h;
+}).catch(() => { $('#r').innerHTML = '<p>Couldn’t load the report. Is the dashboard running?</p>'; });
+</script></body></html>

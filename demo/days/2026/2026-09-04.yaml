@@ -1,0 +1,92 @@
+date: '2026-09-04'
+status: complete
+day_type: rest
+weight: {kg: 80.7, fasted: true, time: '07:20', bf_pct: 21.0, muscle_kg: 60.5, visceral: 8, water_pct: 57.1, bmi: 25.5, source: scale-app}
+recovery:
+  sleep: 7h32m
+  sleep_stages_min: {deep: 124, light: 204, rem: 124}
+  awake_min: 0
+  in_bed: 22:57–06:29
+  sleep_start: 2026-09-03T22:57
+  sleep_end: 2026-09-04T06:29
+  sleep_score: 74
+  overnight_hr: 63
+  hrv_ms: 47
+  hrv_7d_ms: 52
+  hrv_status: balanced
+  rhr: 59
+  body_battery: 41
+  stress_avg: 36
+  source: garmin
+feel: {overall: 2, energy: 2, mood: 4, gut: 4, stress: 2}
+vitals:
+  bp:
+  - {time: '08:07', sys: 123, dia: 79, pulse: 71, source: bp-app}
+steps: 2500
+meals:
+  breakfast:
+  - raw: 45g oats
+    time: 07:49
+    parsed:
+    - {item: oats-rolled, g: 45}
+  - raw: 2 eggs
+    time: 07:49
+    parsed:
+    - {item: egg, n: 2}
+  - raw: English breakfast tea and low fat milk
+    time: 07:49
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 92g blueberries
+    time: 07:49
+    parsed:
+    - {item: blueberries, g: 92}
+  - raw: 1 banana
+    time: 07:49
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 172g rice
+    time: '12:14'
+    parsed:
+    - {item: rice, g: 172}
+  - raw: 111g tofu
+    time: '12:14'
+    parsed:
+    - {item: tofu, g: 111}
+  - raw: 114g cabbage
+    time: '12:14'
+    parsed:
+    - {item: veg-stirfried, g: 114}
+  - raw: 117g pork loin
+    time: '12:14'
+    parsed:
+    - {item: pork-loin, g: 117}
+  dinner:
+  - raw: 143g rice
+    time: '18:45'
+    parsed:
+    - {item: rice, g: 143}
+  - raw: 120g pork loin
+    time: '18:45'
+    parsed:
+    - {item: pork-loin, g: 120}
+  - raw: 101g broccoli
+    time: '18:45'
+    parsed:
+    - {item: veg-stirfried, g: 101}
+  snacks:
+  - raw: 26g almonds and cashews
+    time: '15:49'
+    parsed:
+    - {item: nuts-mixed, g: 26}
+  - raw: 158g apple
+    time: '21:04'
+    parsed:
+    - {item: apple, g: 158}
+totals: {kcal: 1705, protein_g: 118.2, carbs_g: 193.5, fat_g: 53.3, satfat_g: 12.1, fibre_g: 23.5, sodium_mg: 828, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+symptoms:
+- {what: sore throat, severity: 2}
+- {what: fatigue, severity: 2}
+energy: {total: 1851, active: 112, bmr: 1739, source: garmin}
+intensity_min: {moderate: 0, vigorous: 0, source: garmin}

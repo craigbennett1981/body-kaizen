@@ -1,0 +1,27 @@
+date: '2026-09-15'
+status: unlogged
+day_type: rest
+recovery:
+  sleep: 7h44m
+  sleep_stages_min: {deep: 123, light: 230, rem: 111}
+  awake_min: 3
+  in_bed: 22:49–06:36
+  sleep_start: 2026-09-14T22:49
+  sleep_end: 2026-09-15T06:36
+  sleep_score: 86
+  overnight_hr: 57
+  hrv_ms: 59
+  hrv_7d_ms: 59
+  hrv_status: balanced
+  rhr: 53
+  body_battery: 74
+  stress_avg: 30
+  source: garmin
+steps: 12375
+meals:
+  breakfast: []
+  lunch: []
+  dinner: []
+  snacks: []
+energy: {total: 2290, active: 556, bmr: 1734, source: garmin}
+intensity_min: {moderate: 0, vigorous: 0, source: garmin}

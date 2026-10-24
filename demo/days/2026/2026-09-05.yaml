@@ -1,0 +1,101 @@
+date: '2026-09-05'
+status: complete
+day_type: training
+weight: {kg: 80.5, fasted: true, time: '07:23', bf_pct: 21.8, muscle_kg: 59.8, visceral: 8, water_pct: 56.5, bmi: 25.4, source: scale-app}
+recovery:
+  sleep: 9h04m
+  sleep_stages_min: {deep: 134, light: 268, rem: 142}
+  awake_min: 3
+  in_bed: 22:09–07:16
+  sleep_start: 2026-09-04T22:09
+  sleep_end: 2026-09-05T07:16
+  sleep_score: 94
+  overnight_hr: 58
+  hrv_ms: 59
+  hrv_7d_ms: 51
+  hrv_status: balanced
+  rhr: 54
+  body_battery: 79
+  stress_avg: 31
+  source: garmin
+vitals:
+  bp:
+  - {time: '07:47', sys: 121, dia: 80, pulse: 64, source: bp-app}
+steps: 7448
+exercise:
+- type: swim
+  garmin_id: 30000000028
+  source: garmin
+  start: 08:00
+  duration_min: 40
+  distance_m: 1200
+  pool_m: 25
+  hr: {avg: 128, max: 148}
+  kcal: {total: 384, active: 324}
+  garmin_name: Pool Swim
+meals:
+  breakfast:
+  - raw: 45g oats
+    time: 07:11
+    parsed:
+    - {item: oats-rolled, g: 45}
+  - raw: 2 eggs
+    time: 07:11
+    parsed:
+    - {item: egg, n: 2}
+  - raw: English breakfast tea and low fat milk
+    time: 07:11
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 64g blueberries
+    time: 07:11
+    parsed:
+    - {item: blueberries, g: 64}
+  - raw: 1 banana
+    time: 07:11
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: salad 138g
+    time: '12:35'
+    parsed:
+    - {item: salad, g: 138}
+  - raw: 161g chicken breast
+    time: '12:35'
+    parsed:
+    - {item: chicken-breast, g: 161}
+  - raw: 60g sourdough
+    time: '12:35'
+    parsed:
+    - {item: sourdough, g: 60}
+  - raw: 72g avocado
+    time: '12:35'
+    parsed:
+    - {item: avocado, g: 72}
+  dinner:
+  - raw: 187g pasta
+    time: '19:15'
+    parsed:
+    - {item: pasta, g: 187}
+  - raw: 139g bolognese beef
+    time: '19:15'
+    parsed:
+    - {item: bolognese-beef, g: 139}
+  snacks:
+  - raw: 181g pear
+    time: '10:57'
+    parsed:
+    - {item: pear, g: 181}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:35'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 23g almonds and cashews
+    time: '16:47'
+    parsed:
+    - {item: nuts-mixed, g: 23}
+totals: {kcal: 2124, protein_g: 147.6, carbs_g: 228.3, fat_g: 69.9, satfat_g: 19.6, fibre_g: 30.5, sodium_mg: 1262, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2398, active: 659, bmr: 1739, source: garmin}
+intensity_min: {moderate: 40, vigorous: 0, source: garmin}
+fitness: {vo2max: 46.0, source: garmin}

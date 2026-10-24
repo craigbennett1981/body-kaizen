@@ -1,0 +1,40 @@
+# Reference points for the health score: each marker scores 100 at "top" (a fit, athletic 42-year-old man),
+# 50 at "avg" (a typical 42-year-old man) and 0 at "poor", straight-line in between and capped at 0-100.
+# Unmeasured markers count as 50 (average) until they are measured: no credit for unknowns.
+# Values are working estimates from published norms (ACSM/Cooper VO2max tables, NHANES, population sleep and
+# grip norms, lipid guidelines); marked verify where the norm is weakest. Edit freely.
+age: 42
+sex: male
+markers:
+  vo2max:            {top: 55,   avg: 40,   poor: 30,   unit: ml/kg/min}
+  rhr:               {top: 45,   avg: 70,   poor: 85,   unit: bpm}
+  hrv:               {top: 75,   avg: 40,   poor: 20,   unit: ms, verify: true}     # Garmin overnight HRV, age 42
+  aerobic_min:       {top: 300,  avg: 100,  poor: 0,    unit: min/week}             # moderate + 2 x vigorous
+  grip:              {top: 56,   avg: 46,   poor: 37,   unit: kg}
+  sit_to_stand:      {top: 25,   avg: 18,   poor: 12,   unit: reps in 30 s, verify: true}
+  one_leg_stand:     {top: 60,   avg: 40,   poor: 10,   unit: s eyes open, verify: true}
+  smi:               {top: 9.5,  avg: 7.8,  poor: 7.0,  unit: kg/m², verify: true}
+  strength_sessions: {top: 4,    avg: 1,    poor: 0,    unit: per week}
+  body_fat:          {top: 12,   avg: 24,   poor: 30,   unit: "%"}
+  visceral:          {top: 3,    avg: 10,   poor: 14,   unit: level}
+  waist_height:      {top: 0.43, avg: 0.53, poor: 0.6,  unit: ratio}
+  apob:              {top: 0.6,  avg: 1.0,  poor: 1.3,  unit: g/L}
+  ldl:               {top: 1.8,  avg: 3.3,  poor: 4.5,  unit: mmol/L}
+  lpa:               {top: 30,   avg: 75,   poor: 125,  unit: nmol/L}
+  bp_sys:            {top: 105,  avg: 125,  poor: 140,  unit: mmHg}
+  bp_dia:            {top: 65,   avg: 80,   poor: 90,   unit: mmHg}
+  hscrp:             {top: 0.5,  avg: 2.0,  poor: 4.0,  unit: mg/L}
+  tg:                {top: 0.8,  avg: 1.5,  poor: 2.3,  unit: mmol/L}
+  hdl:               {top: 1.6,  avg: 1.2,  poor: 0.9,  unit: mmol/L}
+  hba1c:             {top: 5.0,  avg: 5.5,  poor: 6.0,  unit: "%"}
+  glucose:           {top: 4.6,  avg: 5.3,  poor: 6.1,  unit: mmol/L}
+  cgm_mean:          {top: 5.0,  avg: 5.6,  poor: 6.4,  unit: mmol/L, verify: true}
+  cgm_tir:           {top: 99,   avg: 92,   poor: 75,   unit: "%", verify: true}
+  cgm_cv:            {top: 12,   avg: 18,   poor: 26,   unit: "%", verify: true}
+  insulin:           {top: 3,    avg: 8,    poor: 15,   unit: µIU/mL}
+  sleep_h:           {top: 8.0,  avg: 7.0,  poor: 6.0,  unit: h}
+  sleep_onset_sd:    {top: 15,   avg: 45,   poor: 75,   unit: min}
+  protein_gkg:       {top: 1.8,  avg: 1.1,  poor: 0.8,  unit: g/kg}
+  fibre:             {top: 38,   avg: 18,   poor: 10,   unit: g/day}
+  satfat_pct:        {top: 7,    avg: 12,   poor: 16,   unit: "% of kcal"}
+  steps:             {top: 12000, avg: 7000, poor: 3000, unit: steps/day}

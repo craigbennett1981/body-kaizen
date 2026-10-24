@@ -1,0 +1,81 @@
+date: '2026-08-27'
+status: complete
+day_type: rest
+weight: {kg: 80.9, fasted: true, time: '07:22', bf_pct: 21.8, muscle_kg: 60.0, visceral: 8, water_pct: 57.5, bmi: 25.5, source: scale-app}
+recovery:
+  sleep: 7h43m
+  sleep_stages_min: {deep: 123, light: 219, rem: 121}
+  awake_min: 3
+  in_bed: 23:14–07:00
+  sleep_start: 2026-08-26T23:14
+  sleep_end: 2026-08-27T07:00
+  sleep_score: 74
+  overnight_hr: 61
+  hrv_ms: 60
+  hrv_7d_ms: 61
+  hrv_status: balanced
+  rhr: 57
+  body_battery: 71
+  stress_avg: 34
+  source: garmin
+feel: {overall: 4, energy: 3, mood: 5, gut: 3, stress: 2}
+steps: 6206
+meals:
+  breakfast:
+  - raw: 144g yogurt + 93g soaked chia seeds
+    time: 07:11
+    parsed:
+    - {item: yogurt, g: 144}
+    - {item: chia-soaked, g: 93}
+  - raw: English breakfast tea and low fat milk
+    time: 07:11
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:11
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 161g rice
+    time: '12:56'
+    parsed:
+    - {item: rice, g: 161}
+  - raw: 162g chicken breast
+    time: '12:56'
+    parsed:
+    - {item: chicken-breast, g: 162}
+  - raw: 94g broccoli
+    time: '12:56'
+    parsed:
+    - {item: veg-stirfried, g: 94}
+  dinner:
+  - raw: 174g pasta
+    time: '19:10'
+    parsed:
+    - {item: pasta, g: 174}
+  - raw: 130g bolognese beef
+    time: '19:10'
+    parsed:
+    - {item: bolognese-beef, g: 130}
+  snacks:
+  - raw: 147g yogurt + half scoop protein powder
+    time: '10:32'
+    parsed:
+    - {item: scoop, n: 0.5}
+    - {item: yogurt, g: 147}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:56'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 172g guava
+    time: '21:12'
+    parsed:
+    - {item: guava, g: 172}
+  - raw: 177g apple
+    time: '21:28'
+    parsed:
+    - {item: apple, g: 177}
+totals: {kcal: 1921, protein_g: 164.1, carbs_g: 225.5, fat_g: 41.7, satfat_g: 14.2, fibre_g: 32.6, sodium_mg: 1240, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2022, active: 279, bmr: 1743, source: garmin}
+intensity_min: {moderate: 0, vigorous: 0, source: garmin}

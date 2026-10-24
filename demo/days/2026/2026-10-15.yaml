@@ -1,0 +1,79 @@
+date: '2026-10-15'
+status: complete
+day_type: rest
+weight: {kg: 78.7, fasted: true, time: '07:14', bf_pct: 20.0, muscle_kg: 59.8, visceral: 7, water_pct: 56.5, bmi: 24.8, source: scale-app}
+recovery:
+  sleep: 7h34m
+  sleep_stages_min: {deep: 114, light: 242, rem: 98}
+  awake_min: 6
+  in_bed: 23:25–07:05
+  sleep_start: 2026-10-14T23:25
+  sleep_end: 2026-10-15T07:05
+  sleep_score: 77
+  overnight_hr: 54
+  hrv_ms: 75
+  hrv_7d_ms: 63
+  hrv_status: balanced
+  rhr: 50
+  body_battery: 86
+  stress_avg: 30
+  source: garmin
+vitals:
+  bp:
+  - {time: '08:05', sys: 116, dia: 75, pulse: 61, source: bp-app}
+steps: 7215
+meals:
+  breakfast:
+  - raw: 141g yogurt + 94g soaked chia seeds
+    time: 07:01
+    parsed:
+    - {item: yogurt, g: 141}
+    - {item: chia-soaked, g: 94}
+  - raw: English breakfast tea and low fat milk
+    time: 07:01
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:01
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 193g rice
+    time: '13:07'
+    parsed:
+    - {item: rice, g: 193}
+  - raw: 165g chicken breast
+    time: '13:07'
+    parsed:
+    - {item: chicken-breast, g: 165}
+  - raw: 137g broccoli
+    time: '13:07'
+    parsed:
+    - {item: veg-stirfried, g: 137}
+  dinner:
+  - raw: 219g pasta
+    time: '18:39'
+    parsed:
+    - {item: pasta, g: 219}
+  - raw: 140g bolognese beef
+    time: '18:39'
+    parsed:
+    - {item: bolognese-beef, g: 140}
+  snacks:
+  - raw: 141g yogurt + half scoop protein powder
+    time: '10:39'
+    parsed:
+    - {item: scoop, n: 0.5}
+    - {item: yogurt, g: 141}
+  - raw: 192g guava
+    time: '15:36'
+    parsed:
+    - {item: guava, g: 192}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '15:50'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+totals: {kcal: 1994, protein_g: 170.1, carbs_g: 228.3, fat_g: 44.5, satfat_g: 14.9, fibre_g: 31.8, sodium_mg: 1378, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2043, active: 324, bmr: 1719, source: garmin}
+intensity_min: {moderate: 0, vigorous: 0, source: garmin}

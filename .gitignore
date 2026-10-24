@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Never commit personal data or secrets to this repository.
+# Your data folder (FT_DATA) belongs outside this repo, in its own private repository.
+.env
+secrets/
+logs/
+/days/
+/imports/
+/measurements/
+/reviews/
+/reports/
+
+# OS
+.DS_Store

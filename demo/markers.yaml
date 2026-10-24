@@ -1,0 +1,117 @@
+# Long-term (longevity) markers. One place for targets, test intervals and caveats.
+# bands: green [lo, hi], amber [lo, hi]; outside both = red. null = open-ended.
+# contested: an "optimal" band some clinicians argue for — drawn dashed, can only ever make a value amber.
+# bands: lab  -> judge against the reference range printed on that lab report.
+# Units follow your lab (SI units here). Values are stored exactly as reported — never converted.
+# verify: true -> starter target, not yet checked against a primary source. Shown as provisional.
+# interval_days: how often to test. once: true -> a single lifetime test is enough (genetic).
+profile: {age: 42, sex: male, height_cm: 178}
+
+levers: [vo2max, grip, sit_to_stand, apob, bp_sys, sleep_onset_sd]
+
+categories:
+  fitness: Fitness & function
+  cardio: Lipids & cardiovascular
+  metabolic: Metabolic
+  organ: Inflammation & organ function
+  body: Body composition
+  sleep: Sleep & recovery
+  activity: Activity
+  nutrition: Nutrition
+  bioage: Biological age
+
+markers:
+  # ---------- fitness & function ----------
+  vo2max:        {name: VO2max, unit: ml/kg/min, cat: fitness, source: garmin, green: [45, null], amber: [38, 45], verify: true,
+                  note: "Garmin estimate, roughly ±5–8%: read the trend, not the number. Target = top quartile for men 40–49 (to verify)."}
+  grip:          {name: Grip strength (best hand), unit: kg, cat: fitness, source: manual, green: [45, null], amber: [37, 45], interval_days: 90, verify: true}
+  sit_to_stand:  {name: 30-s sit-to-stand, unit: reps, cat: fitness, source: manual, green: [17, null], amber: [14, 17], interval_days: 90, verify: true}
+  one_leg_stand: {name: One-leg stand, eyes open, unit: s, cat: fitness, source: manual, green: [30, null], amber: [10, 30], interval_days: 90, verify: true}
+
+  # ---------- lipids & cardiovascular ----------
+  bp_sys:        {name: Systolic BP (30-day avg), unit: mmHg, cat: cardio, source: manual, green: [null, 120], amber: [120, 130], interval_days: 7,
+                  note: "2017 ACC/AHA: <120 normal, 120–129 elevated, 130+ stage 1."}
+  bp_dia:        {name: Diastolic BP (30-day avg), unit: mmHg, cat: cardio, source: manual, green: [null, 80], amber: [80, 90], interval_days: 7}
+  rhr:           {name: Resting heart rate (7-day avg), unit: bpm, cat: cardio, source: garmin, green: [null, 60], amber: [60, 70]}
+  apob:          {name: ApoB, unit: g/L, cat: cardio, source: lab, bands: none, interval_days: 180,
+                  note: "Tracked for its trend. Many guidelines set no ApoB target and use LDL-C instead; check yours."}
+  lpa:           {name: Lp(a), unit: nmol/L, cat: cardio, source: lab, green: [null, 75], amber: [75, 125], once: true,
+                  note: "Store in the unit the lab reports (nmol/L or mg/dL) — never auto-converted. Genetic: test once."}
+  total_chol:    {name: Total cholesterol, unit: mmol/L, cat: cardio, source: lab, bands: lab, interval_days: 180}
+  ldl:           {name: LDL-C (direct), unit: mmol/L, cat: cardio, source: lab, green: [null, 3.4], amber: [3.4, 4.9], interval_days: 180,
+                  note: "Common low-risk target: LDL-C under 3.4 mmol/L. Targets are lower at higher 10-year cardiovascular risk (often 2.6 or 1.8): ask your doctor which applies to you."}
+  non_hdl:       {name: Non-HDL-C, unit: mmol/L, cat: cardio, source: derived, bands: none, interval_days: 180, note: "Total cholesterol minus HDL."}
+  hdl:           {name: HDL-C, unit: mmol/L, cat: cardio, source: lab, green: [1.0, null], amber: [0.9, 1.0], interval_days: 180,
+                  note: "The lab prints 1.00–1.50; above 1.50 is not a problem, so only a floor is used."}
+  tc_hdl_ratio:  {name: Total cholesterol / HDL, unit: "", cat: cardio, source: lab, bands: lab, interval_days: 180}
+  tg:            {name: Triglycerides, unit: mmol/L, cat: cardio, source: lab, green: [null, 1.13], amber: [1.13, 1.70], interval_days: 180,
+                  note: "Optimal <1.13 mmol/L (100 mg/dL); lab's 1.70–2.20 band is borderline."}
+
+  # ---------- metabolic ----------
+  cgm_mean:      {name: Average glucose (CGM, 14-day), unit: mmol/L, cat: metabolic, source: cgm, green: [null, 5.6], amber: [5.6, 6.1], verify: true,
+                  note: "FreeStyle Libre, average of all readings. Non-diabetic adults typically average 5.0-5.8."}
+  cgm_tir:       {name: Time in range 3.9-7.8 (CGM, 14-day), unit: "%", cat: metabolic, source: cgm, green: [95, null], amber: [85, 95], verify: true}
+  cgm_cv:        {name: Glucose variability (CGM CV, 14-day), unit: "%", cat: metabolic, source: cgm, green: [null, 18], amber: [18, 25], verify: true,
+                  note: "Standard deviation as a % of the mean. Lower = steadier."}
+  hba1c:         {name: HbA1c, unit: "%", cat: metabolic, source: lab, green: [null, 5.7], amber: [5.7, 6.5], contested: [null, 5.4], interval_days: 365}
+  glucose:       {name: Fasting glucose, unit: mmol/L, cat: metabolic, source: lab, green: [null, 5.6], amber: [5.6, 7.0], interval_days: 365}
+  insulin:       {name: Fasting insulin, unit: µIU/mL, cat: metabolic, source: lab, contested: [null, 8], bands: lab, interval_days: 365,
+                  note: "<8 is a contested optimum; judged against the lab range otherwise."}
+  homa_ir:       {name: HOMA-IR, unit: "", cat: metabolic, source: derived, bands: none, note: "glucose (mmol/L) × insulin / 22.5 (same as mg/dL × insulin / 405)"}
+  uric_acid:     {name: Uric acid, unit: µmol/L, cat: metabolic, source: lab, bands: lab, interval_days: 365}
+
+  # ---------- inflammation & organ ----------
+  hscrp:         {name: hs-CRP, unit: mg/L, cat: organ, source: lab, green: [null, 1], amber: [1, 3], interval_days: 365,
+                  note: "Retest in 2–4 weeks if you were ill or training hard before the draw."}
+  egfr:          {name: eGFR, unit: mL/min/1.73m², cat: organ, source: lab, green: [90, null], amber: [60, 90], interval_days: 365}
+  creatinine:    {name: Creatinine, unit: µmol/L, cat: organ, source: lab, bands: lab, interval_days: 365, note: "Runs higher with more muscle and creatine use."}
+  cystatin_c:    {name: Cystatin C, unit: mg/L, cat: organ, source: lab, bands: lab, interval_days: 365}
+  alt:           {name: ALT, unit: U/L, cat: organ, source: lab, bands: lab, interval_days: 365}
+  ast:           {name: AST, unit: U/L, cat: organ, source: lab, bands: lab, interval_days: 365, note: "Rises for a few days after hard lifting."}
+  ggt:           {name: GGT, unit: U/L, cat: organ, source: lab, bands: lab, interval_days: 365}
+  alp:           {name: ALP, unit: U/L, cat: organ, source: lab, bands: lab, interval_days: 365}
+  vitd:          {name: 25-OH vitamin D, unit: nmol/L, cat: organ, source: lab, green: [75, 250], amber: [50, 75], interval_days: 365,
+                  note: "Lab bands: <25 deficient, 25–74.9 insufficient, 75–249.9 desirable, ≥250 possible toxicity."}
+  b12:           {name: Vitamin B12, unit: pmol/L, cat: organ, source: lab, bands: lab, interval_days: 365, note: "Above range is almost always supplements; not harmful in itself."}
+  folate:        {name: Folic acid, unit: nmol/L, cat: organ, source: lab, bands: lab, interval_days: 365}
+  homocysteine:  {name: Homocysteine, unit: µmol/L, cat: organ, source: lab, bands: lab, interval_days: 180}
+  omega3_index:  {name: Omega-3 index, unit: "%", cat: organ, source: lab, bands: lab, interval_days: 365}
+  albumin:       {name: Albumin, unit: g/L, cat: organ, source: lab, bands: lab, interval_days: 365}
+  wbc:           {name: White cells, unit: 10³/µL, cat: organ, source: lab, bands: lab, interval_days: 365}
+  lymph_pct:     {name: Lymphocytes, unit: "%", cat: organ, source: lab, bands: lab, interval_days: 365}
+  mcv:           {name: MCV, unit: fL, cat: organ, source: lab, bands: lab, interval_days: 365}
+  rdw:           {name: RDW, unit: "%", cat: organ, source: lab, bands: lab, interval_days: 365}
+
+  # ---------- body composition ----------
+  waist_height:  {name: Waist-to-height ratio, unit: "", cat: body, source: derived, green: [null, 0.5], amber: [0.5, 0.6], interval_days: 30}
+  body_fat:      {name: Body fat (InBody), unit: "%", cat: body, source: inbody, green: [12, 20], amber: [20, 25], interval_days: 30,
+                  note: "BIA: may read ~3–4 points below DXA. Trend only."}
+  visceral:      {name: Visceral fat level (InBody), unit: level, cat: body, source: inbody, green: [null, 9], amber: [9, 12], interval_days: 30}
+  smm:           {name: Skeletal muscle mass (InBody), unit: kg, cat: body, source: inbody, bands: none, interval_days: 30}
+  smi:           {name: Skeletal muscle index (InBody), unit: kg/m², cat: body, source: inbody, green: [7.0, null], amber: [6.5, 7.0], interval_days: 30, verify: true,
+                  note: "Appendicular lean mass ÷ height². Under 7.0 is the Asian (AWGS 2019) low-muscle cutoff for men on BIA."}
+  ecw_ratio:     {name: ECW ratio (InBody), unit: "", cat: body, source: inbody, green: [0.360, 0.390], amber: [0.390, 0.400], interval_days: 30,
+                  note: "Extracellular ÷ total body water. InBody's normal range is 0.360–0.390; higher can mean inflammation, fluid retention or muscle loss."}
+  phase_angle:   {name: Phase angle (InBody), unit: "°", cat: body, source: inbody, bands: none, interval_days: 30}
+
+  # ---------- sleep & recovery ----------
+  sleep_h:        {name: Sleep (14-day avg), unit: h, cat: sleep, source: garmin, green: [7, 9], amber: [6, 7]}
+  sleep_onset_sd: {name: Sleep onset regularity (14-day SD), unit: min, cat: sleep, source: derived, green: [null, 30], amber: [30, 60]}
+  wake_sd:        {name: Wake time regularity (14-day SD), unit: min, cat: sleep, source: derived, green: [null, 30], amber: [30, 60]}
+  hrv:            {name: HRV (7-day vs 60-day), unit: ms, cat: sleep, source: garmin, bands: none, note: "Judged as a z-score against your own baseline."}
+
+  # ---------- activity ----------
+  steps:         {name: Steps (30-day avg), unit: /day, cat: activity, source: garmin, green: [7000, null], amber: [5000, 7000]}
+  aerobic_min:   {name: Aerobic minutes (7-day), unit: min/week, cat: activity, source: derived, green: [150, null], amber: [75, 150],
+                  note: "Moderate + 2× vigorous intensity minutes."}
+  strength_sessions: {name: Strength sessions (7-day), unit: /week, cat: activity, source: derived, green: [2, null], amber: [1, 2]}
+  strength_min:  {name: Strength minutes (7-day), unit: min/week, cat: activity, source: derived, green: [30, null], amber: [15, 30]}
+
+  # ---------- nutrition ----------
+  protein_gkg:   {name: Protein (7-day avg), unit: g/kg, cat: nutrition, source: derived, green: [1.6, 2.2], amber: [1.2, 1.6]}
+  fibre:         {name: Fibre (7-day avg), unit: g/day, cat: nutrition, source: derived, green: [30, null], amber: [20, 30]}
+  satfat_pct:    {name: Saturated fat (7-day avg), unit: "% energy", cat: nutrition, source: derived, green: [null, 10], amber: [10, 13]}
+
+  # ---------- biological age ----------
+  phenoage_gap:  {name: PhenoAge minus age, unit: years, cat: bioage, source: derived, green: [null, 0], amber: [0, 3], verify: true,
+                  note: "Levine 2018. Needs 9 lab values drawn within 30 days of each other. Experimental."}

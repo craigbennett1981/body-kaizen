@@ -1,0 +1,27 @@
+name: Feature or idea
+description: Suggest a new view, metric, integration or improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The question you want the dashboard to answer, or the logging step that's slow.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help
+      description: Your idea, and any alternatives you've thought about.
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence (for health metrics and targets)
+      description: For a new score, marker or target, link the research it's based on.
+  - type: checkboxes
+    id: willing
+    attributes:
+      label: Contributing
+      options:
+        - label: I'd like to work on this myself

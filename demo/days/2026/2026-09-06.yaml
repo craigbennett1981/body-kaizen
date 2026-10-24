@@ -1,0 +1,84 @@
+date: '2026-09-06'
+status: complete
+day_type: rest
+weight: {kg: 81.0, fasted: true, time: '06:51', bf_pct: 21.1, muscle_kg: 60.7, visceral: 8, water_pct: 56.9, bmi: 25.6, source: scale-app}
+recovery:
+  sleep: 9h24m
+  sleep_stages_min: {deep: 145, light: 251, rem: 168}
+  awake_min: 6
+  in_bed: 21:44–07:14
+  sleep_start: 2026-09-05T21:44
+  sleep_end: 2026-09-06T07:14
+  sleep_score: 95
+  overnight_hr: 57
+  hrv_ms: 50
+  hrv_7d_ms: 50
+  hrv_status: balanced
+  rhr: 53
+  body_battery: 83
+  stress_avg: 32
+  source: garmin
+steps: 8719
+meals:
+  breakfast:
+  - raw: 161g yogurt + 107g soaked chia seeds
+    time: 07:55
+    parsed:
+    - {item: yogurt, g: 161}
+    - {item: chia-soaked, g: 107}
+  - raw: English breakfast tea and low fat milk
+    time: 07:55
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:55
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 157g rice
+    time: '12:04'
+    parsed:
+    - {item: rice, g: 157}
+  - raw: 91g tofu
+    time: '12:04'
+    parsed:
+    - {item: tofu, g: 91}
+  - raw: 89g cabbage
+    time: '12:04'
+    parsed:
+    - {item: veg-stirfried, g: 89}
+  - raw: 128g pork loin
+    time: '12:04'
+    parsed:
+    - {item: pork-loin, g: 128}
+  dinner:
+  - raw: 205g potato
+    time: '18:51'
+    parsed:
+    - {item: potato, g: 205}
+  - raw: 134g lean beef
+    time: '18:51'
+    parsed:
+    - {item: beef-lean, g: 134}
+  - raw: 83g green bean
+    time: '18:51'
+    parsed:
+    - {item: veg-stirfried, g: 83}
+  snacks:
+  - raw: 189g pear
+    time: '15:34'
+    parsed:
+    - {item: pear, g: 189}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:04'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 47g granola + 150ml low fat milk
+    time: '21:19'
+    parsed:
+    - {item: granola, g: 47}
+    - {item: milk-lowfat, ml: 150}
+totals: {kcal: 1985, protein_g: 163.5, carbs_g: 217.9, fat_g: 53.4, satfat_g: 15.9, fibre_g: 31.1, sodium_mg: 1033, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2130, active: 392, bmr: 1738, source: garmin}
+intensity_min: {moderate: 0, vigorous: 0, source: garmin}

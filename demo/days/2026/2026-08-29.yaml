@@ -1,0 +1,108 @@
+date: '2026-08-29'
+status: complete
+day_type: big
+weight: {kg: 80.9, fasted: true, time: '07:00', bf_pct: 21.9, muscle_kg: 60.0, visceral: 8, water_pct: 56.7, bmi: 25.5, source: scale-app}
+recovery:
+  sleep: 8h11m
+  sleep_stages_min: {deep: 126, light: 228, rem: 137}
+  awake_min: 3
+  in_bed: 22:49–07:03
+  sleep_start: 2026-08-28T22:49
+  sleep_end: 2026-08-29T07:03
+  sleep_score: 87
+  overnight_hr: 58
+  hrv_ms: 64
+  hrv_7d_ms: 61
+  hrv_status: balanced
+  rhr: 54
+  body_battery: 77
+  stress_avg: 33
+  source: garmin
+feel: {overall: 4, energy: 5, mood: 4, gut: 4, stress: 3}
+steps: 8996
+exercise:
+- type: run
+  garmin_id: 30000000025
+  source: garmin
+  mode: outdoor
+  effort: long
+  start: 07:19
+  duration_min: 57
+  distance_km: 8.14
+  time: '57:44'
+  distance_source: gps
+  hr: {avg: 148, max: 160}
+  kcal: {total: 610, active: 520}
+  cadence: 162
+  zones_min: {z1: 2, z2: 20, z3: 31, z4: 5}
+  garmin_name: Running
+meals:
+  breakfast:
+  - raw: 60g sourdough
+    time: 07:13
+    parsed:
+    - {item: sourdough, g: 60}
+  - raw: 2 eggs
+    time: 07:13
+    parsed:
+    - {item: egg, n: 2}
+  - raw: English breakfast tea and low fat milk
+    time: 07:13
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  lunch:
+  - raw: salad 159g
+    time: '12:11'
+    parsed:
+    - {item: salad, g: 159}
+  - raw: 175g chicken breast
+    time: '12:11'
+    parsed:
+    - {item: chicken-breast, g: 175}
+  - raw: 49g sourdough
+    time: '12:11'
+    parsed:
+    - {item: sourdough, g: 49}
+  - raw: 53g avocado
+    time: '12:11'
+    parsed:
+    - {item: avocado, g: 53}
+  dinner:
+  - raw: 176g rice
+    time: '19:11'
+    parsed:
+    - {item: rice, g: 176}
+  - raw: 145g fish
+    time: '19:11'
+    parsed:
+    - {item: fish, g: 145}
+  - raw: 108g bok choy
+    time: '19:11'
+    parsed:
+    - {item: veg-stirfried, g: 108}
+  snacks:
+  - raw: 56g dates
+    time: '10:45'
+    parsed:
+    - {item: dates, g: 56}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:11'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 2 slices pepperoni pizza
+    time: '20:28'
+    parsed:
+    - {item: pizza-pepperoni-stuffed, n: 2}
+  - raw: 168g pear
+    time: '21:22'
+    parsed:
+    - {item: pear, g: 168}
+  - raw: 21g almonds and cashews
+    time: '21:26'
+    parsed:
+    - {item: nuts-mixed, g: 21}
+totals: {kcal: 2697, protein_g: 189.7, carbs_g: 280.9, fat_g: 90.0, satfat_g: 28.9, fibre_g: 28.5, sodium_mg: 3301, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2666, active: 924, bmr: 1742, source: garmin}
+intensity_min: {moderate: 0, vigorous: 57, source: garmin}
+fitness: {vo2max: 45.1, source: garmin}

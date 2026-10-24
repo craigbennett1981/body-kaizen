@@ -1,0 +1,109 @@
+date: '2026-09-23'
+status: complete
+day_type: training
+weight: {kg: 80.0, fasted: true, time: '07:21', bf_pct: 20.7, muscle_kg: 60.2, visceral: 7, water_pct: 56.7, bmi: 25.2, source: scale-app}
+recovery:
+  sleep: 7h22m
+  sleep_stages_min: {deep: 129, light: 215, rem: 98}
+  awake_min: 0
+  in_bed: 23:14–06:36
+  sleep_start: 2026-09-22T23:14
+  sleep_end: 2026-09-23T06:36
+  sleep_score: 76
+  overnight_hr: 57
+  hrv_ms: 69
+  hrv_7d_ms: 61
+  hrv_status: balanced
+  rhr: 53
+  body_battery: 71
+  stress_avg: 31
+  source: garmin
+vitals:
+  bp:
+  - {time: '07:31', sys: 119, dia: 83, pulse: 67, source: bp-app}
+steps: 11135
+exercise:
+- type: gym
+  garmin_id: 30000000038
+  source: garmin
+  start: '17:23'
+  duration_min: 65
+  hr: {avg: 113, max: 143}
+  kcal: {total: 303, active: 236}
+  zones_min: {z1: 13, z2: 30, z3: 4}
+  garmin_name: Strength
+  name: Hinge + push
+  lifts:
+  - ex: smith-rdl
+    sets: [52.5x8, 52.5x8, 52.5x8]
+  - ex: lat-pulldown
+    sets: [36.3x12, 36.3x12, 36.3x11]
+  - ex: chin-up
+    sets: ['0x4', '0x3', '0x9']
+  - ex: leg-extension
+    sets: [45.4x12, 45.4x12, 45.4x12]
+  - ex: triceps-pushdown
+    sets: [40.8x12, 40.8x12, 40.8x11]
+  - ex: cable-crunch
+    sets: [59.0x9, 59.0x9, 59.0x9]
+  - ex: farmers-walk
+    sets: [55kg@80m, 55kg@80m, 55kg@80m]
+meals:
+  breakfast:
+  - raw: 152g yogurt + 84g soaked chia seeds
+    time: 07:19
+    parsed:
+    - {item: yogurt, g: 152}
+    - {item: chia-soaked, g: 84}
+  - raw: English breakfast tea and low fat milk
+    time: 07:19
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:19
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 200g pasta
+    time: '12:21'
+    parsed:
+    - {item: pasta, g: 200}
+  - raw: 157g chicken breast
+    time: '12:21'
+    parsed:
+    - {item: chicken-breast, g: 157}
+  - raw: 53g tomato pepper sauce
+    time: '12:21'
+    parsed:
+    - {item: tomato-pepper-sauce, g: 53}
+  dinner:
+  - raw: 224g pasta
+    time: '18:31'
+    parsed:
+    - {item: pasta, g: 224}
+  - raw: 135g bolognese beef
+    time: '18:31'
+    parsed:
+    - {item: bolognese-beef, g: 135}
+  snacks:
+  - raw: 175g pear
+    time: '10:36'
+    parsed:
+    - {item: pear, g: 175}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:21'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 37g dates
+    time: '16:47'
+    parsed:
+    - {item: dates, g: 37}
+  - raw: 45g granola + 150ml low fat milk
+    time: '21:21'
+    parsed:
+    - {item: granola, g: 45}
+    - {item: milk-lowfat, ml: 150}
+totals: {kcal: 2194, protein_g: 156.0, carbs_g: 286.4, fat_g: 48.1, satfat_g: 15.6, fibre_g: 31.6, sodium_mg: 1127, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2467, active: 737, bmr: 1730, source: garmin}
+intensity_min: {moderate: 65, vigorous: 0, source: garmin}

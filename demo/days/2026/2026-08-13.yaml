@@ -1,0 +1,76 @@
+date: '2026-08-13'
+status: complete
+day_type: rest
+weight: {kg: 81.6, fasted: true, time: '07:19', bf_pct: 22.2, muscle_kg: 60.3, visceral: 8, water_pct: 57.2, bmi: 25.7, source: scale-app}
+recovery:
+  sleep: 7h47m
+  sleep_stages_min: {deep: 118, light: 218, rem: 131}
+  awake_min: 3
+  in_bed: 22:50–06:40
+  sleep_start: 2026-08-12T22:50
+  sleep_end: 2026-08-13T06:40
+  sleep_score: 88
+  overnight_hr: 59
+  hrv_ms: 65
+  hrv_7d_ms: 54
+  hrv_status: balanced
+  rhr: 55
+  body_battery: 57
+  stress_avg: 18
+  source: garmin
+feel: {overall: 4, energy: 4, mood: 4, gut: 3, stress: 3}
+steps: 12956
+meals:
+  breakfast:
+  - raw: 178g yogurt + 110g soaked chia seeds
+    time: 07:13
+    parsed:
+    - {item: yogurt, g: 178}
+    - {item: chia-soaked, g: 110}
+  - raw: English breakfast tea and low fat milk
+    time: 07:13
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:13
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 175g rice
+    time: '12:18'
+    parsed:
+    - {item: rice, g: 175}
+  - raw: 129g salmon
+    time: '12:18'
+    parsed:
+    - {item: salmon, g: 129}
+  - raw: 128g spinach
+    time: '12:18'
+    parsed:
+    - {item: veg-stirfried, g: 128}
+  dinner:
+  - raw: 157g rice
+    time: '19:30'
+    parsed:
+    - {item: rice, g: 157}
+  - raw: 118g pork loin
+    time: '19:30'
+    parsed:
+    - {item: pork-loin, g: 118}
+  - raw: 87g broccoli
+    time: '19:30'
+    parsed:
+    - {item: veg-stirfried, g: 87}
+  snacks:
+  - raw: 135g pear
+    time: '10:30'
+    parsed:
+    - {item: pear, g: 135}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '17:10'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+totals: {kcal: 1678, protein_g: 133.2, carbs_g: 181.2, fat_g: 46.9, satfat_g: 12.7, fibre_g: 24.0, sodium_mg: 1059, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2333, active: 583, bmr: 1750, source: garmin}
+intensity_min: {moderate: 0, vigorous: 0, source: garmin}

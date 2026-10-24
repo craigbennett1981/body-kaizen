@@ -1,0 +1,114 @@
+date: '2026-09-08'
+status: complete
+day_type: training
+weight: {kg: 80.9, fasted: true, time: '06:50', bf_pct: 21.3, muscle_kg: 60.5, visceral: 8, water_pct: 57.8, bmi: 25.5, source: scale-app}
+recovery:
+  sleep: 7h30m
+  sleep_stages_min: {deep: 115, light: 215, rem: 120}
+  awake_min: 6
+  in_bed: 22:59–06:35
+  sleep_start: 2026-09-07T22:59
+  sleep_end: 2026-09-08T06:35
+  sleep_score: 86
+  overnight_hr: 58
+  hrv_ms: 64
+  hrv_7d_ms: 52
+  hrv_status: balanced
+  rhr: 54
+  body_battery: 78
+  stress_avg: 26
+  source: garmin
+vitals:
+  bp:
+  - {time: '07:37', sys: 117, dia: 79, pulse: 64, source: bp-app}
+steps: 11001
+exercise:
+- type: run
+  garmin_id: 30000000030
+  source: garmin
+  mode: outdoor
+  effort: easy
+  start: '18:19'
+  duration_min: 35
+  distance_km: 5.17
+  time: '35:11'
+  distance_source: gps
+  hr: {avg: 143, max: 159}
+  kcal: {total: 387, active: 330}
+  cadence: 160
+  zones_min: {z1: 2, z2: 12, z3: 19, z4: 3}
+  garmin_name: Running
+meals:
+  breakfast:
+  - raw: 50g oats
+    time: 07:09
+    parsed:
+    - {item: oats-rolled, g: 50}
+  - raw: 2 eggs
+    time: 07:09
+    parsed:
+    - {item: egg, n: 2}
+  - raw: English breakfast tea and low fat milk
+    time: 07:09
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 70g blueberries
+    time: 07:09
+    parsed:
+    - {item: blueberries, g: 70}
+  - raw: 1 banana
+    time: 07:09
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 203g pasta
+    time: '12:20'
+    parsed:
+    - {item: pasta, g: 203}
+  - raw: 134g chicken breast
+    time: '12:20'
+    parsed:
+    - {item: chicken-breast, g: 134}
+  - raw: 69g tomato pepper sauce
+    time: '12:20'
+    parsed:
+    - {item: tomato-pepper-sauce, g: 69}
+  dinner:
+  - raw: 159g rice
+    time: '19:25'
+    parsed:
+    - {item: rice, g: 159}
+  - raw: 158g chicken breast
+    time: '19:25'
+    parsed:
+    - {item: chicken-breast, g: 158}
+  - raw: 94g spinach
+    time: '19:25'
+    parsed:
+    - {item: veg-stirfried, g: 94}
+  - raw: 200ml miso soup
+    time: '19:25'
+    parsed:
+    - {item: miso-soup, ml: 200}
+  snacks:
+  - raw: 55g dates
+    time: '10:57'
+    parsed:
+    - {item: dates, g: 55}
+  - raw: 147g yogurt + half scoop protein powder
+    time: '15:47'
+    parsed:
+    - {item: scoop, n: 0.5}
+    - {item: yogurt, g: 147}
+  - raw: 20g almonds and cashews
+    time: '15:52'
+    parsed:
+    - {item: nuts-mixed, g: 20}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:20'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+totals: {kcal: 2347, protein_g: 200.2, carbs_g: 264.8, fat_g: 53.5, satfat_g: 15.6, fibre_g: 26.4, sodium_mg: 1997, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2562, active: 825, bmr: 1737, source: garmin}
+intensity_min: {moderate: 0, vigorous: 35, source: garmin}

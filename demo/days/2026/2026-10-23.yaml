@@ -1,0 +1,125 @@
+date: '2026-10-23'
+status: complete
+day_type: training
+weight: {kg: 78.7, fasted: true, time: '06:47', bf_pct: 19.7, muscle_kg: 60.0, visceral: 7, water_pct: 57.1, bmi: 24.8, source: scale-app}
+recovery:
+  sleep: 7h32m
+  sleep_stages_min: {deep: 133, light: 216, rem: 103}
+  awake_min: 3
+  in_bed: 23:23–06:58
+  sleep_start: 2026-10-22T23:23
+  sleep_end: 2026-10-23T06:58
+  sleep_score: 66
+  overnight_hr: 55
+  hrv_ms: 62
+  hrv_7d_ms: 66
+  hrv_status: balanced
+  rhr: 51
+  body_battery: 81
+  stress_avg: 19
+  source: garmin
+vitals:
+  bp:
+  - {time: '08:08', sys: 117, dia: 72, pulse: 63, source: bp-app}
+steps: 11450
+exercise:
+- type: gym
+  garmin_id: 30000000059
+  source: garmin
+  start: '18:12'
+  duration_min: 54
+  hr: {avg: 112, max: 133}
+  kcal: {total: 314, active: 244}
+  zones_min: {z1: 14, z2: 30, z3: 3}
+  garmin_name: Strength
+  name: Lower + pull
+  lifts:
+  - ex: smith-squat
+    sets: [57.5x12, 57.5x12, 57.5x12]
+    note: 5 more reps than last time at the same weight.
+  - ex: seated-row
+    sets: [45.3x10, 45.3x10, 45.3x10]
+    note: 5 more reps than last time at the same weight.
+  - ex: shoulder-press
+    sets: [40.7x11, 40.7x11, 40.7x10]
+    note: 5 more reps than last time at the same weight.
+  - ex: leg-curl
+    sets: [72.5x11, 72.5x11, 72.5x11]
+    note: 6 more reps than last time at the same weight.
+  - ex: cable-fly
+    sets: [49.8x12, 49.8x12, 49.8x11]
+    note: 6 more reps than last time at the same weight.
+  - ex: biceps-curl
+    sets: [47.5x12, 47.5x12, 47.5x12]
+    note: 5 more reps than last time at the same weight.
+  - ex: farmers-walk
+    sets: [60kg@80m, 60kg@80m, 60kg@80m]
+  coach:
+  - {kind: good, text: 'More reps on squat, seated row, shoulder press, leg curl, cable fly, biceps curl. Progress on every main lift.'}
+  - {kind: info, text: About 2.5 minutes between efforts on the heart-rate trace. That's about right for the heavy lifts; keep accessories tighter.}
+meals:
+  breakfast:
+  - raw: 52g oats
+    time: 07:20
+    parsed:
+    - {item: oats-rolled, g: 52}
+  - raw: 2 eggs
+    time: 07:20
+    parsed:
+    - {item: egg, n: 2}
+  - raw: English breakfast tea and low fat milk
+    time: 07:20
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 80g blueberries
+    time: 07:20
+    parsed:
+    - {item: blueberries, g: 80}
+  lunch:
+  - raw: 170g rice
+    time: '12:40'
+    parsed:
+    - {item: rice, g: 170}
+  - raw: 165g chicken breast
+    time: '12:40'
+    parsed:
+    - {item: chicken-breast, g: 165}
+  - raw: 120g broccoli
+    time: '12:40'
+    parsed:
+    - {item: veg-stirfried, g: 120}
+  dinner:
+  - raw: 130g rice
+    time: '19:45'
+    parsed:
+    - {item: rice, g: 130}
+  - raw: 140g salmon
+    time: '19:45'
+    parsed:
+    - {item: salmon, g: 140}
+  - raw: 120g spinach
+    time: '19:45'
+    parsed:
+    - {item: veg-stirfried, g: 120}
+  snacks:
+  - raw: 155g yogurt + 90g soaked chia seeds
+    time: '10:45'
+    parsed:
+    - {item: yogurt, g: 155}
+    - {item: chia-soaked, g: 90}
+  - raw: 170g pear
+    time: '15:30'
+    parsed:
+    - {item: pear, g: 170}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '19:00'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 150g guava
+    time: '21:00'
+    parsed:
+    - {item: guava, g: 150}
+totals: {kcal: 2134, protein_g: 172.6, carbs_g: 222.0, fat_g: 61.4, satfat_g: 16.1, fibre_g: 36.6, sodium_mg: 1293, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2474, active: 759, bmr: 1715, source: garmin}
+intensity_min: {moderate: 54, vigorous: 0, source: garmin}

@@ -1,0 +1,103 @@
+date: '2026-07-28'
+status: complete
+day_type: training
+recovery:
+  sleep: 6h46m
+  sleep_stages_min: {deep: 117, light: 183, rem: 106}
+  awake_min: 6
+  in_bed: 23:19–06:11
+  sleep_start: 2026-07-27T23:19
+  sleep_end: 2026-07-28T06:11
+  sleep_score: 69
+  overnight_hr: 60
+  hrv_ms: 48
+  hrv_7d_ms: 56
+  hrv_status: unbalanced
+  rhr: 56
+  body_battery: 56
+  stress_avg: 25
+  source: garmin
+feel: {overall: 5, energy: 3, mood: 4, gut: 4, stress: 2}
+vitals:
+  bp:
+  - {time: '07:51', sys: 125, dia: 80, pulse: 66, source: bp-app}
+steps: 9173
+exercise:
+- type: run
+  garmin_id: 30000000002
+  source: garmin
+  mode: outdoor
+  effort: easy
+  start: '18:35'
+  duration_min: 45
+  distance_km: 6.33
+  time: '45:51'
+  distance_source: gps
+  hr: {avg: 147, max: 160}
+  kcal: {total: 474, active: 405}
+  cadence: 163
+  zones_min: {z1: 2, z2: 16, z3: 25, z4: 4}
+  garmin_name: Running
+meals:
+  breakfast:
+  - raw: 148g yogurt + 84g soaked chia seeds
+    time: 07:29
+    parsed:
+    - {item: yogurt, g: 148}
+    - {item: chia-soaked, g: 84}
+  - raw: English breakfast tea and low fat milk
+    time: 07:29
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:29
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: salad 160g
+    time: '12:43'
+    parsed:
+    - {item: salad, g: 160}
+  - raw: 158g chicken breast
+    time: '12:43'
+    parsed:
+    - {item: chicken-breast, g: 158}
+  - raw: 60g sourdough
+    time: '12:43'
+    parsed:
+    - {item: sourdough, g: 60}
+  - raw: 78g avocado
+    time: '12:43'
+    parsed:
+    - {item: avocado, g: 78}
+  dinner:
+  - raw: 181g potato
+    time: '18:30'
+    parsed:
+    - {item: potato, g: 181}
+  - raw: 146g lean beef
+    time: '18:30'
+    parsed:
+    - {item: beef-lean, g: 146}
+  - raw: 126g green bean
+    time: '18:30'
+    parsed:
+    - {item: veg-stirfried, g: 126}
+  snacks:
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '15:46'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:43'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 152g guava
+    time: '21:27'
+    parsed:
+    - {item: guava, g: 152}
+totals: {kcal: 2111, protein_g: 199.8, carbs_g: 192.0, fat_g: 61.6, satfat_g: 19.1, fibre_g: 35.3, sodium_mg: 1459, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2575, active: 817, bmr: 1758, source: garmin}
+intensity_min: {moderate: 0, vigorous: 45, source: garmin}

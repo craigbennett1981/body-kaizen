@@ -1,0 +1,82 @@
+date: '2026-09-02'
+status: complete
+day_type: rest
+weight: {kg: 80.5, fasted: true, time: '07:24', bf_pct: 21.4, muscle_kg: 60.1, visceral: 8, water_pct: 56.8, bmi: 25.4, source: scale-app}
+recovery:
+  sleep: 7h51m
+  sleep_stages_min: {deep: 126, light: 237, rem: 108}
+  awake_min: 3
+  in_bed: 22:35–06:29
+  sleep_start: 2026-09-01T22:35
+  sleep_end: 2026-09-02T06:29
+  sleep_score: 87
+  overnight_hr: 62
+  hrv_ms: 42
+  hrv_7d_ms: 57
+  hrv_status: unbalanced
+  rhr: 58
+  body_battery: 48
+  stress_avg: 44
+  source: garmin
+feel: {overall: 2, energy: 2, mood: 4, gut: 4, stress: 3}
+steps: 2500
+meals:
+  breakfast:
+  - raw: 174g yogurt + 110g soaked chia seeds
+    time: 07:06
+    parsed:
+    - {item: yogurt, g: 174}
+    - {item: chia-soaked, g: 110}
+  - raw: English breakfast tea and low fat milk
+    time: 07:06
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:06
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 172g rice
+    time: '12:39'
+    parsed:
+    - {item: rice, g: 172}
+  - raw: 161g chicken breast
+    time: '12:39'
+    parsed:
+    - {item: chicken-breast, g: 161}
+  - raw: 114g broccoli
+    time: '12:39'
+    parsed:
+    - {item: veg-stirfried, g: 114}
+  dinner:
+  - raw: 172g rice
+    time: '18:44'
+    parsed:
+    - {item: rice, g: 172}
+  - raw: 156g chicken breast
+    time: '18:44'
+    parsed:
+    - {item: chicken-breast, g: 156}
+  - raw: 92g spinach
+    time: '18:44'
+    parsed:
+    - {item: veg-stirfried, g: 92}
+  - raw: 200ml miso soup
+    time: '18:44'
+    parsed:
+    - {item: miso-soup, ml: 200}
+  snacks:
+  - raw: 54g dates
+    time: '10:31'
+    parsed:
+    - {item: dates, g: 54}
+  - raw: 170g pear
+    time: '10:34'
+    parsed:
+    - {item: pear, g: 170}
+totals: {kcal: 1681, protein_g: 139.0, carbs_g: 215.5, fat_g: 29.9, satfat_g: 6.1, fibre_g: 29.3, sodium_mg: 1674, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+symptoms:
+- {what: sore throat, severity: 2}
+- {what: fatigue, severity: 2}
+energy: {total: 1852, active: 112, bmr: 1740, source: garmin}
+intensity_min: {moderate: 0, vigorous: 0, source: garmin}

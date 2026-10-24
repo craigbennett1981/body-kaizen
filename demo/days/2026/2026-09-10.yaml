@@ -1,0 +1,90 @@
+date: '2026-09-10'
+status: complete
+day_type: rest
+weight: {kg: 80.4, fasted: true, time: '07:15', bf_pct: 20.7, muscle_kg: 60.6, visceral: 7, water_pct: 56.7, bmi: 25.4, source: scale-app}
+recovery:
+  sleep: 7h41m
+  sleep_stages_min: {deep: 134, light: 221, rem: 106}
+  awake_min: 6
+  in_bed: 22:52–06:39
+  sleep_start: 2026-09-09T22:52
+  sleep_end: 2026-09-10T06:39
+  sleep_score: 81
+  overnight_hr: 57
+  hrv_ms: 63
+  hrv_7d_ms: 57
+  hrv_status: balanced
+  rhr: 53
+  body_battery: 82
+  stress_avg: 22
+  source: garmin
+vitals:
+  bp:
+  - {time: '07:30', sys: 120, dia: 79, pulse: 66, source: bp-app}
+steps: 10697
+meals:
+  breakfast:
+  - raw: 146g yogurt + 86g soaked chia seeds
+    time: 07:43
+    parsed:
+    - {item: yogurt, g: 146}
+    - {item: chia-soaked, g: 86}
+  - raw: English breakfast tea and low fat milk
+    time: 07:43
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:43
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: salad 126g
+    time: '13:14'
+    parsed:
+    - {item: salad, g: 126}
+  - raw: 154g chicken breast
+    time: '13:14'
+    parsed:
+    - {item: chicken-breast, g: 154}
+  - raw: 57g sourdough
+    time: '13:14'
+    parsed:
+    - {item: sourdough, g: 57}
+  - raw: 56g avocado
+    time: '13:14'
+    parsed:
+    - {item: avocado, g: 56}
+  dinner:
+  - raw: 184g rice
+    time: '19:31'
+    parsed:
+    - {item: rice, g: 184}
+  - raw: 164g chicken breast
+    time: '19:31'
+    parsed:
+    - {item: chicken-breast, g: 164}
+  - raw: 131g spinach
+    time: '19:31'
+    parsed:
+    - {item: veg-stirfried, g: 131}
+  - raw: 200ml miso soup
+    time: '19:31'
+    parsed:
+    - {item: miso-soup, ml: 200}
+  snacks:
+  - raw: 32g dates
+    time: '10:30'
+    parsed:
+    - {item: dates, g: 32}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '15:41'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 185g pear
+    time: '16:53'
+    parsed:
+    - {item: pear, g: 185}
+totals: {kcal: 1969, protein_g: 172.8, carbs_g: 213.8, fat_g: 47.2, satfat_g: 12.2, fibre_g: 31.3, sodium_mg: 2025, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2217, active: 481, bmr: 1736, source: garmin}
+intensity_min: {moderate: 0, vigorous: 0, source: garmin}

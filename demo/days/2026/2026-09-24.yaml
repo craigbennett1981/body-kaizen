@@ -1,0 +1,91 @@
+date: '2026-09-24'
+status: complete
+day_type: rest
+weight: {kg: 80.3, fasted: true, time: '07:17', bf_pct: 20.4, muscle_kg: 60.8, visceral: 7, water_pct: 56.9, bmi: 25.4, source: scale-app}
+recovery:
+  sleep: 7h47m
+  sleep_stages_min: {deep: 123, light: 208, rem: 136}
+  awake_min: 12
+  in_bed: 22:31–06:30
+  sleep_start: 2026-09-23T22:31
+  sleep_end: 2026-09-24T06:30
+  sleep_score: 71
+  overnight_hr: 59
+  hrv_ms: 66
+  hrv_7d_ms: 63
+  hrv_status: balanced
+  rhr: 55
+  body_battery: 83
+  stress_avg: 24
+  source: garmin
+feel: {overall: 4, energy: 3, mood: 4, gut: 4, stress: 3}
+vitals:
+  bp:
+  - {time: '07:53', sys: 116, dia: 78, pulse: 67, source: bp-app}
+steps: 8713
+meals:
+  breakfast:
+  - raw: 52g oats
+    time: 07:41
+    parsed:
+    - {item: oats-rolled, g: 52}
+  - raw: 2 eggs
+    time: 07:41
+    parsed:
+    - {item: egg, n: 2}
+  - raw: English breakfast tea and low fat milk
+    time: 07:41
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 93g blueberries
+    time: 07:41
+    parsed:
+    - {item: blueberries, g: 93}
+  - raw: 1 banana
+    time: 07:41
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 165g rice
+    time: '12:19'
+    parsed:
+    - {item: rice, g: 165}
+  - raw: 178g chicken breast
+    time: '12:19'
+    parsed:
+    - {item: chicken-breast, g: 178}
+  - raw: 82g broccoli
+    time: '12:19'
+    parsed:
+    - {item: veg-stirfried, g: 82}
+  dinner:
+  - raw: 194g rice
+    time: '19:20'
+    parsed:
+    - {item: rice, g: 194}
+  - raw: 124g pork loin
+    time: '19:20'
+    parsed:
+    - {item: pork-loin, g: 124}
+  - raw: 88g broccoli
+    time: '19:20'
+    parsed:
+    - {item: veg-stirfried, g: 88}
+  snacks:
+  - raw: 46g granola + 150ml low fat milk
+    time: '10:36'
+    parsed:
+    - {item: granola, g: 46}
+    - {item: milk-lowfat, ml: 150}
+  - raw: 51g granola + 150ml low fat milk
+    time: '15:44'
+    parsed:
+    - {item: granola, g: 51}
+    - {item: milk-lowfat, ml: 150}
+  - raw: 21g almonds and cashews
+    time: '16:55'
+    parsed:
+    - {item: nuts-mixed, g: 21}
+totals: {kcal: 2239, protein_g: 155.0, carbs_g: 250.7, fat_g: 67.7, satfat_g: 15.8, fibre_g: 26.9, sodium_mg: 927, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2121, active: 392, bmr: 1729, source: garmin}
+intensity_min: {moderate: 0, vigorous: 0, source: garmin}

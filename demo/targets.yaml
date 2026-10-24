@@ -1,0 +1,53 @@
+# Versioned intake targets. A day uses the latest block whose `from` <= date.
+# day_type is derived from exercise: rest | training | big (run+gym, long run, ruck, two sessions)
+# weight: target weight that applied from each date (shown on charts as a step line).
+
+intake:
+  - from: 2026-07-01
+    label: steady fat loss
+    kcal:
+      rest: [1900, 2000]
+      training: [2100, 2200]
+      big: [2250, 2350]
+    protein_g: {min: 150}
+    satfat_g: {max: 20}
+    fibre_g: {min: 30}
+    fat_g: [55, 80]
+    carbs_g: [180, 260]
+
+weight:
+  - {from: 2026-07-01, kg: 77}
+
+reference:
+  easy_run_avg_hr_max: 145      # easy runs should average under this
+  hrv_baseline_ms: 62           # overnight HRV 7-day baseline
+  sleep_hours_min: 7.5
+  rhr_walk_only: 58             # morning RHR at or above this = walk only
+  steps_daily: 9000             # a reference line, not a target
+
+# Session energy estimates, used only where the watch didn't record calories (shown as "estimated").
+energy_estimates:
+  gym_kcal: 320
+  run_kcal_per_km: 75
+  run_kcal_default: 380
+  swim_kcal_per_m: 0.32
+  swim_kcal_default: 150
+  ruck_kcal_per_km: 85
+  yoga_kcal: 150
+  step_kcal: 0.048              # walking energy per step at ~80 kg
+  run_steps_per_km: 1000
+  ruck_steps_per_km: 1300
+
+pace:
+  start: "07:00"                 # eating day starts (window 1 ramps from here)
+  windows:
+    - {name: Before lunch, until: "12:00"}
+    - {name: Lunch to dinner, until: "18:00"}
+    - {name: Dinner and after, until: "22:00"}
+  share:
+    kcal:      [0.27, 0.36, 0.37]
+    protein_g: [0.30, 0.35, 0.35]
+    fibre_g:   [0.25, 0.40, 0.35]
+    satfat_g:  [0.30, 0.35, 0.35]   # cap: share of the daily maximum allowed so far
+  on_pace: 0.85                  # >= 85% of where you should be by now = green
+  behind: 0.65                   # 65–85% = amber, below = red
