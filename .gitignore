@@ -13,6 +13,19 @@ logs/
 /measurements/
 /reviews/
 /reports/
+# Data files at the top level, in case the data folder is this code folder.
+/athlete.yaml
+/events.yaml
+/exercises.yaml
+/foods.yaml
+/markers.yaml
+/meals.yaml
+/overrides.yaml
+/settings.yaml
+/targets.yaml
+/todo.yaml
+/CLAUDE.md
+/AGENTS.md
 
 # OS
 .DS_Store
