@@ -1,0 +1,22 @@
+# Named meals: type the key (or an alias) as a log line and it expands to these items.
+# "2x shake" doubles everything. Edit freely — keys are short on purpose.
+b1:
+  name: Usual breakfast
+  aliases: [usual breakfast, breakfast usual]
+  items: ["2 eggs", "1 English breakfast tea and low fat milk", "56g sourdough no butter"]
+shake:
+  name: Milk shake
+  aliases: [protein shake milk, milk shake]
+  items: ["300ml low fat milk + 1 scoop protein powder"]
+yog:
+  name: Yogurt and scoop
+  aliases: [yogurt scoop, yoghurt scoop]
+  items: ["170g yogurt + 1 scoop protein powder"]
+chia:
+  name: Yogurt chia bowl
+  aliases: [chia bowl, yogurt chia]
+  items: ["175g yogurt + 110g soaked chia seeds"]
+rice-pork:
+  name: Rice, pork loin, greens
+  aliases: [usual dinner]
+  items: ["100g rice", "120g pork loin", "100g spinach"]

@@ -1,0 +1,115 @@
+date: '2026-09-11'
+status: complete
+day_type: training
+weight: {kg: 80.3, fasted: true, time: '07:09', bf_pct: 21.0, muscle_kg: 60.3, visceral: 7, water_pct: 56.8, bmi: 25.4, source: scale-app}
+recovery:
+  sleep: 7h20m
+  sleep_stages_min: {deep: 125, light: 202, rem: 113}
+  awake_min: 12
+  in_bed: 23:05–06:37
+  sleep_start: 2026-09-10T23:05
+  sleep_end: 2026-09-11T06:37
+  sleep_score: 81
+  overnight_hr: 58
+  hrv_ms: 59
+  hrv_7d_ms: 59
+  hrv_status: balanced
+  rhr: 54
+  body_battery: 61
+  stress_avg: 32
+  source: garmin
+feel: {overall: 4, energy: 4, mood: 4, gut: 3, stress: 3}
+vitals:
+  bp:
+  - {time: '07:37', sys: 120, dia: 75, pulse: 63, source: bp-app}
+steps: 6922
+exercise:
+- type: gym
+  garmin_id: 30000000032
+  source: garmin
+  start: '16:52'
+  duration_min: 65
+  hr: {avg: 115, max: 139}
+  kcal: {total: 323, active: 251}
+  zones_min: {z1: 16, z2: 30, z3: 5}
+  garmin_name: Strength
+  name: Lower + pull
+  lifts:
+  - ex: smith-squat
+    sets: [55.0x8, 55.0x8, 55.0x8]
+  - ex: seated-row
+    sets: [36.3x11, 36.3x11, 36.3x11]
+  - ex: shoulder-press
+    sets: [31.7x12, 31.7x12, 31.7x12]
+  - ex: leg-curl
+    sets: [63.5x12, 63.5x12, 63.5x12]
+  - ex: cable-fly
+    sets: [45.3x8, 45.3x8, 45.3x8]
+  - ex: biceps-curl
+    sets: [43.0x9, 43.0x9, 43.0x8]
+  - ex: farmers-walk
+    sets: [55kg@60m, 55kg@60m, 55kg@60m]
+meals:
+  breakfast:
+  - raw: 160g yogurt + 99g soaked chia seeds
+    time: 07:28
+    parsed:
+    - {item: yogurt, g: 160}
+    - {item: chia-soaked, g: 99}
+  - raw: English breakfast tea and low fat milk
+    time: 07:28
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:28
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: salad 176g
+    time: '13:03'
+    parsed:
+    - {item: salad, g: 176}
+  - raw: 166g chicken breast
+    time: '13:03'
+    parsed:
+    - {item: chicken-breast, g: 166}
+  - raw: 50g sourdough
+    time: '13:03'
+    parsed:
+    - {item: sourdough, g: 50}
+  - raw: 75g avocado
+    time: '13:03'
+    parsed:
+    - {item: avocado, g: 75}
+  dinner:
+  - raw: 223g pasta
+    time: '18:33'
+    parsed:
+    - {item: pasta, g: 223}
+  - raw: 128g bolognese beef
+    time: '18:33'
+    parsed:
+    - {item: bolognese-beef, g: 128}
+  snacks:
+  - raw: 128g pear
+    time: '10:53'
+    parsed:
+    - {item: pear, g: 128}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '17:03'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 143g yogurt + half scoop protein powder
+    time: '17:05'
+    parsed:
+    - {item: scoop, n: 0.5}
+    - {item: yogurt, g: 143}
+  - raw: 172g yogurt + half scoop protein powder
+    time: '21:15'
+    parsed:
+    - {item: scoop, n: 0.5}
+    - {item: yogurt, g: 172}
+totals: {kcal: 2169, protein_g: 192.9, carbs_g: 219.3, fat_g: 57.7, satfat_g: 17.6, fibre_g: 30.3, sodium_mg: 1445, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2298, active: 562, bmr: 1736, source: garmin}
+intensity_min: {moderate: 65, vigorous: 0, source: garmin}

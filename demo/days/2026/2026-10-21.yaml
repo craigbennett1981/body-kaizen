@@ -1,0 +1,122 @@
+date: '2026-10-21'
+status: complete
+day_type: training
+weight: {kg: 78.6, fasted: true, time: '07:04', bf_pct: 19.7, muscle_kg: 60.0, visceral: 7, water_pct: 57.0, bmi: 24.8, source: scale-app}
+recovery:
+  sleep: 6h44m
+  sleep_stages_min: {deep: 120, light: 196, rem: 88}
+  awake_min: 0
+  in_bed: 23:26–06:10
+  sleep_start: 2026-10-20T23:26
+  sleep_end: 2026-10-21T06:10
+  sleep_score: 60
+  overnight_hr: 54
+  hrv_ms: 70
+  hrv_7d_ms: 67
+  hrv_status: balanced
+  rhr: 50
+  body_battery: 66
+  stress_avg: 28
+  source: garmin
+steps: 5126
+exercise:
+- type: gym
+  garmin_id: 30000000058
+  source: garmin
+  start: '16:34'
+  duration_min: 65
+  hr: {avg: 112, max: 136}
+  kcal: {total: 315, active: 245}
+  zones_min: {z1: 13, z2: 31, z3: 9}
+  garmin_name: Strength
+  name: Hinge + push
+  lifts:
+  - ex: smith-rdl
+    sets: [52.5x12, 52.5x12, 52.5x12]
+    note: 3 more reps than last time at the same weight.
+  - ex: lat-pulldown
+    sets: [40.8x9, 40.8x9, 40.8x9]
+    note: 3 more reps than last time at the same weight.
+  - ex: chin-up
+    sets: ['0x5', '0x5', '0x10']
+  - ex: leg-extension
+    sets: [49.9x9, 49.9x9, 49.9x9]
+    note: 3 more reps than last time at the same weight.
+  - ex: triceps-pushdown
+    sets: [45.3x9, 45.3x9, 45.3x8]
+    note: 2 more reps than last time at the same weight.
+  - ex: cable-crunch
+    sets: [59.0x12, 59.0x12, 59.0x12]
+    note: 4 more reps than last time at the same weight.
+  - ex: farmers-walk
+    sets: [60kg@80m, 60kg@80m, 60kg@80m]
+  coach:
+  - {kind: good, text: 'More reps on rdl, lat pulldown, leg extension, triceps pushdown, cable crunch. Progress on every main lift.'}
+  - {kind: info, text: About 2.5 minutes between efforts on the heart-rate trace. That's about right for the heavy lifts; keep accessories tighter.}
+meals:
+  breakfast:
+  - raw: 160g yogurt + 100g soaked chia seeds
+    time: 07:15
+    parsed:
+    - {item: yogurt, g: 160}
+    - {item: chia-soaked, g: 100}
+  - raw: English breakfast tea and low fat milk
+    time: 07:15
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:15
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 155g rice
+    time: '12:40'
+    parsed:
+    - {item: rice, g: 155}
+  - raw: 161g chicken breast
+    time: '12:40'
+    parsed:
+    - {item: chicken-breast, g: 161}
+  - raw: 108g broccoli
+    time: '12:40'
+    parsed:
+    - {item: veg-stirfried, g: 108}
+  dinner:
+  - raw: 196g rice
+    time: '19:19'
+    parsed:
+    - {item: rice, g: 196}
+  - raw: 140g chicken breast
+    time: '19:19'
+    parsed:
+    - {item: chicken-breast, g: 140}
+  - raw: 90g spinach
+    time: '19:19'
+    parsed:
+    - {item: veg-stirfried, g: 90}
+  - raw: 200ml miso soup
+    time: '19:19'
+    parsed:
+    - {item: miso-soup, ml: 200}
+  snacks:
+  - raw: 51g dates
+    time: '10:47'
+    parsed:
+    - {item: dates, g: 51}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:40'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 150g yogurt + half scoop protein powder
+    time: '16:45'
+    parsed:
+    - {item: scoop, n: 0.5}
+    - {item: yogurt, g: 150}
+  - raw: 179g guava
+    time: '16:52'
+    parsed:
+    - {item: guava, g: 179}
+totals: {kcal: 2109, protein_g: 196.0, carbs_g: 242.6, fat_g: 40.1, satfat_g: 11.7, fibre_g: 34.1, sodium_mg: 2020, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2191, active: 475, bmr: 1716, source: garmin}
+intensity_min: {moderate: 65, vigorous: 0, source: garmin}

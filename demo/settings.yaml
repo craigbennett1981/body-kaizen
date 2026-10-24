@@ -1,0 +1,22 @@
+profile: {name: Sam (demo), start_date: '2026-07-26'}
+timezone: UTC
+
+# Input defaults — applied whenever the log doesn't say otherwise.
+food:
+  weights_are: cooked          # meat/food weights are cooked weight
+  egg: boiled
+  yogurt: greek-high-protein
+  tea: english-breakfast-lowfat-milk
+  milk: low-fat
+  scoop: whey-chocolate        # 1 scoop = 36g
+  rice: rice-white-brown-mix
+  chia: chia-soaked            # weights are soaked weight unless "dry"
+
+vitals:
+  bp:
+    arm: left
+    position: seated
+    device: null
+    morning_before: "09:00"    # first reading before this with no context = morning
+    session_window_min: 5      # readings within 5 min are averaged as one session
+

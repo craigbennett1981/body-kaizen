@@ -1,0 +1,120 @@
+date: '2026-10-14'
+status: complete
+day_type: training
+weight: {kg: 79.0, fasted: true, time: '07:15', bf_pct: 20.2, muscle_kg: 59.9, visceral: 7, water_pct: 56.1, bmi: 24.9, source: scale-app}
+recovery:
+  sleep: 7h30m
+  sleep_stages_min: {deep: 132, light: 208, rem: 110}
+  awake_min: 3
+  in_bed: 22:57–06:30
+  sleep_start: 2026-10-13T22:57
+  sleep_end: 2026-10-14T06:30
+  sleep_score: 82
+  overnight_hr: 55
+  hrv_ms: 70
+  hrv_7d_ms: 62
+  hrv_status: balanced
+  rhr: 51
+  body_battery: 81
+  stress_avg: 27
+  source: garmin
+feel: {overall: 4, energy: 4, mood: 3, gut: 4, stress: 2}
+vitals:
+  bp:
+  - {time: '07:42', sys: 115, dia: 77, pulse: 57, source: bp-app}
+steps: 6733
+exercise:
+- type: gym
+  garmin_id: 30000000053
+  source: garmin
+  start: '18:53'
+  duration_min: 60
+  hr: {avg: 121, max: 153}
+  kcal: {total: 298, active: 232}
+  zones_min: {z1: 20, z2: 30, z3: 8}
+  garmin_name: Strength
+  name: Hinge + push
+  lifts:
+  - ex: smith-rdl
+    sets: [52.5x11, 52.5x11, 52.5x11]
+  - ex: lat-pulldown
+    sets: [40.8x8, 40.8x8, 40.8x8]
+  - ex: chin-up
+    sets: ['0x4', '0x5', '0x10']
+  - ex: leg-extension
+    sets: [49.9x8, 49.9x8, 49.9x8]
+  - ex: triceps-pushdown
+    sets: [45.3x8, 45.3x8, 45.3x8]
+  - ex: cable-crunch
+    sets: [59.0x11, 59.0x11, 59.0x10]
+  - ex: farmers-walk
+    sets: [60kg@80m, 60kg@80m, 60kg@80m]
+meals:
+  breakfast:
+  - raw: 52g oats
+    time: 07:16
+    parsed:
+    - {item: oats-rolled, g: 52}
+  - raw: 2 eggs
+    time: 07:16
+    parsed:
+    - {item: egg, n: 2}
+  - raw: English breakfast tea and low fat milk
+    time: 07:16
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 64g blueberries
+    time: 07:16
+    parsed:
+    - {item: blueberries, g: 64}
+  - raw: 1 banana
+    time: 07:16
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: salad 180g
+    time: '12:45'
+    parsed:
+    - {item: salad, g: 180}
+  - raw: 168g chicken breast
+    time: '12:45'
+    parsed:
+    - {item: chicken-breast, g: 168}
+  - raw: 54g sourdough
+    time: '12:45'
+    parsed:
+    - {item: sourdough, g: 54}
+  - raw: 52g avocado
+    time: '12:45'
+    parsed:
+    - {item: avocado, g: 52}
+  dinner:
+  - raw: 180g rice
+    time: '18:35'
+    parsed:
+    - {item: rice, g: 180}
+  - raw: 126g pork loin
+    time: '18:35'
+    parsed:
+    - {item: pork-loin, g: 126}
+  - raw: 133g broccoli
+    time: '18:35'
+    parsed:
+    - {item: veg-stirfried, g: 133}
+  snacks:
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:45'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 143g pear
+    time: '16:50'
+    parsed:
+    - {item: pear, g: 143}
+  - raw: 58g dates
+    time: '21:17'
+    parsed:
+    - {item: dates, g: 58}
+totals: {kcal: 2159, protein_g: 164.5, carbs_g: 252.7, fat_g: 56.0, satfat_g: 16.0, fibre_g: 32.6, sodium_mg: 1231, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2253, active: 534, bmr: 1719, source: garmin}
+intensity_min: {moderate: 60, vigorous: 0, source: garmin}

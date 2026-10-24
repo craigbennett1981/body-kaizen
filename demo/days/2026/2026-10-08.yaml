@@ -1,0 +1,83 @@
+date: '2026-10-08'
+status: complete
+day_type: rest
+weight: {kg: 79.1, fasted: true, time: '07:21', bf_pct: 20.3, muscle_kg: 59.9, visceral: 7, water_pct: 57.6, bmi: 25.0, source: scale-app}
+recovery:
+  sleep: 7h32m
+  sleep_stages_min: {deep: 136, light: 207, rem: 109}
+  awake_min: 3
+  in_bed: 23:25–07:00
+  sleep_start: 2026-10-07T23:25
+  sleep_end: 2026-10-08T07:00
+  sleep_score: 68
+  overnight_hr: 56
+  hrv_ms: 64
+  hrv_7d_ms: 64
+  hrv_status: balanced
+  rhr: 52
+  body_battery: 72
+  stress_avg: 21
+  source: garmin
+steps: 9837
+meals:
+  breakfast:
+  - raw: 142g yogurt + 70g soaked chia seeds
+    time: 07:19
+    parsed:
+    - {item: yogurt, g: 142}
+    - {item: chia-soaked, g: 70}
+  - raw: English breakfast tea and low fat milk
+    time: 07:19
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:19
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 184g pasta
+    time: '12:10'
+    parsed:
+    - {item: pasta, g: 184}
+  - raw: 160g chicken breast
+    time: '12:10'
+    parsed:
+    - {item: chicken-breast, g: 160}
+  - raw: 59g tomato pepper sauce
+    time: '12:10'
+    parsed:
+    - {item: tomato-pepper-sauce, g: 59}
+  dinner:
+  - raw: 167g rice
+    time: '19:42'
+    parsed:
+    - {item: rice, g: 167}
+  - raw: 171g chicken breast
+    time: '19:42'
+    parsed:
+    - {item: chicken-breast, g: 171}
+  - raw: 117g spinach
+    time: '19:42'
+    parsed:
+    - {item: veg-stirfried, g: 117}
+  - raw: 200ml miso soup
+    time: '19:42'
+    parsed:
+    - {item: miso-soup, ml: 200}
+  snacks:
+  - raw: 197g guava
+    time: '10:57'
+    parsed:
+    - {item: guava, g: 197}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:10'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 132g apple
+    time: '16:55'
+    parsed:
+    - {item: apple, g: 132}
+totals: {kcal: 1945, protein_g: 182.5, carbs_g: 219.9, fat_g: 36.9, satfat_g: 10.6, fibre_g: 32.3, sodium_mg: 1873, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2164, active: 442, bmr: 1722, source: garmin}
+intensity_min: {moderate: 0, vigorous: 0, source: garmin}

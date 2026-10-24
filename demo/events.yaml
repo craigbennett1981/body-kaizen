@@ -1,0 +1,7 @@
+# Life and setup events that explain the data. Lab draws, InBody scans, target changes and episodes
+# are added to the timeline automatically; put anything else here.
+# kind: life | setup | training | health
+- {date: 2026-07-26, kind: setup, what: "Started logging food, weight and training"}
+- {date: 2026-08-31, kind: training, what: "Added a weekly long run"}
+- {date: 2026-09-14, kind: life, what: "Work trip to Kuala Lumpur (3 days)"}
+- {date: 2026-10-05, kind: health, what: "Started vitamin D3"}

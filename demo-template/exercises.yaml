@@ -1,0 +1,139 @@
+# Lift catalogue. `epoch` marks equipment changes so progress isn't compared across machines.
+# increment_kg = the smallest jump on that equipment (your gym's stacks/cables step in 4.5 kg).
+epochs:
+  gym-machines-v1: {until: 2025-12-31, note: previous gym}
+  gym-machines-v2: {from: 2026-01-01, note: current gym}
+lifts:
+  leg-curl:
+    aliases: [leg curl, hamstring curl]
+    equipment: machine
+    epochs: true
+    muscles: [hamstrings]
+    secondary: []
+    increment_kg: 4.5
+  leg-extension:
+    aliases: [leg ext, leg extension]
+    equipment: machine
+    epochs: true
+    muscles: [quads]
+    secondary: []
+    increment_kg: 4.5
+  seated-row:
+    aliases: [row, seated row, cable row]
+    equipment: machine
+    epochs: true
+    muscles: [back]
+    secondary: [biceps]
+    increment_kg: 4.5
+  lat-pulldown:
+    aliases: [pulldown, lat pulldown]
+    equipment: machine
+    epochs: true
+    muscles: [back]
+    secondary: [biceps]
+    increment_kg: 4.5
+  shoulder-press:
+    aliases: [shoulder press, ohp machine]
+    equipment: machine
+    epochs: true
+    muscles: [shoulders]
+    secondary: [triceps]
+    increment_kg: 4.5
+  bench-press:
+    aliases: [bench, barbell bench]
+    equipment: barbell
+    muscles: [chest]
+    secondary: [triceps, shoulders]
+    increment_kg: 2.5
+  incline-db-bench:
+    aliases: [incline bench, incline db, incline press]
+    equipment: dumbbell
+    muscles: [chest]
+    secondary: [shoulders, triceps]
+    increment_kg: 2.5
+  triceps-pushdown:
+    aliases: [pushdown, tricep pushdown]
+    equipment: cable
+    muscles: [triceps]
+    secondary: []
+    increment_kg: 4.5
+  biceps-curl:
+    aliases: [curl, bicep curl]
+    equipment: cable
+    muscles: [biceps]
+    secondary: []
+    increment_kg: 4.5
+  db-pullover:
+    aliases: [pullover]
+    equipment: dumbbell
+    muscles: [back]
+    secondary: [chest]
+    increment_kg: 2.5
+  cable-fly:
+    aliases: [fly, cable fly, crossover]
+    equipment: cable
+    muscles: [chest]
+    secondary: []
+    increment_kg: 4.5
+  cable-crunch:
+    aliases: [crunch, cable crunch]
+    equipment: cable
+    muscles: [core]
+    secondary: []
+    increment_kg: 4.5
+  smith-squat:
+    aliases: [squat, smith squat]
+    equipment: smith
+    muscles: [quads]
+    secondary: [glutes]
+    increment_kg: 2.5
+  smith-rdl:
+    aliases: [rdl, smith rdl]
+    equipment: smith
+    muscles: [hamstrings]
+    secondary: [glutes, back]
+    increment_kg: 2.5
+  barbell-rdl:
+    aliases: [barbell rdl, romanian deadlift barbell]
+    equipment: barbell
+    muscles: [hamstrings]
+    secondary: [glutes, back]
+    increment_kg: 2.5
+  calf-raise:
+    aliases: [calf raise, standing calf raise]
+    equipment: machine
+    muscles: [calves]
+    secondary: []
+    increment_kg: 4.5
+  plank:
+    aliases: [plank, planks]
+    equipment: bodyweight
+    unit: seconds
+    muscles: [core]
+    secondary: []
+    increment_s: 15
+    time_range_s: [45, 90]
+  chin-up:
+    aliases: [chin up, chin ups, chin-ups, chinup]
+    equipment: bodyweight
+    muscles: [back]
+    secondary: [biceps]
+    rep_range: [6, 12]
+    increment_kg: 2.5           # once 3 x 12 is easy, add weight with a belt
+    note: sets logged as 0xREPS (bodyweight)
+  farmers-walk:
+    aliases: [farmers, farmers walk, farmer carry]
+    equipment: dumbbell
+    unit: kg_metres
+    muscles: [grip]
+    secondary: [core]
+    increment_kg: 5
+    distance_step_m: 20
+    distance_range_m: [60, 80]
+training_plan:
+  block_start: '2026-10-12'
+  deload_every_weeks: 4
+  rep_range: [8, 12]
+  working_sets: 3
+  weekly_sets_guide: [10, 20]
+  notes: 'Double progression: add reps to the top of the range on all sets, then add weight and drop to the bottom.'

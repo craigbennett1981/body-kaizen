@@ -1,0 +1,114 @@
+date: '2026-08-18'
+status: complete
+day_type: training
+weight: {kg: 81.4, fasted: true, time: '06:55', bf_pct: 21.6, muscle_kg: 60.6, visceral: 8, water_pct: 55.9, bmi: 25.7, source: scale-app}
+recovery:
+  sleep: 7h42m
+  sleep_stages_min: {deep: 117, light: 236, rem: 109}
+  awake_min: 9
+  in_bed: 22:25–06:16
+  sleep_start: 2026-08-17T22:25
+  sleep_end: 2026-08-18T06:16
+  sleep_score: 76
+  overnight_hr: 59
+  hrv_ms: 54
+  hrv_7d_ms: 56
+  hrv_status: balanced
+  rhr: 55
+  body_battery: 71
+  stress_avg: 25
+  source: garmin
+feel: {overall: 4, energy: 3, mood: 3, gut: 4, stress: 3}
+vitals:
+  bp:
+  - {time: '07:34', sys: 127, dia: 84, pulse: 66, source: bp-app}
+steps: 9354
+exercise:
+- type: run
+  garmin_id: 30000000017
+  source: garmin
+  mode: outdoor
+  effort: easy
+  start: '18:58'
+  duration_min: 35
+  distance_km: 5.21
+  time: '35:47'
+  distance_source: gps
+  hr: {avg: 143, max: 156}
+  kcal: {total: 390, active: 333}
+  cadence: 158
+  zones_min: {z1: 2, z2: 12, z3: 19, z4: 3}
+  garmin_name: Running
+meals:
+  breakfast:
+  - raw: 55g oats
+    time: 07:40
+    parsed:
+    - {item: oats-rolled, g: 55}
+  - raw: 2 eggs
+    time: 07:40
+    parsed:
+    - {item: egg, n: 2}
+  - raw: English breakfast tea and low fat milk
+    time: 07:40
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 61g blueberries
+    time: 07:40
+    parsed:
+    - {item: blueberries, g: 61}
+  - raw: 1 banana
+    time: 07:40
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: salad 148g
+    time: '12:33'
+    parsed:
+    - {item: salad, g: 148}
+  - raw: 164g chicken breast
+    time: '12:33'
+    parsed:
+    - {item: chicken-breast, g: 164}
+  - raw: 60g sourdough
+    time: '12:33'
+    parsed:
+    - {item: sourdough, g: 60}
+  - raw: 61g avocado
+    time: '12:33'
+    parsed:
+    - {item: avocado, g: 61}
+  dinner:
+  - raw: 163g rice
+    time: '18:55'
+    parsed:
+    - {item: rice, g: 163}
+  - raw: 148g fish
+    time: '18:55'
+    parsed:
+    - {item: fish, g: 148}
+  - raw: 120g bok choy
+    time: '18:55'
+    parsed:
+    - {item: veg-stirfried, g: 120}
+  snacks:
+  - raw: 184g apple
+    time: '10:43'
+    parsed:
+    - {item: apple, g: 184}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:33'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 157g pear
+    time: '17:06'
+    parsed:
+    - {item: pear, g: 157}
+  - raw: 49g dates
+    time: '21:24'
+    parsed:
+    - {item: dates, g: 49}
+totals: {kcal: 2168, protein_g: 159.5, carbs_g: 271.8, fat_g: 52.1, satfat_g: 14.1, fibre_g: 36.6, sodium_mg: 1588, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2501, active: 753, bmr: 1748, source: garmin}
+intensity_min: {moderate: 0, vigorous: 35, source: garmin}

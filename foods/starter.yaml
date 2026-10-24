@@ -1,0 +1,225 @@
+# Starter food database, shipped with Body Kaizen. Add your own foods (or replace any of these by
+# using the same key) in foods.yaml in your data folder: yours win.
+# per100: macros per 100g (or 100ml for drinks). unit: macros per one unit (unit_g = its weight).
+# keys: k=kcal p=protein c=carbs f=fat sf=sat fat fib=fibre (g); na=sodium caf=caffeine (mg)
+# by_kcal: true  -> amount is usually given as kcal; macros scaled from per100 ratios.
+# default_g: portion assumed when no weight given (confidence: low).
+# conf: confidence of the nutrition values themselves (label > reference > estimate).
+# liquid: true -> amounts stored and shown in ml (1 g ~ 1 ml). Weights are COOKED unless stated. Aliases are matched longest-first against the logged text.
+
+# ---------- staples ----------
+rice:            {name: "Rice, white-brown mix (cooked)", aliases: [rice, brown white rice, nasi le mak rice, white rice], per100: {k: 125, p: 2.7, c: 26.5, f: 0.6, sf: 0.15, fib: 1.0, na: 2}, default_g: 100}
+fried-rice:      {aliases: [fried rice], per100: {k: 180, p: 5, c: 28, f: 5.5, sf: 1.0, fib: 0.8, na: 450}}
+egg:             {name: "Egg, boiled", aliases: [egg, eggs, boiled egg, boiled eggs, eggs boiled], unit_g: 50, unit: {k: 72, p: 6.3, c: 0.4, f: 4.8, sf: 1.6, na: 62}}
+egg-fried:       {aliases: [fried egg], unit_g: 50, unit: {k: 90, p: 6.3, c: 0.4, f: 6.8, sf: 1.9, na: 95}}
+egg-scrambled:   {aliases: [scrambled egg], unit_g: 55, unit: {k: 100, p: 6.7, c: 1.0, f: 7.5, sf: 2.5, na: 110}}
+quail-egg:       {aliases: [quail egg, quail eggs], unit_g: 10, unit: {k: 14, p: 1.2, c: 0.1, f: 1.0, sf: 0.3, na: 14}}
+steamed-egg:     {aliases: [sponge mushroom eggs, steamed egg], per100: {k: 80, p: 6, c: 1.5, f: 5.5, sf: 1.7, na: 250}}
+egg-tomato:      {aliases: [egg and tomato, egg & tomato], per100: {k: 120, p: 6, c: 4, f: 9, sf: 2.0, fib: 0.6, na: 300}}
+green-bean-egg:  {aliases: [green bean and egg], per100: {k: 100, p: 5, c: 5, f: 7, sf: 1.5, fib: 1.8, na: 300}}
+
+# ---------- drinks ----------
+tea-milk:        {liquid: true, name: "English breakfast tea, regular milk", aliases: [english breakfast tea with milk, english breakfast teas with milk, english breakfast tea and milk, english breakfast teas, english breakfast tea, english breakfast tea milk, tea], unit: {k: 20, p: 1.0, c: 1.5, f: 1.1, sf: 0.7, na: 15, caf: 45}}
+tea-lowfat:      {liquid: true, name: "English breakfast tea, ~30 ml low-fat milk", aliases: [english breakfast tea and low fat milk, tea low fat milk], unit: {k: 14, p: 1.1, c: 1.5, f: 0.45, sf: 0.27, na: 15, caf: 45}}
+green-tea:       {liquid: true, aliases: [green tea], unit: {k: 2, caf: 30}}
+teh-tarik:       {liquid: true, aliases: [teh tarik, ice teh tarik], unit_g: 250, unit: {k: 165, p: 4, c: 27, f: 4.5, sf: 3.0, na: 60, caf: 50}}
+milk-tea:        {liquid: true, aliases: [milk tea], by_kcal: true, per100: {k: 70, p: 1.5, c: 11, f: 2.2, sf: 1.5, caf: 20}}
+milk-whole:      {liquid: true, aliases: [whole milk, milk], per100: {k: 64, p: 3.3, c: 4.7, f: 3.6, sf: 2.3, na: 45}}
+milk-lowfat:     {liquid: true, name: "Low-fat milk (1.5% fat)", aliases: [low fat milk, low-fat milk], per100: {k: 48, p: 3.7, c: 5.0, f: 1.5, sf: 0.9, fib: 0, na: 49}}
+milk-protein-drink: {liquid: true, aliases: [milk drink], by_kcal: true, per100: {k: 60, p: 10, c: 3, f: 0.8, sf: 0.5, na: 60}}
+chocolate-milk:  {liquid: true, aliases: [chocolate milk], per100: {k: 75, p: 3.2, c: 11, f: 2.0, sf: 1.3, na: 60}, by_kcal_if_given: true}
+coconut-water:   {liquid: true, aliases: [coconut water], per100: {k: 19, c: 4.5, na: 25}}
+apple-juice:     {liquid: true, aliases: [apple juice], per100: {k: 46, c: 11.3, na: 4}, cup_ml: 250}
+pomegranate-juice: {liquid: true, aliases: [pomegranate juice], per100: {k: 54, c: 13, na: 9}}
+barley-drink:    {liquid: true, aliases: [barley drink], per100: {k: 35, p: 0.4, c: 8.5, fib: 0.3}}
+ice-lemon-tea:   {liquid: true, aliases: [ice lemon tea], per100: {k: 30, c: 7.5, caf: 10}}
+matcha-latte:    {liquid: true, aliases: [matcha latte, macha latte, ice blended matcha], by_kcal: true, per100: {k: 100, p: 3, c: 13, f: 4, sf: 2.6, caf: 15}}
+smoothie-mango-yogurt: {liquid: true, aliases: [mango smoothie, mango smoothies, mango yoghurt smoothie, mango yogurt smoothie], per100: {k: 65, p: 3.8, c: 11, f: 0.6, sf: 0.4, fib: 0.9}}
+benecol:         {liquid: true, aliases: [benecol], unit_g: 70, unit: {k: 45, p: 2, c: 6, f: 1.5, sf: 0.4}}
+
+# ---------- dairy / protein ----------
+yogurt:          {name: "Greek-style high-protein yogurt, plain", aliases: [yoghurt, yogurt, greek style yoghurt, greek yogurt], per100: {k: 55, p: 8.3, c: 4.9, f: 0.2, sf: 0.1, na: 59, ca: 269}}
+scoop:           {name: "Whey protein powder, chocolate (36 g scoop)", aliases: [scoop, protein powder, protein shake], unit_g: 36, unit: {k: 150, p: 24, c: 5, f: 3.5, sf: 2.0, fib: 1, na: 100}}
+creatine:        {aliases: [creatine], per100: {k: 0}}
+cheese:          {aliases: [cheese, cheddar], per100: {k: 400, p: 25, c: 1.3, f: 33, sf: 21, na: 620}}
+protein-bar:     {aliases: [protein bar], unit_g: 55, unit: {k: 200, p: 15, c: 20, f: 7, sf: 3, fib: 5, na: 150}, conf: estimate}
+protein-ball:    {name: "Protein ball (homemade)", aliases: [protein ball], unit_g: 25, per100: {k: 420, p: 20, c: 40, f: 20, sf: 4, fib: 6}, conf: estimate}
+chia-soaked:     {aliases: [soaked chia seeds, chia seed soaked, chia seeds soaked, chia seed, chia seeds, chia], per100: {k: 97, p: 3.3, c: 8.4, f: 6.1, sf: 0.7, fib: 6.8}, note: "≈1 part dry : 4 parts water"}
+chia-dry:        {aliases: [chia seeds (dry weight), chia dry, dry chia, chia seeds (unsoaked weight), unsoaked chia, chia unsoaked, chia seeds unsoaked, chia seeds dry], per100: {k: 486, p: 16.5, c: 42, f: 31, sf: 3.3, fib: 34}}
+oats-rolled:     {name: "Rolled oats (dry weight)", aliases: [rolled oats, oats, porridge oats, oatmeal, rolled oat], per100: {k: 379, p: 13, c: 68, f: 6.5, sf: 1.1, fib: 10, na: 6}}
+granola:         {name: "Granola, homemade (oats, pumpkin/sunflower seeds, almond flakes)", aliases: [granola, homemade granola], per100: {k: 440, p: 13, c: 55, f: 19, sf: 2.5, fib: 8}}
+psyllium:        {aliases: [psyllium husk, psyllium], per100: {k: 200, c: 85, fib: 78}}
+
+# ---------- bread & baked ----------
+sourdough:       {aliases: [sourdough, sour dough, sourdough bread, sour dough bread], per100: {k: 260, p: 9, c: 50, f: 1.5, sf: 0.3, fib: 2.5, na: 500}, slice_g: 50}
+brown-bread:     {aliases: [brown bread, soft brown bread, brown soft bread, wholemeal bread, brown toast, bread, slice brown bread], per100: {k: 250, p: 9, c: 43, f: 3.5, sf: 0.7, fib: 6, na: 450}, slice_g: 35}
+butter:          {aliases: [butter], unit_g: 5, unit: {k: 36, f: 4.0, sf: 2.6, na: 30}}
+butter-light:    {aliases: [light butter, light spread], unit_g: 5, unit: {k: 22, f: 2.5, sf: 1.2, na: 30}}
+brioche:         {aliases: [brioche], per100: {k: 350, p: 8, c: 48, f: 13, sf: 7, fib: 2, na: 400}}
+croissant:       {aliases: [croissant, mini croissant], per100: {k: 406, p: 8, c: 45, f: 21, sf: 12, fib: 2.6, na: 470}, default_g: 60}
+pain-au-lait:    {aliases: [pain au lait], per100: {k: 360, p: 8, c: 50, f: 13, sf: 6, fib: 2, na: 450}}
+garlic-bread:    {aliases: [garlic bread], per100: {k: 350, p: 8, c: 42, f: 17, sf: 8, fib: 2, na: 550}}
+pancakes:        {aliases: [pancakes], per100: {k: 230, p: 6, c: 30, f: 9, sf: 2.5, fib: 1, na: 400}}
+prata:           {name: "Roti prata, plain", aliases: [plain prata, roti prata, plain roti, prata, roti], unit_g: 90, unit: {k: 210, p: 4.5, c: 27, f: 9, sf: 4, fib: 1.5, na: 300}}
+egg-prata:       {aliases: [egg roti, egg prata], unit_g: 130, unit: {k: 280, p: 9, c: 30, f: 14, sf: 5, fib: 1.5, na: 380}}
+wrap-wholemeal:  {aliases: [wholemeal wrap, wrap wholemeal], per100: {k: 290, p: 9, c: 47, f: 7, sf: 2.5, fib: 6, na: 600}}
+hotdog-bun-cheese: {aliases: [breadtalk hotdog bread with cheese, hotdog bread], by_kcal: true, per100: {k: 300, p: 10, c: 35, f: 13, sf: 5.5, na: 600}}
+shew-mie:        {name: "Siu mai", aliases: [shew mie, siu mai], unit_g: 30, unit: {k: 60, p: 4, c: 3, f: 3.5, sf: 1.2, na: 150}}
+char-siu-bao:    {aliases: [char shew bao, char siu bao], unit_g: 60, unit: {k: 160, p: 5, c: 25, f: 4, sf: 1.4, fib: 1, na: 280}}
+curry-puff:      {aliases: [potato curry puff, curry puff], by_kcal: true, per100: {k: 300, p: 5, c: 33, f: 16, sf: 7, fib: 2, na: 400}}
+
+# ---------- meat & fish ----------
+chicken:         {name: "Chicken, mixed cuts (cooked)", aliases: [chicken, grill chicken, grilled chicken, roast chicken], per100: {k: 180, p: 28, f: 7.5, sf: 2.1, na: 300}}
+chicken-roast-noskin: {name: "Roast chicken, meat only (no skin)", aliases: [roast chicken no skin, roast chicken (no skin), skinless roast chicken, roast chicken without skin], per100: {k: 190, p: 29, f: 7.4, sf: 2.0, na: 86}}
+chicken-breast:  {aliases: [chicken breast, air fry chicken breast, roast chicken breast], per100: {k: 165, p: 31, f: 3.6, sf: 1.0, na: 74}}
+chicken-drumstick: {aliases: [chicken drumstick, drumstick], unit_g: 75, per100: {k: 216, p: 27, f: 11, sf: 3, na: 90}}
+chicken-leg:     {aliases: [chicken leg, curry chicken leg, fried chicken leg], per100: {k: 220, p: 26, f: 12, sf: 3.3, na: 300}}
+chicken-wing:    {aliases: [chicken wing], per100: {k: 254, p: 24, c: 2, f: 17, sf: 4.7, na: 400}}
+chicken-breaded: {aliases: [breaded chicken cutlet, breaded chicken breast, katsu chicken breast, chicken katsu cutlet, fried chicken], per100: {k: 260, p: 20, c: 14, f: 14, sf: 2.5, na: 500}}
+chicken-marmite: {aliases: [marmite chicken], per100: {k: 230, p: 20, c: 12, f: 11, sf: 2.5, na: 700}}
+chicken-stirfry: {aliases: [stir fried chicken], per100: {k: 190, p: 24, c: 3, f: 9, sf: 2, na: 450}}
+chicken-cream:   {aliases: [chicken in light cream sauce], per100: {k: 170, p: 20, c: 3, f: 8.5, sf: 4.5, na: 350}}
+chicken-teriyaki: {aliases: [chicken teriyaki skewers, chicken teriyaki], per100: {k: 190, p: 20, c: 8, f: 8, sf: 2.3, na: 600}}
+pork-loin:       {aliases: [pork loin, oven roast lean pork, pork loin and peppers, pork fat removed, pork], per100: {k: 170, p: 29, f: 5.5, sf: 1.9, na: 60}}
+pork-roast:      {name: "Roast pork (char siu style)", aliases: [roast pork], per100: {k: 230, p: 25, c: 4, f: 12, sf: 4.4, na: 500}}
+pork-belly:      {aliases: [pork belly, roast pork belly, pork belly stir fry], per100: {k: 300, p: 20, f: 24, sf: 8.7, na: 400}}
+pork-chop:       {aliases: [pork chop, pork chop lean], per100: {k: 200, p: 28, f: 9, sf: 3.2, na: 80}}
+pork-rib:        {name: "Pork rib (edible meat)", aliases: [pork rib, pork ribs, rib, rib meat], per100: {k: 290, p: 24, f: 21, sf: 7.5, na: 300}}
+pork-mince:      {aliases: [mince pork, minced pork, pork mince, ragu with mince pork], per100: {k: 260, p: 22, f: 19, sf: 7, na: 80}}
+pork-meatball:   {aliases: [pork meatball, pork meat ball, meat ball, meatball], per100: {k: 250, p: 15, c: 8, f: 17, sf: 6, na: 600}}
+pork-shabu:      {aliases: [shabu-shabu pork, shabu shabu pork, pork shabu-shabu], per100: {k: 220, p: 20, f: 15, sf: 5.4, na: 80}}
+pork-dumpling:   {aliases: [pork dumpling, dumpling], per100: {k: 220, p: 9, c: 24, f: 10, sf: 3.5, fib: 1, na: 600}}
+pork-marmite:    {aliases: [marmite pork], per100: {k: 260, p: 22, c: 10, f: 15, sf: 5, na: 700}}
+pork-sweet-sour: {aliases: [sweet and sour pork], per100: {k: 260, p: 13, c: 25, f: 12, sf: 3, na: 450}}
+pork-sausage:    {aliases: [pork cheddar sausage, sausage], unit_g: 60, per100: {k: 300, p: 13, c: 3, f: 26, sf: 10, na: 900}}
+beef:            {name: "Beef, stir-fried/lean cooked", aliases: [beef, stir fried beef, beef and onion], per100: {k: 200, p: 26, c: 1, f: 10, sf: 4, na: 300}, raw_to_cooked: 0.72}
+beef-lean:       {name: "Beef, lean (trimmed, cooked)", aliases: [lean beef, beef lean, lean steak], per100: {k: 180, p: 29, c: 0, f: 6.5, sf: 2.6, na: 60}}
+veg-steamed:     {name: "Broccoli + carrot, steamed/boiled", aliases: [broccoli + carrot, broccoli and carrot, broccoli carrot, steamed veg, boiled veg], per100: {k: 35, p: 2.0, c: 7, f: 0.3, sf: 0.05, fib: 3.0, na: 40}}
+beef-mince:      {aliases: [mince beef, ground beef, beef mince], per100: {k: 270, p: 26, f: 18, sf: 7, na: 80}}
+beef-patty:      {aliases: [beef patty, home made beef patty], per100: {k: 270, p: 25, f: 18, sf: 7.5, na: 80}}
+steak:           {aliases: [steak, rib eye], per100: {k: 230, p: 28, f: 13, sf: 5.5, na: 60}, raw_to_cooked: 0.72}
+steak-lean:      {aliases: [lean steak], per100: {k: 200, p: 30, f: 8, sf: 3.2, na: 60}}
+salmon:          {aliases: [salmon], per100: {k: 206, p: 22, f: 12.4, sf: 2.5, na: 60}}
+salmon-sashimi:  {aliases: [salmon sashimi], per100: {k: 208, p: 20, f: 13, sf: 3.0, na: 50}}
+fish:            {name: "White fish, steamed", aliases: [fish, grouper], per100: {k: 110, p: 22, f: 2, sf: 0.4, na: 300}}
+mackerel:        {aliases: [mackerel, saba, saba shioyaki, grilled mackerel, grilled saba], per100: {k: 260, p: 24, f: 18, sf: 4.2, na: 300}}
+sardines-olive-oil: {name: "Sardines in olive oil (canned, drained)", aliases: [sardines olive oil, sardine olive oil, sardines in olive oil], unit_g: 78, per100: {k: 187, p: 23.4, c: 0.1, f: 10.3, sf: 2.9, fib: 1.2, na: 257, ca: 325}}
+sardines:        {name: "Sardines, canned (106g can)", aliases: [sardines, sardine, can sardines], per100: {k: 208, p: 24, f: 11.5, sf: 1.5, na: 400}, unit_g: 106}
+tuna-fishcake:   {aliases: [tuna fish cake, fish cake], per100: {k: 180, p: 11, c: 15, f: 8, sf: 1.5, na: 700}}
+anchovies:       {aliases: [anchovies], per100: {k: 400, p: 60, f: 15, sf: 3, na: 1500}}
+tofu-fried:      {aliases: [fried tofu], per100: {k: 270, p: 17, c: 9, f: 20, sf: 2.9, fib: 1}}
+tofu:            {aliases: [tofu], per100: {k: 76, p: 8, c: 1.9, f: 4.8, sf: 0.7, fib: 0.3}}
+edamame:         {aliases: [edamame, edamame bean], per100: {k: 121, p: 12, c: 9, f: 5, sf: 0.6, fib: 5}}
+
+# ---------- nuts ----------
+peanuts:         {aliases: [peanut, peanuts], per100: {k: 585, p: 24, c: 21, f: 50, sf: 7, fib: 8, na: 400}}
+nuts-mixed:      {aliases: [almonds and cashews, almonds & cashews, nuts], per100: {k: 590, p: 19, c: 25, f: 49, sf: 6, fib: 6}, by_kcal_if_given: true}
+cocoa-nibs:      {aliases: [cocoa nibs], per100: {k: 570, p: 14, c: 35, f: 46, sf: 27, fib: 33}}
+
+# ---------- veg ----------
+veg-stirfried:   {name: "Green veg, Chinese stir-fried (light oil)", aliases: [spinach, cabbage, bok choi, bok choy, broccoli, cauliflower, green bean, mushroom, mushrooms], per100: {k: 55, p: 2.5, c: 5, f: 3, sf: 0.4, fib: 2.5, na: 250}}
+veg-raw:         {aliases: [cucumber, lettuce, tomato cucumber lettuce, pepper, peppers, onion, carrot, shiitake mushroom], per100: {k: 20, p: 0.8, c: 4, f: 0.1, fib: 1.2, na: 5}}
+salad:           {name: "Salad (lettuce, tomato, cucumber, corn, olive oil, lemon)", aliases: [salad], per100: {k: 70, p: 1.5, c: 7, f: 4, sf: 0.6, fib: 1.8, na: 20}}
+salad-feta:      {aliases: [salad with feta, feta cheese], per100: {k: 110, p: 3.5, c: 6, f: 8, sf: 3.0, fib: 1.5, na: 300}}
+salad-beans:     {aliases: [kidney bean, kidney beans, chickpea, chickpeas, soy bean], per100: {k: 95, p: 4, c: 10, f: 4, sf: 0.6, fib: 3.5, na: 80}}
+peas:            {aliases: [peas, pea], per100: {k: 80, p: 5, c: 14, f: 0.4, fib: 5}}
+corn:            {aliases: [corn, corn carrot onion], per100: {k: 96, p: 3.4, c: 21, f: 1.5, sf: 0.2, fib: 2.4}}
+spinach-goma:    {name: "Spinach with sesame dressing (goma-ae / namul)", aliases: [spinach sesame, sesame spinach, spinach goma, goma-ae, spinach namul], per100: {k: 75, p: 3, c: 5, f: 4.5, sf: 0.6, fib: 2.5, na: 300}}
+kimchi:          {aliases: [kimchi], per100: {k: 15, p: 1, c: 2.4, f: 0.5, fib: 1.6, na: 500}}
+salsa:           {aliases: [salsa, tomato salsa, tomato red onion salsa, tomato onion salsa], per100: {k: 30, p: 1, c: 6, f: 0.2, fib: 1.5, na: 300}}
+potato:          {aliases: [potato, potatoes], unit_g: 150, per100: {k: 93, p: 2.5, c: 21, f: 0.1, fib: 2.2, na: 6}}
+mash-potato:     {name: "Mashed potato (homemade, milk + a little butter)", aliases: [mash potato, mashed potato, mash, mashed potatoes], per100: {k: 105, p: 2, c: 15, f: 4.2, sf: 2.6, fib: 1.5, na: 300}}
+potato-airfried: {aliases: [air fry chips, air fryer fries, wedges, wedges potato air fry, potato air fry, potatoes air fried in olive oil, chips], per100: {k: 160, p: 3, c: 25, f: 5, sf: 0.7, fib: 2.5, na: 150}}
+pizza-pepperoni-stuffed: {name: "Pizza slice, pepperoni, cheese-stuffed crust (restaurant, photo est.)", aliases: [pepperoni pizza, pepperoni pizza slice], unit: {k: 330, p: 14, c: 32, f: 16, sf: 7, fib: 1.5, na: 750}, conf: med}
+pizza-hawaiian-prawn: {name: "Pizza slice, Hawaiian with prawn and ham, thick crust (restaurant, photo est.)", aliases: [hawaiian pizza, hawaiian pizza slice], unit: {k: 240, p: 11, c: 30, f: 8, sf: 4.5, fib: 1.5, na: 520}, conf: med}
+jacket-potato:   {name: "Jacket potato w/ sour cream & bacon", aliases: [jacket potato], unit_g: 240, unit: {k: 290, p: 8, c: 40, f: 11, sf: 6, fib: 4, na: 350}}
+avocado:         {aliases: [avocado], per100: {k: 160, p: 2, c: 8.5, f: 14.7, sf: 2.1, fib: 6.7}}
+
+# ---------- fruit ----------
+fruit-mixed:     {aliases: [fruit salad], per100: {k: 50, p: 0.6, c: 13, f: 0.2, fib: 1.8}}
+dragon-fruit:    {aliases: [dragon fruit, red dragon fruit], per100: {k: 60, p: 1.2, c: 13, f: 0.4, fib: 3}}
+apple:           {aliases: [apple], per100: {k: 52, p: 0.3, c: 14, f: 0.2, fib: 2.4}}
+cheesecake-jelly: {name: "Jelly cheesecake (biscuit base, cream-cheese layer, jelly top; photo est.)", aliases: [jelly cheese cake, jelly cheesecake, cheesecake, cheese cake], per100: {k: 240, p: 4.5, c: 25, f: 14, sf: 8.5, fib: 0.3, na: 200}, conf: med}
+spring-roll:     {name: "Spring roll, fried", aliases: [spring roll, spring rolls, popiah fried], per100: {k: 250, p: 6, c: 28, f: 12, sf: 2.5, fib: 2, na: 450}}
+avocado-salad:   {name: "Avocado, tomato, cucumber and coriander salad (~40% avocado, no added oil)", aliases: [avocado tomato cucumber coriander salad, avocado salad], per100: {k: 85, p: 1.3, c: 5, f: 6.5, sf: 0.9, fib: 3.5, na: 120}, conf: med}
+pear:            {aliases: [pear, chinese pear], per100: {k: 57, p: 0.4, c: 15, f: 0.1, fib: 3.1}}
+guava:           {aliases: [guava], per100: {k: 68, p: 2.6, c: 14, f: 1, fib: 5.4}}
+watermelon:      {aliases: [watermelon, water melon], per100: {k: 30, p: 0.6, c: 7.6, f: 0.2, fib: 0.4}}
+melon:           {aliases: [melon, hami melon, rock melon, rockmelon, cantaloupe], per100: {k: 34, p: 0.8, c: 8, f: 0.2, fib: 0.9}}
+mango:           {aliases: [mango], per100: {k: 60, p: 0.8, c: 15, f: 0.4, fib: 1.6}}
+pineapple:       {aliases: [pineapple], per100: {k: 50, p: 0.5, c: 13, f: 0.1, fib: 1.4}, default_g: 120}
+orange:          {aliases: [orange], per100: {k: 47, p: 0.9, c: 12, f: 0.1, fib: 2.4}}
+pomegranate:     {aliases: [pomegranate], per100: {k: 83, p: 1.7, c: 19, f: 1.2, fib: 4}}
+blueberries:     {aliases: [blueberries, blue berries, blueberry, blue berry], per100: {k: 57, p: 0.7, c: 14, f: 0.3, fib: 2.4}}
+strawberry:      {aliases: [strawberry, strawberries], per100: {k: 32, p: 0.7, c: 7.7, f: 0.3, fib: 2}}
+grape:           {aliases: [grape, grapes], per100: {k: 69, p: 0.7, c: 18, f: 0.2, fib: 0.9}}
+grapefruit:      {aliases: [grapefruit, grape fruit], per100: {k: 42, p: 0.8, c: 11, f: 0.1, fib: 1.6}}
+kiwi:            {aliases: [kiwi], unit_g: 75, per100: {k: 61, p: 1.1, c: 15, f: 0.5, fib: 3}}
+banana:          {name: "Banana (edible weight)", aliases: [banana, medium banana], unit_g: 100, per100: {k: 89, p: 1.1, c: 22.8, f: 0.3, fib: 2.6}}
+dates:           {aliases: [date, dates], per100: {k: 282, p: 2.5, c: 75, f: 0.4, fib: 8}}
+raisins:         {aliases: [raisins, sun maid raisins], per100: {k: 299, p: 3, c: 79, f: 0.5, fib: 3.7}}
+
+# ---------- mixed dishes ----------
+# buffet / restaurant items (estimates from standard values)
+chicken-tikka:   {aliases: [chicken tikka, tandoori chicken], per100: {k: 160, p: 25, c: 3, f: 5.5, sf: 1.5, na: 450}}
+chicken-satay:   {aliases: [chicken satay, satay chicken], per100: {k: 220, p: 24, c: 6, f: 11, sf: 3.0, na: 500}, note: "meat only, no peanut sauce"}
+bread-roll:      {aliases: [bread roll, crusty roll, dinner roll, white roll], per100: {k: 270, p: 9, c: 52, f: 2.5, sf: 0.5, fib: 2.5, na: 480}}
+pita:            {aliases: [pita, pita bread, pitta], per100: {k: 275, p: 9, c: 55, f: 1.2, sf: 0.2, fib: 2.2, na: 530}}
+guacamole:       {aliases: [guacamole, guac], per100: {k: 155, p: 2, c: 8.5, f: 14, sf: 2.1, fib: 6, na: 250}}
+baba-ganoush:    {aliases: [baba ganoush, baba ghanoush, aubergine dip, eggplant dip, smoked eggplant], per100: {k: 110, p: 2.5, c: 8, f: 8, sf: 1.1, fib: 3, na: 350}}
+roasted-peppers: {aliases: [roasted peppers, roasted red peppers, peppers in oil], per100: {k: 85, p: 1, c: 6, f: 6.5, sf: 0.9, fib: 1.8, na: 250}}
+grilled-veg:     {aliases: [grilled vegetables, grilled veg, grilled peppers and aubergine], per100: {k: 80, p: 1.2, c: 6, f: 6, sf: 0.9, fib: 2.5, na: 150}}
+lettuce:         {aliases: [lettuce, green salad leaves], per100: {k: 15, p: 1.4, c: 2.9, f: 0.2, fib: 1.3, na: 10}}
+biryani:         {aliases: [biryani, biryani rice, nasi briyani], per100: {k: 180, p: 3.8, c: 28, f: 5.5, sf: 1.8, fib: 0.8, na: 350}}
+tuna-sashimi:    {aliases: [tuna sashimi, maguro], per100: {k: 110, p: 24, f: 1, sf: 0.3, na: 40}}
+octopus:         {aliases: [octopus, tako, octopus sashimi], per100: {k: 82, p: 15, c: 2, f: 1, sf: 0.2, na: 230}}
+sorbet:          {aliases: [sorbet, fruit sorbet, mango sorbet, raspberry sorbet], per100: {k: 130, p: 0.3, c: 32, f: 0.1, fib: 1, na: 10}}
+pasta:           {aliases: [pasta, spaghetti], per100: {k: 158, p: 5.8, c: 31, f: 0.9, sf: 0.2, fib: 1.8, na: 5}}
+pasta-marinara:  {aliases: [pasta light marinara], per100: {k: 140, p: 5, c: 27, f: 2, sf: 0.3, fib: 2, na: 250}}
+pasta-cream:     {aliases: [pasta light cream sauce], per100: {k: 170, p: 5.5, c: 27, f: 4.5, sf: 2.3, fib: 1.8, na: 250}}
+bolognese-beef:  {name: "Beef mince Bolognese sauce (home-cooked, regular mince)", aliases: [mince beef bolognese, beef bolognese, bolognese, bolognese sauce], per100: {k: 150, p: 12, c: 5, f: 9, sf: 3.6, fib: 1.2, na: 300}, conf: med}
+pasta-beef:      {aliases: [pasta mince beef], per100: {k: 170, p: 11, c: 17, f: 6, sf: 2.4, fib: 1.5, na: 300}}
+spag-bol:        {aliases: [spaghetti bolognese], per100: {k: 130, p: 7, c: 16, f: 4, sf: 1.5, fib: 1.5, na: 350}}
+macaroni-pork-cheese: {aliases: [macaroni], per100: {k: 190, p: 10, c: 20, f: 8, sf: 3.8, fib: 1.5, na: 400}}
+baked-rice-porkchop: {name: "Hong Kong baked pork chop rice (egg fried rice, pork chop, tomato sauce, cheese; photo est.)", aliases: [hong kong pork chop baked rice, pork chop baked rice, baked pork chop rice, hk baked rice], per100: {k: 175, p: 9.5, c: 18, f: 7, sf: 3.0, fib: 1, na: 420}, conf: med}
+baked-rice:      {aliases: [baked rice, rice mince beef bean and corn], per100: {k: 170, p: 8, c: 20, f: 6.5, sf: 3.2, fib: 1.5, na: 400}}
+udon-beef:       {aliases: [udon], per100: {k: 120, p: 6, c: 18, f: 2.5, sf: 0.8, fib: 1, na: 400}}
+cottage-pie:     {aliases: [cottage pie, sheperd's pie, shepherd's pie, shepherds pie], per100: {k: 125, p: 7, c: 11, f: 6, sf: 2.7, fib: 1.5, na: 300}}
+burrito:         {name: "Burrito/wrap (mince beef, kidney beans, little cheese)", aliases: [burrito, wrap], per100: {k: 200, p: 10, c: 24, f: 7, sf: 2.8, fib: 3.5, na: 450}}
+fajita:          {aliases: [chicken fajita], per100: {k: 180, p: 13, c: 18, f: 6, sf: 2.3, fib: 2, na: 450}}
+flatbread-beef:  {aliases: [toasted flat bread], per100: {k: 260, p: 13, c: 25, f: 12, sf: 5, fib: 3, na: 450}}
+sandwich-chicken: {aliases: [chicken breast sandwich], per100: {k: 185, p: 17, c: 15, f: 6, sf: 1.3, fib: 2, na: 400}}
+sandwich-fried-chicken: {aliases: [fried chicken sandwich], per100: {k: 250, p: 13, c: 20, f: 13, sf: 3, fib: 2, na: 500}}
+sandwich-steak-cheese: {aliases: [steak and cheese sandwich], per100: {k: 250, p: 15, c: 22, f: 11, sf: 5, fib: 2, na: 500}}
+sandwich-ham-cheese: {aliases: [picnic ham cheese slice sandwich], unit: {k: 300, p: 16, c: 30, f: 12, sf: 6, fib: 2, na: 900}}
+burger-homemade: {aliases: [homemade cheese burger, homemade beef burger, hamburger sandwich], per100: {k: 235, p: 15, c: 14, f: 13, sf: 5.5, fib: 1.5, na: 400}}
+shackburger:     {aliases: [shack burger], unit: {k: 500, p: 26, c: 27, f: 31, sf: 14, fib: 1, na: 1240}, conf: reference}
+bk-tendergrill:  {aliases: [tender grill chicken], unit: {k: 470, p: 34, c: 40, f: 19, sf: 3.5, fib: 2, na: 1100}, conf: reference}
+fish-tacos:      {aliases: [fish tacos], by_kcal: true, per100: {k: 220, p: 10, c: 22, f: 10, sf: 2.5, fib: 2, na: 450}}
+nachos:          {aliases: [nachos], by_kcal: true, per100: {k: 300, p: 8, c: 30, f: 17, sf: 6, fib: 3, na: 500}}
+tortilla-meal:   {aliases: [tortilla], by_kcal: true, per100: {k: 200, p: 8, c: 22, f: 9, sf: 3, fib: 2, na: 450}}
+curry-sauce:     {aliases: [curry sauce, curry sauce with puree veg], default_g: 60, per100: {k: 110, p: 2, c: 13, f: 5.5, sf: 2.5, fib: 1.5, na: 700}}
+cream-sauce:     {aliases: [cream sauce], per100: {k: 200, p: 2, c: 5, f: 19, sf: 12, na: 300}, tbsp_g: 15}
+miso-soup:       {liquid: true, aliases: [miso soup], per100: {k: 30, p: 2, c: 3, f: 1, sf: 0.2, fib: 0.5, na: 400}}
+tomato-pepper-sauce: {name: "Tomato and pepper sauce, light (home-style)", aliases: [tomato pepper sauce, tomato and pepper sauce], per100: {k: 50, p: 1.5, c: 6, f: 2.2, sf: 0.3, fib: 2.0, na: 300}}
+tomato-soup:     {liquid: true, aliases: [tomato soup, creamy tomato soup], per100: {k: 70, p: 1.5, c: 8, f: 3.5, sf: 2, fib: 1, na: 350}}
+spinach-soup:    {liquid: true, aliases: [chinese spinach soup], per100: {k: 40, p: 3, c: 2, f: 2, sf: 0.7, fib: 0.8, na: 350}}
+green-bean-soup: {liquid: true, name: "Mung bean dessert soup", aliases: [green bean soup], per100: {k: 70, p: 3, c: 14, f: 0.2, fib: 2}}
+red-bean-dessert: {aliases: [red bean with black glutinous rice], per100: {k: 140, p: 3, c: 30, f: 1, sf: 0.5, fib: 3}}
+
+# ---------- snacks & sweets (often logged as kcal) ----------
+tortilla-chips:  {aliases: [tosotti classic tortilla chips, tosoti, tortilla chips], per100: {k: 500, p: 7, c: 64, f: 24, sf: 3.5, fib: 4, na: 400}}
+potato-chips:    {aliases: [lays chips, lays, salted potato chips, lays salted egg], per100: {k: 536, p: 7, c: 53, f: 34, sf: 3.4, fib: 4, na: 520}}
+lentil-chips:    {aliases: [lentil chips], per100: {k: 460, p: 12, c: 60, f: 19, sf: 2, fib: 6, na: 600}}
+rice-cracker:    {aliases: [rice cracker], per100: {k: 390, p: 7, c: 84, f: 2, fib: 2, na: 400}}
+crackers:        {aliases: [crackers], by_kcal: true, per100: {k: 440, p: 9, c: 68, f: 14, sf: 6, fib: 3, na: 700}}
+digestive:       {aliases: [digestive biscuit, digestive biscuits], unit_g: 15, unit: {k: 71, p: 1, c: 9.5, f: 3.2, sf: 1.5, fib: 0.5, na: 90}}
+biscuit:         {aliases: [biscuit, nutella b-ready, pocky sticks, pocky], by_kcal: true, per100: {k: 480, p: 6, c: 65, f: 22, sf: 11, fib: 2, na: 300}}
+mooncake:        {aliases: [moon cake, mooncake, custard moon cake, custard mooncake, mooncake custard], by_kcal: true, per100: {k: 420, p: 7, c: 55, f: 19, sf: 6, fib: 2, na: 150}}
+pineapple-tart:  {aliases: [pineapple tart, pineapple tarts], unit_g: 14, per100: {k: 450, p: 5, c: 60, f: 21, sf: 13, fib: 1.5, na: 200}}
+pandan-cake:     {aliases: [pandan sponge layer cake], per100: {k: 330, p: 6, c: 45, f: 14, sf: 6, fib: 0.5, na: 250}}
+agar-jelly:      {aliases: [coconut agar agar jelly], unit_g: 60, unit: {k: 80, c: 14, f: 2.5, sf: 2.2}}
+brownie:         {aliases: [brownie], by_kcal: true, per100: {k: 466, p: 6, c: 50, f: 28, sf: 9, fib: 2, na: 300}}
+ice-cream:       {aliases: [ice cream], by_kcal: true, per100: {k: 207, p: 3.5, c: 24, f: 11, sf: 7, fib: 0.7, na: 80}}
+candy:           {aliases: [candy], by_kcal: true, per100: {k: 390, c: 97, f: 0.2}}
+sweet-sour-sauce: {aliases: [sweet and sour sauce], per100: {k: 150, p: 0.3, c: 36, f: 0.3, na: 600}}

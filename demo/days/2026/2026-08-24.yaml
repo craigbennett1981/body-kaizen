@@ -1,0 +1,123 @@
+date: '2026-08-24'
+status: complete
+day_type: training
+weight: {kg: 81.8, fasted: true, time: '07:20', bf_pct: 21.5, muscle_kg: 61.0, visceral: 8, water_pct: 56.0, bmi: 25.8, source: scale-app}
+recovery:
+  sleep: 7h56m
+  sleep_stages_min: {deep: 125, light: 216, rem: 135}
+  awake_min: 6
+  in_bed: 22:58–07:00
+  sleep_start: 2026-08-23T22:58
+  sleep_end: 2026-08-24T07:00
+  sleep_score: 91
+  overnight_hr: 60
+  hrv_ms: 57
+  hrv_7d_ms: 59
+  hrv_status: balanced
+  rhr: 56
+  body_battery: 71
+  stress_avg: 31
+  source: garmin
+feel: {overall: 4, energy: 4, mood: 4, gut: 4, stress: 3}
+steps: 15102
+exercise:
+- type: gym
+  garmin_id: 30000000021
+  source: garmin
+  start: '16:34'
+  duration_min: 60
+  hr: {avg: 108, max: 129}
+  kcal: {total: 324, active: 252}
+  zones_min: {z1: 17, z2: 35, z3: 6}
+  garmin_name: Strength
+  name: Lower + pull
+  lifts:
+  - ex: smith-squat
+    sets: [52.5x10, 52.5x10, 52.5x9]
+  - ex: seated-row
+    sets: [36.3x9, 36.3x9, 36.3x8]
+  - ex: shoulder-press
+    sets: [31.7x9, 31.7x9, 31.7x9]
+  - ex: leg-curl
+    sets: [63.5x10, 63.5x10, 63.5x10]
+  - ex: cable-fly
+    sets: [40.8x9, 40.8x9, 40.8x9]
+  - ex: biceps-curl
+    sets: [38.5x11, 38.5x11, 38.5x11]
+  - ex: farmers-walk
+    sets: [50kg@60m, 50kg@60m, 50kg@60m]
+meals:
+  breakfast:
+  - raw: 55g oats
+    time: 07:41
+    parsed:
+    - {item: oats-rolled, g: 55}
+  - raw: 2 eggs
+    time: 07:41
+    parsed:
+    - {item: egg, n: 2}
+  - raw: English breakfast tea and low fat milk
+    time: 07:41
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 68g blueberries
+    time: 07:41
+    parsed:
+    - {item: blueberries, g: 68}
+  - raw: 1 banana
+    time: 07:41
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 151g rice
+    time: '13:13'
+    parsed:
+    - {item: rice, g: 151}
+  - raw: 88g tofu
+    time: '13:13'
+    parsed:
+    - {item: tofu, g: 88}
+  - raw: 105g cabbage
+    time: '13:13'
+    parsed:
+    - {item: veg-stirfried, g: 105}
+  - raw: 95g pork loin
+    time: '13:13'
+    parsed:
+    - {item: pork-loin, g: 95}
+  dinner:
+  - raw: 141g rice
+    time: '18:52'
+    parsed:
+    - {item: rice, g: 141}
+  - raw: 135g chicken breast
+    time: '18:52'
+    parsed:
+    - {item: chicken-breast, g: 135}
+  - raw: 107g spinach
+    time: '18:52'
+    parsed:
+    - {item: veg-stirfried, g: 107}
+  - raw: 200ml miso soup
+    time: '18:52'
+    parsed:
+    - {item: miso-soup, ml: 200}
+  snacks:
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '15:52'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '17:13'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '21:29'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+totals: {kcal: 2369, protein_g: 221.3, carbs_g: 227.7, fat_g: 62.6, satfat_g: 23.6, fibre_g: 22.2, sodium_mg: 2376, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2676, active: 931, bmr: 1745, source: garmin}
+intensity_min: {moderate: 60, vigorous: 0, source: garmin}

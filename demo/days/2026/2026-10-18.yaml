@@ -1,0 +1,82 @@
+date: '2026-10-18'
+status: complete
+day_type: rest
+recovery:
+  sleep: 8h41m
+  sleep_stages_min: {deep: 120, light: 254, rem: 147}
+  awake_min: 6
+  in_bed: 22:56–07:43
+  sleep_start: 2026-10-17T22:56
+  sleep_end: 2026-10-18T07:43
+  sleep_score: 95
+  overnight_hr: 55
+  hrv_ms: 66
+  hrv_7d_ms: 66
+  hrv_status: balanced
+  rhr: 51
+  body_battery: 86
+  stress_avg: 27
+  source: garmin
+feel: {overall: 4, energy: 3, mood: 4, gut: 4, stress: 2}
+steps: 9238
+meals:
+  breakfast:
+  - raw: 169g yogurt + 92g soaked chia seeds
+    time: 07:01
+    parsed:
+    - {item: yogurt, g: 169}
+    - {item: chia-soaked, g: 92}
+  - raw: English breakfast tea and low fat milk
+    time: 07:01
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:01
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: salad 177g
+    time: '12:33'
+    parsed:
+    - {item: salad, g: 177}
+  - raw: 132g chicken breast
+    time: '12:33'
+    parsed:
+    - {item: chicken-breast, g: 132}
+  - raw: 53g sourdough
+    time: '12:33'
+    parsed:
+    - {item: sourdough, g: 53}
+  - raw: 64g avocado
+    time: '12:33'
+    parsed:
+    - {item: avocado, g: 64}
+  dinner:
+  - raw: 165g rice
+    time: '19:14'
+    parsed:
+    - {item: rice, g: 165}
+  - raw: 140g chicken breast
+    time: '19:14'
+    parsed:
+    - {item: chicken-breast, g: 140}
+  - raw: 83g spinach
+    time: '19:14'
+    parsed:
+    - {item: veg-stirfried, g: 83}
+  - raw: 200ml miso soup
+    time: '19:14'
+    parsed:
+    - {item: miso-soup, ml: 200}
+  snacks:
+  - raw: 194g pear
+    time: '10:32'
+    parsed:
+    - {item: pear, g: 194}
+  - raw: 123g pear
+    time: '11:00'
+    parsed:
+    - {item: pear, g: 123}
+totals: {kcal: 1591, protein_g: 124.1, carbs_g: 186.1, fat_g: 39.6, satfat_g: 7.3, fibre_g: 32.2, sodium_mg: 1627, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2132, active: 415, bmr: 1717, source: garmin}
+intensity_min: {moderate: 0, vigorous: 0, source: garmin}

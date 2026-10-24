@@ -1,0 +1,79 @@
+date: '2026-08-06'
+status: complete
+day_type: rest
+weight: {kg: 81.8, fasted: true, time: '06:47', bf_pct: 22.2, muscle_kg: 60.5, visceral: 8, water_pct: 57.6, bmi: 25.8, source: scale-app}
+recovery:
+  sleep: 7h35m
+  sleep_stages_min: {deep: 135, light: 227, rem: 93}
+  awake_min: 0
+  in_bed: 22:55–06:30
+  sleep_start: 2026-08-05T22:55
+  sleep_end: 2026-08-06T06:30
+  sleep_score: 71
+  overnight_hr: 57
+  hrv_ms: 60
+  hrv_7d_ms: 55
+  hrv_status: balanced
+  rhr: 53
+  body_battery: 61
+  stress_avg: 21
+  source: garmin
+steps: 2500
+meals:
+  breakfast:
+  - raw: 142g yogurt + 87g soaked chia seeds
+    time: 07:05
+    parsed:
+    - {item: yogurt, g: 142}
+    - {item: chia-soaked, g: 87}
+  - raw: English breakfast tea and low fat milk
+    time: 07:05
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:05
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 144g rice
+    time: '12:34'
+    parsed:
+    - {item: rice, g: 144}
+  - raw: 157g chicken breast
+    time: '12:34'
+    parsed:
+    - {item: chicken-breast, g: 157}
+  - raw: 118g broccoli
+    time: '12:34'
+    parsed:
+    - {item: veg-stirfried, g: 118}
+  dinner:
+  - raw: 188g rice
+    time: '18:47'
+    parsed:
+    - {item: rice, g: 188}
+  - raw: 107g pork loin
+    time: '18:47'
+    parsed:
+    - {item: pork-loin, g: 107}
+  - raw: 115g broccoli
+    time: '18:47'
+    parsed:
+    - {item: veg-stirfried, g: 115}
+  snacks:
+  - raw: 1 kiwi
+    time: '10:34'
+    parsed:
+    - {item: kiwi, n: 1}
+  - raw: 174g guava
+    time: '10:38'
+    parsed:
+    - {item: guava, g: 174}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:34'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+totals: {kcal: 1708, protein_g: 151.8, carbs_g: 193.8, fat_g: 37.0, satfat_g: 10.8, fibre_g: 30.3, sodium_mg: 1115, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 1866, active: 112, bmr: 1754, source: garmin}
+intensity_min: {moderate: 0, vigorous: 0, source: garmin}

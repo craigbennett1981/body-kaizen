@@ -1,0 +1,5 @@
+# Things the assistant needs from you. Shown on the Day view; tick to mark done.
+# priority: high | normal | low.  area: longevity | data | training | setup
+- {id: sit-to-stand, area: longevity, priority: high, added: 2026-10-14, done: false, title: Do the 30-second sit-to-stand test (2 min), detail: 'From a chair, arms crossed, as many full stands as you can in 30 s. Send e.g. "sts 21".'}
+- {id: next-blood-draw, area: longevity, priority: normal, added: 2026-10-02, done: false, title: Book the next blood test, detail: 'Lipid panel, ApoB, HbA1c and fasting glucose. Ask for Lp(a) once.'}
+- {id: scale-calibration, area: data, priority: low, added: 2026-09-20, done: true, done_on: '2026-09-21', title: Weigh at the same time each morning, detail: 'After the bathroom, before food or drink.'}

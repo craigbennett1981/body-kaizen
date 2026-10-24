@@ -1,0 +1,82 @@
+date: '2026-08-09'
+status: complete
+day_type: rest
+recovery:
+  sleep: 9h50m
+  sleep_stages_min: {deep: 127, light: 287, rem: 176}
+  awake_min: 3
+  in_bed: 21:47–07:40
+  sleep_start: 2026-08-08T21:47
+  sleep_end: 2026-08-09T07:40
+  sleep_score: 95
+  overnight_hr: 59
+  hrv_ms: 53
+  hrv_7d_ms: 53
+  hrv_status: balanced
+  rhr: 55
+  body_battery: 86
+  stress_avg: 34
+  source: garmin
+steps: 8163
+meals:
+  breakfast:
+  - raw: 56g sourdough
+    time: 07:32
+    parsed:
+    - {item: sourdough, g: 56}
+  - raw: 2 eggs
+    time: 07:32
+    parsed:
+    - {item: egg, n: 2}
+  - raw: English breakfast tea and low fat milk
+    time: 07:32
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  lunch:
+  - raw: 222g pasta
+    time: '12:55'
+    parsed:
+    - {item: pasta, g: 222}
+  - raw: 150g chicken breast
+    time: '12:55'
+    parsed:
+    - {item: chicken-breast, g: 150}
+  - raw: 66g tomato pepper sauce
+    time: '12:55'
+    parsed:
+    - {item: tomato-pepper-sauce, g: 66}
+  dinner:
+  - raw: 174g rice
+    time: '18:54'
+    parsed:
+    - {item: rice, g: 174}
+  - raw: 91g pork loin
+    time: '18:54'
+    parsed:
+    - {item: pork-loin, g: 91}
+  - raw: 92g broccoli
+    time: '18:54'
+    parsed:
+    - {item: veg-stirfried, g: 92}
+  snacks:
+  - raw: 164g guava
+    time: '15:59'
+    parsed:
+    - {item: guava, g: 164}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:55'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: brownie 250 cal
+    time: '20:07'
+    parsed:
+    - {item: brownie, kcal: 250, conf: med}
+  - raw: 52g granola + 150ml low fat milk
+    time: '21:27'
+    parsed:
+    - {item: granola, g: 52}
+    - {item: milk-lowfat, ml: 150}
+totals: {kcal: 2314, protein_g: 167.4, carbs_g: 259.7, fat_g: 65.3, satfat_g: 20.3, fibre_g: 25.8, sodium_mg: 1509, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2119, active: 367, bmr: 1752, source: garmin}
+intensity_min: {moderate: 0, vigorous: 0, source: garmin}

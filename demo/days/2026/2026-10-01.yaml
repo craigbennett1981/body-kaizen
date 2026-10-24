@@ -1,0 +1,89 @@
+date: '2026-10-01'
+status: complete
+day_type: rest
+weight: {kg: 79.1, fasted: true, time: '07:00', bf_pct: 20.7, muscle_kg: 59.6, visceral: 7, water_pct: 56.5, bmi: 25.0, source: scale-app}
+recovery:
+  sleep: 7h35m
+  sleep_stages_min: {deep: 124, light: 232, rem: 99}
+  awake_min: 3
+  in_bed: 22:37–06:15
+  sleep_start: 2026-09-30T22:37
+  sleep_end: 2026-10-01T06:15
+  sleep_score: 77
+  overnight_hr: 57
+  hrv_ms: 62
+  hrv_7d_ms: 60
+  hrv_status: balanced
+  rhr: 53
+  body_battery: 65
+  stress_avg: 29
+  source: garmin
+vitals:
+  bp:
+  - {time: '07:55', sys: 120, dia: 76, pulse: 65, source: bp-app}
+steps: 12508
+meals:
+  breakfast:
+  - raw: 52g oats
+    time: 07:21
+    parsed:
+    - {item: oats-rolled, g: 52}
+  - raw: 2 eggs
+    time: 07:21
+    parsed:
+    - {item: egg, n: 2}
+  - raw: English breakfast tea and low fat milk
+    time: 07:21
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 62g blueberries
+    time: 07:21
+    parsed:
+    - {item: blueberries, g: 62}
+  - raw: 1 banana
+    time: 07:21
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: salad 163g
+    time: '12:50'
+    parsed:
+    - {item: salad, g: 163}
+  - raw: 178g chicken breast
+    time: '12:50'
+    parsed:
+    - {item: chicken-breast, g: 178}
+  - raw: 54g sourdough
+    time: '12:50'
+    parsed:
+    - {item: sourdough, g: 54}
+  - raw: 64g avocado
+    time: '12:50'
+    parsed:
+    - {item: avocado, g: 64}
+  dinner:
+  - raw: 175g rice
+    time: '19:04'
+    parsed:
+    - {item: rice, g: 175}
+  - raw: 134g fish
+    time: '19:04'
+    parsed:
+    - {item: fish, g: 134}
+  - raw: 116g bok choy
+    time: '19:04'
+    parsed:
+    - {item: veg-stirfried, g: 116}
+  snacks:
+  - raw: 152g guava
+    time: '15:43'
+    parsed:
+    - {item: guava, g: 152}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '17:15'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+totals: {kcal: 1957, protein_g: 161.9, carbs_g: 206.4, fat_g: 53.8, satfat_g: 14.3, fibre_g: 31.7, sodium_mg: 1519, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2288, active: 562, bmr: 1726, source: garmin}
+intensity_min: {moderate: 0, vigorous: 0, source: garmin}

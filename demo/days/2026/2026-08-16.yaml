@@ -1,0 +1,86 @@
+date: '2026-08-16'
+status: complete
+day_type: rest
+weight: {kg: 81.7, fasted: true, time: '07:24', bf_pct: 21.6, muscle_kg: 60.9, visceral: 8, water_pct: 57.7, bmi: 25.8, source: scale-app}
+recovery:
+  sleep: 8h45m
+  sleep_stages_min: {deep: 127, light: 253, rem: 145}
+  awake_min: 3
+  in_bed: 22:13–07:01
+  sleep_start: 2026-08-15T22:13
+  sleep_end: 2026-08-16T07:01
+  sleep_score: 90
+  overnight_hr: 59
+  hrv_ms: 57
+  hrv_7d_ms: 57
+  hrv_status: balanced
+  rhr: 55
+  body_battery: 85
+  stress_avg: 37
+  source: garmin
+steps: 8229
+meals:
+  breakfast:
+  - raw: 176g yogurt + 91g soaked chia seeds
+    time: 07:05
+    parsed:
+    - {item: yogurt, g: 176}
+    - {item: chia-soaked, g: 91}
+  - raw: English breakfast tea and low fat milk
+    time: 07:05
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:05
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 146g rice
+    time: '12:42'
+    parsed:
+    - {item: rice, g: 146}
+  - raw: 172g chicken breast
+    time: '12:42'
+    parsed:
+    - {item: chicken-breast, g: 172}
+  - raw: 129g broccoli
+    time: '12:42'
+    parsed:
+    - {item: veg-stirfried, g: 129}
+  dinner:
+  - raw: 148g rice
+    time: '18:52'
+    parsed:
+    - {item: rice, g: 148}
+  - raw: 157g chicken breast
+    time: '18:52'
+    parsed:
+    - {item: chicken-breast, g: 157}
+  - raw: 118g spinach
+    time: '18:52'
+    parsed:
+    - {item: veg-stirfried, g: 118}
+  - raw: 200ml miso soup
+    time: '18:52'
+    parsed:
+    - {item: miso-soup, ml: 200}
+  snacks:
+  - raw: 126g guava
+    time: '10:36'
+    parsed:
+    - {item: guava, g: 126}
+  - raw: 22g almonds and cashews
+    time: '15:46'
+    parsed:
+    - {item: nuts-mixed, g: 22}
+  - raw: 1 kiwi
+    time: '17:05'
+    parsed:
+    - {item: kiwi, n: 1}
+  - raw: cheesecake 300 cal
+    time: '20:46'
+    parsed:
+    - {item: cheesecake-jelly, kcal: 300, conf: med}
+totals: {kcal: 1956, protein_g: 153.8, carbs_g: 202.5, fat_g: 59.6, satfat_g: 18.1, fibre_g: 29.7, sodium_mg: 2036, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2119, active: 370, bmr: 1749, source: garmin}
+intensity_min: {moderate: 0, vigorous: 0, source: garmin}

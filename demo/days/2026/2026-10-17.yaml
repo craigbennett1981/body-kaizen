@@ -1,0 +1,99 @@
+date: '2026-10-17'
+status: complete
+day_type: training
+weight: {kg: 78.9, fasted: true, time: '07:18', bf_pct: 19.8, muscle_kg: 60.1, visceral: 7, water_pct: 57.6, bmi: 24.9, source: scale-app}
+recovery:
+  sleep: 8h19m
+  sleep_stages_min: {deep: 135, light: 242, rem: 122}
+  awake_min: 9
+  in_bed: 22:32–07:00
+  sleep_start: 2026-10-16T22:32
+  sleep_end: 2026-10-17T07:00
+  sleep_score: 93
+  overnight_hr: 54
+  hrv_ms: 71
+  hrv_7d_ms: 64
+  hrv_status: balanced
+  rhr: 50
+  body_battery: 82
+  stress_avg: 22
+  source: garmin
+steps: 15174
+exercise:
+- type: swim
+  garmin_id: 30000000055
+  source: garmin
+  start: 08:00
+  duration_min: 40
+  distance_m: 1200
+  pool_m: 25
+  hr: {avg: 128, max: 148}
+  kcal: {total: 384, active: 324}
+  garmin_name: Pool Swim
+meals:
+  breakfast:
+  - raw: 164g yogurt + 95g soaked chia seeds
+    time: 07:59
+    parsed:
+    - {item: yogurt, g: 164}
+    - {item: chia-soaked, g: 95}
+  - raw: English breakfast tea and low fat milk
+    time: 07:59
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:59
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 173g pasta
+    time: '13:11'
+    parsed:
+    - {item: pasta, g: 173}
+  - raw: 163g chicken breast
+    time: '13:11'
+    parsed:
+    - {item: chicken-breast, g: 163}
+  - raw: 60g tomato pepper sauce
+    time: '13:11'
+    parsed:
+    - {item: tomato-pepper-sauce, g: 60}
+  dinner:
+  - raw: 173g rice
+    time: '19:39'
+    parsed:
+    - {item: rice, g: 173}
+  - raw: 150g fish
+    time: '19:39'
+    parsed:
+    - {item: fish, g: 150}
+  - raw: 100g bok choy
+    time: '19:39'
+    parsed:
+    - {item: veg-stirfried, g: 100}
+  snacks:
+  - raw: 191g apple
+    time: '10:31'
+    parsed:
+    - {item: apple, g: 191}
+  - raw: 1 kiwi
+    time: '15:31'
+    parsed:
+    - {item: kiwi, n: 1}
+  - raw: 190g guava
+    time: '15:54'
+    parsed:
+    - {item: guava, g: 190}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '17:11'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 1 croissant
+    time: '20:22'
+    parsed:
+    - {item: croissant, n: 1}
+totals: {kcal: 2106, protein_g: 166.8, carbs_g: 260.0, fat_g: 45.9, satfat_g: 16.4, fibre_g: 37.3, sodium_mg: 1653, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2724, active: 1006, bmr: 1718, source: garmin}
+intensity_min: {moderate: 40, vigorous: 0, source: garmin}
+fitness: {vo2max: 47.0, source: garmin}

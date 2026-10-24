@@ -1,0 +1,113 @@
+date: '2026-08-12'
+status: complete
+day_type: training
+weight: {kg: 81.7, fasted: true, time: '07:05', bf_pct: 22.6, muscle_kg: 60.0, visceral: 8, water_pct: 57.3, bmi: 25.8, source: scale-app}
+recovery:
+  sleep: 7h21m
+  sleep_stages_min: {deep: 119, light: 195, rem: 127}
+  awake_min: 3
+  in_bed: 23:22–06:46
+  sleep_start: 2026-08-11T23:22
+  sleep_end: 2026-08-12T06:46
+  sleep_score: 72
+  overnight_hr: 59
+  hrv_ms: 50
+  hrv_7d_ms: 53
+  hrv_status: balanced
+  rhr: 55
+  body_battery: 63
+  stress_avg: 25
+  source: garmin
+steps: 7497
+exercise:
+- type: gym
+  garmin_id: 30000000013
+  source: garmin
+  start: '18:55'
+  duration_min: 56
+  hr: {avg: 115, max: 137}
+  kcal: {total: 283, active: 220}
+  zones_min: {z1: 13, z2: 34, z3: 8}
+  garmin_name: Strength
+  name: Hinge + push
+  lifts:
+  - ex: smith-rdl
+    sets: [50x10, 50x10, 50x10]
+  - ex: lat-pulldown
+    sets: [36.3x9, 36.3x9, 36.3x8]
+  - ex: chin-up
+    sets: ['0x4', '0x3', '0x5']
+  - ex: leg-extension
+    sets: [45.4x10, 45.4x10, 45.4x10]
+  - ex: triceps-pushdown
+    sets: [40.8x9, 40.8x9, 40.8x9]
+  - ex: cable-crunch
+    sets: [54.5x10, 54.5x10, 54.5x10]
+  - ex: farmers-walk
+    sets: [45kg@60m, 45kg@60m, 45kg@60m]
+meals:
+  breakfast:
+  - raw: 45g oats
+    time: 07:50
+    parsed:
+    - {item: oats-rolled, g: 45}
+  - raw: 2 eggs
+    time: 07:50
+    parsed:
+    - {item: egg, n: 2}
+  - raw: English breakfast tea and low fat milk
+    time: 07:50
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 91g blueberries
+    time: 07:50
+    parsed:
+    - {item: blueberries, g: 91}
+  - raw: 1 banana
+    time: 07:50
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 191g rice
+    time: '12:13'
+    parsed:
+    - {item: rice, g: 191}
+  - raw: 131g salmon
+    time: '12:13'
+    parsed:
+    - {item: salmon, g: 131}
+  - raw: 100g spinach
+    time: '12:13'
+    parsed:
+    - {item: veg-stirfried, g: 100}
+  dinner:
+  - raw: 249g potato
+    time: '19:24'
+    parsed:
+    - {item: potato, g: 249}
+  - raw: 141g lean beef
+    time: '19:24'
+    parsed:
+    - {item: beef-lean, g: 141}
+  - raw: 93g green bean
+    time: '19:24'
+    parsed:
+    - {item: veg-stirfried, g: 93}
+  snacks:
+  - raw: 148g yogurt + half scoop protein powder
+    time: '15:36'
+    parsed:
+    - {item: scoop, n: 0.5}
+    - {item: yogurt, g: 148}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:13'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 146g guava
+    time: '17:09'
+    parsed:
+    - {item: guava, g: 146}
+totals: {kcal: 2119, protein_g: 170.4, carbs_g: 231.2, fat_g: 57.6, satfat_g: 17.8, fibre_g: 30.9, sodium_mg: 1190, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2308, active: 557, bmr: 1751, source: garmin}
+intensity_min: {moderate: 56, vigorous: 0, source: garmin}

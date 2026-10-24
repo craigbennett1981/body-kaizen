@@ -1,0 +1,109 @@
+date: '2026-08-04'
+status: complete
+day_type: training
+recovery:
+  sleep: 7h38m
+  sleep_stages_min: {deep: 122, light: 220, rem: 116}
+  awake_min: 6
+  in_bed: 22:59–06:43
+  sleep_start: 2026-08-03T22:59
+  sleep_end: 2026-08-04T06:43
+  sleep_score: 85
+  overnight_hr: 58
+  hrv_ms: 53
+  hrv_7d_ms: 55
+  hrv_status: balanced
+  rhr: 54
+  body_battery: 59
+  stress_avg: 31
+  source: garmin
+feel: {overall: 4, energy: 3, mood: 4, gut: 3, stress: 2}
+vitals:
+  bp:
+  - {time: '07:58', sys: 131, dia: 76, pulse: 60, source: bp-app}
+steps: 10924
+exercise:
+- type: run
+  garmin_id: 30000000007
+  source: garmin
+  mode: outdoor
+  effort: easy
+  start: '18:14'
+  duration_min: 43
+  distance_km: 6.35
+  time: '43:47'
+  distance_source: gps
+  hr: {avg: 145, max: 159}
+  kcal: {total: 476, active: 406}
+  cadence: 165
+  zones_min: {z1: 2, z2: 15, z3: 24, z4: 4}
+  garmin_name: Running
+meals:
+  breakfast:
+  - raw: 52g oats
+    time: 07:43
+    parsed:
+    - {item: oats-rolled, g: 52}
+  - raw: 2 eggs
+    time: 07:43
+    parsed:
+    - {item: egg, n: 2}
+  - raw: English breakfast tea and low fat milk
+    time: 07:43
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 74g blueberries
+    time: 07:43
+    parsed:
+    - {item: blueberries, g: 74}
+  - raw: 1 banana
+    time: 07:43
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 197g rice
+    time: '12:13'
+    parsed:
+    - {item: rice, g: 197}
+  - raw: 168g chicken breast
+    time: '12:13'
+    parsed:
+    - {item: chicken-breast, g: 168}
+  - raw: 134g broccoli
+    time: '12:13'
+    parsed:
+    - {item: veg-stirfried, g: 134}
+  dinner:
+  - raw: 159g rice
+    time: '19:12'
+    parsed:
+    - {item: rice, g: 159}
+  - raw: 124g pork loin
+    time: '19:12'
+    parsed:
+    - {item: pork-loin, g: 124}
+  - raw: 98g broccoli
+    time: '19:12'
+    parsed:
+    - {item: veg-stirfried, g: 98}
+  snacks:
+  - raw: 137g pear
+    time: '10:39'
+    parsed:
+    - {item: pear, g: 137}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:13'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 165g pear
+    time: '16:56'
+    parsed:
+    - {item: pear, g: 165}
+  - raw: 178g apple
+    time: '21:14'
+    parsed:
+    - {item: apple, g: 178}
+totals: {kcal: 2106, protein_g: 162.4, carbs_g: 267.0, fat_g: 44.6, satfat_g: 14.2, fibre_g: 33.6, sodium_mg: 1175, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2652, active: 897, bmr: 1755, source: garmin}
+intensity_min: {moderate: 0, vigorous: 43, source: garmin}

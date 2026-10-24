@@ -1,0 +1,8 @@
+- {date: '2026-08-02', test: grip, left_kg: 43.5, right_kg: 45.8}
+- {date: '2026-10-17', test: grip, left_kg: 45.1, right_kg: 47.2}
+- {date: '2026-08-02', test: one_leg_stand, seconds: 38}
+- {date: '2026-10-17', test: one_leg_stand, seconds: 52}
+- {date: '2026-08-02', test: waist, cm: 92.0}
+- {date: '2026-10-17', test: waist, cm: 88.5}
+- {date: '2026-09-05', test: hr_cap_run, speed_kmh: 9.0, cap_bpm: 145, km: 3.9, minutes: 26}
+- {date: '2026-10-10', test: hr_cap_run, speed_kmh: 9.0, cap_bpm: 145, km: 4.6, minutes: 31}

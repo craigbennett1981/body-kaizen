@@ -1,0 +1,89 @@
+date: '2026-09-27'
+status: complete
+day_type: rest
+weight: {kg: 80.3, fasted: true, time: '07:21', bf_pct: 20.9, muscle_kg: 60.3, visceral: 7, water_pct: 56.9, bmi: 25.3, source: scale-app}
+recovery:
+  sleep: 9h15m
+  sleep_stages_min: {deep: 130, light: 257, rem: 168}
+  awake_min: 0
+  in_bed: 21:58–07:13
+  sleep_start: 2026-09-26T21:58
+  sleep_end: 2026-09-27T07:13
+  sleep_score: 95
+  overnight_hr: 56
+  hrv_ms: 57
+  hrv_7d_ms: 63
+  hrv_status: balanced
+  rhr: 52
+  body_battery: 90
+  stress_avg: 25
+  source: garmin
+feel: {overall: 4, energy: 4, mood: 5, gut: 4, stress: 2}
+vitals:
+  bp:
+  - {time: '07:33', sys: 113, dia: 82, pulse: 59, source: bp-app}
+steps: 10318
+meals:
+  breakfast:
+  - raw: 55g oats
+    time: 07:00
+    parsed:
+    - {item: oats-rolled, g: 55}
+  - raw: 2 eggs
+    time: 07:00
+    parsed:
+    - {item: egg, n: 2}
+  - raw: English breakfast tea and low fat milk
+    time: 07:00
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 61g blueberries
+    time: 07:00
+    parsed:
+    - {item: blueberries, g: 61}
+  - raw: 1 banana
+    time: 07:00
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 193g pasta
+    time: '12:04'
+    parsed:
+    - {item: pasta, g: 193}
+  - raw: 157g chicken breast
+    time: '12:04'
+    parsed:
+    - {item: chicken-breast, g: 157}
+  - raw: 63g tomato pepper sauce
+    time: '12:04'
+    parsed:
+    - {item: tomato-pepper-sauce, g: 63}
+  dinner:
+  - raw: 182g rice
+    time: '19:25'
+    parsed:
+    - {item: rice, g: 182}
+  - raw: 97g pork loin
+    time: '19:25'
+    parsed:
+    - {item: pork-loin, g: 97}
+  - raw: 115g broccoli
+    time: '19:25'
+    parsed:
+    - {item: veg-stirfried, g: 115}
+  snacks:
+  - raw: 25g almonds and cashews
+    time: '15:36'
+    parsed:
+    - {item: nuts-mixed, g: 25}
+  - raw: 149g pear
+    time: '15:57'
+    parsed:
+    - {item: pear, g: 149}
+  - raw: 2 slices pepperoni pizza
+    time: '20:35'
+    parsed:
+    - {item: pizza-pepperoni-stuffed, n: 2}
+totals: {kcal: 2434, protein_g: 152.5, carbs_g: 281.2, fat_g: 77.2, satfat_g: 24.3, fibre_g: 28.1, sodium_mg: 2306, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2192, active: 464, bmr: 1728, source: garmin}
+intensity_min: {moderate: 0, vigorous: 0, source: garmin}

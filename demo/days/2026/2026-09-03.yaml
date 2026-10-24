@@ -1,0 +1,97 @@
+date: '2026-09-03'
+status: complete
+day_type: rest
+weight: {kg: 80.6, fasted: true, time: '06:53', bf_pct: 21.5, muscle_kg: 60.1, visceral: 8, water_pct: 57.1, bmi: 25.4, source: scale-app}
+recovery:
+  sleep: 8h51m
+  sleep_stages_min: {deep: 149, light: 251, rem: 131}
+  awake_min: 9
+  in_bed: 22:05–07:05
+  sleep_start: 2026-09-02T22:05
+  sleep_end: 2026-09-03T07:05
+  sleep_score: 93
+  overnight_hr: 63
+  hrv_ms: 40
+  hrv_7d_ms: 54
+  hrv_status: unbalanced
+  rhr: 59
+  body_battery: 70
+  stress_avg: 38
+  source: garmin
+feel: {overall: 2, energy: 2, mood: 5, gut: 3, stress: 2}
+vitals:
+  bp:
+  - {time: '07:49', sys: 127, dia: 75, pulse: 73, source: bp-app}
+steps: 6815
+meals:
+  breakfast:
+  - raw: 45g oats
+    time: 07:58
+    parsed:
+    - {item: oats-rolled, g: 45}
+  - raw: 2 eggs
+    time: 07:58
+    parsed:
+    - {item: egg, n: 2}
+  - raw: English breakfast tea and low fat milk
+    time: 07:58
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 93g blueberries
+    time: 07:58
+    parsed:
+    - {item: blueberries, g: 93}
+  - raw: 1 banana
+    time: 07:58
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: salad 154g
+    time: '12:02'
+    parsed:
+    - {item: salad, g: 154}
+  - raw: 163g chicken breast
+    time: '12:02'
+    parsed:
+    - {item: chicken-breast, g: 163}
+  - raw: 46g sourdough
+    time: '12:02'
+    parsed:
+    - {item: sourdough, g: 46}
+  - raw: 65g avocado
+    time: '12:02'
+    parsed:
+    - {item: avocado, g: 65}
+  dinner:
+  - raw: 185g rice
+    time: '19:30'
+    parsed:
+    - {item: rice, g: 185}
+  - raw: 142g fish
+    time: '19:30'
+    parsed:
+    - {item: fish, g: 142}
+  - raw: 121g bok choy
+    time: '19:30'
+    parsed:
+    - {item: veg-stirfried, g: 121}
+  snacks:
+  - raw: 175g apple
+    time: '15:54'
+    parsed:
+    - {item: apple, g: 175}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:02'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 30g dates
+    time: '21:25'
+    parsed:
+    - {item: dates, g: 30}
+totals: {kcal: 1995, protein_g: 155.2, carbs_g: 230.1, fat_g: 51.9, satfat_g: 14.1, fibre_g: 30.1, sodium_mg: 1502, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+symptoms:
+- {what: sore throat, severity: 2}
+- {what: fatigue, severity: 2}
+energy: {total: 2046, active: 306, bmr: 1740, source: garmin}
+intensity_min: {moderate: 0, vigorous: 0, source: garmin}

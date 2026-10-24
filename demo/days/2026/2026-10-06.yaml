@@ -1,0 +1,105 @@
+date: '2026-10-06'
+status: complete
+day_type: training
+weight: {kg: 79.0, fasted: true, time: '07:21', bf_pct: 20.0, muscle_kg: 60.1, visceral: 7, water_pct: 56.3, bmi: 24.9, source: scale-app}
+recovery:
+  sleep: 8h25m
+  sleep_stages_min: {deep: 129, light: 244, rem: 132}
+  awake_min: 6
+  in_bed: 22:32–07:03
+  sleep_start: 2026-10-05T22:32
+  sleep_end: 2026-10-06T07:03
+  sleep_score: 80
+  overnight_hr: 58
+  hrv_ms: 66
+  hrv_7d_ms: 62
+  hrv_status: balanced
+  rhr: 54
+  body_battery: 82
+  stress_avg: 20
+  source: garmin
+vitals:
+  bp:
+  - {time: '07:50', sys: 113, dia: 74, pulse: 64, source: bp-app}
+steps: 10974
+exercise:
+- type: run
+  garmin_id: 30000000047
+  source: garmin
+  mode: outdoor
+  effort: easy
+  start: '18:32'
+  duration_min: 39
+  distance_km: 6.16
+  time: '39:14'
+  distance_source: gps
+  hr: {avg: 140, max: 157}
+  kcal: {total: 462, active: 394}
+  cadence: 166
+  zones_min: {z1: 2, z2: 13, z3: 21, z4: 3}
+  garmin_name: Running
+meals:
+  breakfast:
+  - raw: 50g oats
+    time: 07:25
+    parsed:
+    - {item: oats-rolled, g: 50}
+  - raw: 2 eggs
+    time: 07:25
+    parsed:
+    - {item: egg, n: 2}
+  - raw: English breakfast tea and low fat milk
+    time: 07:25
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 65g blueberries
+    time: 07:25
+    parsed:
+    - {item: blueberries, g: 65}
+  - raw: 1 banana
+    time: 07:25
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: 188g pasta
+    time: '13:02'
+    parsed:
+    - {item: pasta, g: 188}
+  - raw: 150g chicken breast
+    time: '13:02'
+    parsed:
+    - {item: chicken-breast, g: 150}
+  - raw: 74g tomato pepper sauce
+    time: '13:02'
+    parsed:
+    - {item: tomato-pepper-sauce, g: 74}
+  dinner:
+  - raw: 196g pasta
+    time: '18:37'
+    parsed:
+    - {item: pasta, g: 196}
+  - raw: 139g bolognese beef
+    time: '18:37'
+    parsed:
+    - {item: bolognese-beef, g: 139}
+  snacks:
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '17:02'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 134g apple
+    time: '21:10'
+    parsed:
+    - {item: apple, g: 134}
+  - raw: 166g pear
+    time: '21:27'
+    parsed:
+    - {item: pear, g: 166}
+  - raw: 165g pear
+    time: '21:28'
+    parsed:
+    - {item: pear, g: 165}
+totals: {kcal: 2126, protein_g: 145.1, carbs_g: 287.0, fat_g: 45.4, satfat_g: 16.2, fibre_g: 33.7, sodium_mg: 1158, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2610, active: 887, bmr: 1723, source: garmin}
+intensity_min: {moderate: 0, vigorous: 39, source: garmin}

@@ -1,0 +1,114 @@
+date: '2026-08-03'
+status: complete
+day_type: training
+weight: {kg: 82.3, fasted: true, time: '07:16', bf_pct: 22.4, muscle_kg: 60.7, visceral: 8, water_pct: 56.3, bmi: 26.0, source: scale-app}
+recovery:
+  sleep: 7h54m
+  sleep_stages_min: {deep: 128, light: 217, rem: 129}
+  awake_min: 3
+  in_bed: 23:02–06:59
+  sleep_start: 2026-08-02T23:02
+  sleep_end: 2026-08-03T06:59
+  sleep_score: 75
+  overnight_hr: 62
+  hrv_ms: 55
+  hrv_7d_ms: 55
+  hrv_status: balanced
+  rhr: 58
+  body_battery: 62
+  stress_avg: 30
+  source: garmin
+steps: 11529
+exercise:
+- type: gym
+  garmin_id: 30000000006
+  source: garmin
+  start: '18:06'
+  duration_min: 52
+  hr: {avg: 112, max: 137}
+  kcal: {total: 273, active: 212}
+  zones_min: {z1: 19, z2: 27, z3: 7}
+  garmin_name: Strength
+  name: Lower + pull
+  lifts:
+  - ex: smith-squat
+    sets: [50x10, 50x9, 50x8]
+  - ex: seated-row
+    sets: [31.8x9, 31.8x8, 31.8x8]
+  - ex: shoulder-press
+    sets: [27.2x9, 27.2x8, 27.2x8]
+  - ex: leg-curl
+    sets: [59x10, 59x9, 59x8]
+  - ex: cable-fly
+    sets: [36.3x10, 36.3x9, 36.3x8]
+  - ex: biceps-curl
+    sets: [34x10, 34x9, 34x8]
+  - ex: farmers-walk
+    sets: [40kg@80m, 40kg@80m, 40kg@80m]
+meals:
+  breakfast:
+  - raw: 164g yogurt + 87g soaked chia seeds
+    time: 07:50
+    parsed:
+    - {item: yogurt, g: 164}
+    - {item: chia-soaked, g: 87}
+  - raw: English breakfast tea and low fat milk
+    time: 07:50
+    parsed:
+    - {item: tea-lowfat, n: 1}
+  - raw: 1 banana
+    time: 07:50
+    parsed:
+    - {item: banana, n: 1}
+  lunch:
+  - raw: salad 177g
+    time: '12:16'
+    parsed:
+    - {item: salad, g: 177}
+  - raw: 158g chicken breast
+    time: '12:16'
+    parsed:
+    - {item: chicken-breast, g: 158}
+  - raw: 43g sourdough
+    time: '12:16'
+    parsed:
+    - {item: sourdough, g: 43}
+  - raw: 54g avocado
+    time: '12:16'
+    parsed:
+    - {item: avocado, g: 54}
+  dinner:
+  - raw: 230g potato
+    time: '18:53'
+    parsed:
+    - {item: potato, g: 230}
+  - raw: 124g lean beef
+    time: '18:53'
+    parsed:
+    - {item: beef-lean, g: 124}
+  - raw: 98g green bean
+    time: '18:53'
+    parsed:
+    - {item: veg-stirfried, g: 98}
+  snacks:
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '15:46'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+  - raw: 156g pear
+    time: '15:47'
+    parsed:
+    - {item: pear, g: 156}
+  - raw: 138g pear
+    time: '15:49'
+    parsed:
+    - {item: pear, g: 138}
+  - raw: 300ml low fat milk + 1 scoop protein powder
+    time: '16:16'
+    parsed:
+    - {item: scoop, n: 1}
+    - {item: milk-lowfat, ml: 300}
+totals: {kcal: 2107, protein_g: 190.8, carbs_g: 215.4, fat_g: 55.3, satfat_g: 18.0, fibre_g: 35.0, sodium_mg: 1306, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+energy: {total: 2485, active: 730, bmr: 1755, source: garmin}
+intensity_min: {moderate: 52, vigorous: 0, source: garmin}
