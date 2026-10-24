@@ -110,8 +110,9 @@ def compute():
         add("Heart & blood", "info", "Recheck hs-CRP", f"hs-CRP {crp['value']} mg/L. A cold or a hard session can push it up temporarily.",
             ["Retest after 2–4 weeks of feeling well and an easy 48 hours before the draw."], 5)
     b12 = L.get("b12", {})
-    if b12.get("status") in ("amber", "red") and (b12.get("value") or 0) > 569:
-        add("Heart & blood", "info", "B12 is above range", f"B12 {b12['value']} pmol/L. You take methyl-B12 on some days, which explains it; a high reading from supplements is generally harmless.", ["Mention the supplement to your doctor so the result isn't chased.", "If you want it back in range, take it less often rather than more."], 6)
+    b12_hi = (b12.get("lab_ref") or (None, None))[1]
+    if b12.get("status") in ("amber", "red") and b12_hi is not None and (b12.get("value") or 0) > b12_hi:
+        add("Heart & blood", "info", "B12 is above range", f"B12 {b12['value']} {b12.get('unit') or ''} (lab range up to {b12_hi}). A high reading usually comes from supplements or fortified foods and is generally harmless.", ["If you take a B12 supplement, mention it to your doctor so the result isn't chased.", "To bring it back in range, take the supplement less often rather than more."], 6)
     bp = [b for b in data.bp_readings() if (today - dt.date.fromisoformat(b["date"])).days < 60]
     if bp:
         s_, d_ = round(st.mean(b["sys"] for b in bp)), round(st.mean(b["dia"] for b in bp))

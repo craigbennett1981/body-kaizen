@@ -2,7 +2,7 @@
 """Pull Garmin Connect data into the day files, then commit and push.
 
   .venv/bin/python scripts/garmin_pull.py              # last 3 days (default; what the scheduler runs)
-  .venv/bin/python scripts/garmin_pull.py --since 2026-07-24   # backfill history
+  .venv/bin/python scripts/garmin_pull.py --since 2026-07-01   # backfill history
   .venv/bin/python scripts/garmin_pull.py --remap      # re-apply saved raw files after a mapping fix (no network)
   add --no-git to skip commit/push
 
