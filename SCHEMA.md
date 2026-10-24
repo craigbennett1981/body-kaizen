@@ -189,7 +189,7 @@ S: mooncake 90cal
 ```
 
 - Order doesn't matter; partial days are fine — send more later.
-- Named meals from `meals.yaml`: `b1`, `shake`, `yog`, `chia`, `rice-pork` (and `2x shake`). Add your own there.
+- Named meals from `meals.yaml`: `b1`, `shake`, `cr`, `sr` (and `2x shake`). Add your own there.
 - New packaged food? Send a photo of the nutrition label: it's added to `foods.yaml` with `conf: label`.
 - `x3` = three identical sets. `90cal` = calorie override.
 - Anything ambiguous gets flagged back in the summary before commit.
