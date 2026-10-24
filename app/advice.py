@@ -75,7 +75,7 @@ def compute():
                 [f"Start with the biggest source ({top('sf', 1)[0][0] if src['sf'] else 'fatty meat'}): eat less of it or swap it for a leaner option.",
                  "Lean cuts, chicken or fish instead of fatty pork and beef mince; low-fat dairy; skip butter and ghee.",
                  "Cook with olive or canola oil instead of butter, lard or coconut oil.",
-                 "Watch coconut milk (curries, laksa), pastries, cheese and fried hawker food."], 1)
+                 "Watch coconut milk and cream sauces, pastries, cheese, fatty meat and fried food."], 1)
         elif sf is not None:
             add("Diet", "keep", "Saturated fat is under control", f"Average {sf} g/day (limit {smax}). Biggest sources: {tops}.", ["Hold the line: ApoB is the reason this matters."], 6)
         # fibre
