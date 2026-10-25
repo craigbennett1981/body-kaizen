@@ -9,6 +9,10 @@ This product bundles third-party components under their own licences:
   Copyright The Apache Software Foundation. Licensed under the Apache License, Version 2.0.
   See app/static/vendor/LICENSE-echarts.txt and app/static/vendor/NOTICE-echarts.txt.
 
+- Body outline shapes (app/static/vendor/bodymap.js), from react-body-highlighter 2.0.5
+  Copyright (c) 2020 GV79. Licensed under the MIT License.
+  See app/static/vendor/LICENSE-react-body-highlighter.txt.
+
 - Archivo font (app/static/vendor/archivo-*.woff2)
   Licensed under the SIL Open Font License, Version 1.1.
   See app/static/vendor/LICENSE-archivo-OFL.txt.

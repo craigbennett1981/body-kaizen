@@ -65,7 +65,7 @@ verdict against the full-day targets.
 | How they feel (`feel 4 mood 3 energy 4 gut 3 stress 2`) | `feel:` | 1–5; for stress, 5 = very stressed |
 | Symptoms (`headache mild 15:00`) | `symptoms[]` | severity 1 mild, 2 moderate, 3 severe |
 | Steps, sleep, HRV, resting HR | `steps:`, `recovery:` | Only if there's no Garmin sync; the sync fills these itself |
-| A gym session (shorthand or a Hevy share) | `exercise[]`, `type: gym`, `lifts[]` | Lift names must match `exercises.yaml` keys or aliases; add new lifts there. Bodyweight sets in quotes: `'0x8'` |
+| A gym session (shorthand or a Hevy share) | `exercise[]`, `type: gym`, `lifts[]` | Lift names must match `exercises.yaml` keys or aliases; add new lifts there, with `muscles:` and `secondary:` tags from SCHEMA.md (they drive the muscle map). Bodyweight sets in quotes: `'0x8'` |
 | A run, swim, ruck, yoga, walk | `exercise[]` with the type's fields | See SCHEMA.md |
 | "Gym today" / "rest day" | `day_type_override: training\|rest\|big` | Sets the day's calorie target before the session is logged |
 | Body-composition scan (InBody etc.) | `measurements/inbody.yaml` | |

@@ -6,7 +6,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 os.environ.setdefault("FT_DATA", str(ROOT / "demo"))
 sys.path[:0] = [str(ROOT / "scripts"), str(ROOT / "app")]
 import nutrition as N   # noqa: E402
-import pace, planner     # noqa: E402
+import pace, planner, muscles   # noqa: E402
 
 
 class FoodMatcher(unittest.TestCase):
@@ -67,3 +67,18 @@ class Planner(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class MuscleMap(unittest.TestCase):
+    def test_tags_map_to_regions(self):
+        self.assertEqual(muscles.regions_for("front-delts"), ["front-delts"])
+        self.assertEqual(sorted(muscles.regions_for("shoulders")), ["front-delts", "rear-delts"])
+        self.assertEqual(muscles.regions_for("not-a-muscle"), [])
+
+    def test_week_counts_sets_and_lists_lifts(self):
+        m = muscles.build(7, "2026-10-23")
+        self.assertEqual(set(m["regions"]), set(muscles.REGIONS))
+        trained = [r for r in m["regions"].values() if r["sets"]]
+        self.assertTrue(trained)
+        for r in trained: self.assertTrue(r["lifts"], "every shaded muscle names the lifts behind it")
+
