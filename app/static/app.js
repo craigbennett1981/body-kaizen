@@ -18,8 +18,16 @@ function showTab(t){
   if(!document.getElementById('tab-'+t)) t = 'day';
   document.querySelectorAll('nav button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab===t));
   document.querySelectorAll('main > section').forEach(s => s.hidden = s.id !== 'tab-'+t);
+  placeSync(t);
   history.replaceState(null,'','#'+t);
   renderTab(t);
+}
+// On the Day tab the sync status sits at the right of the date row, so the header stays on one line;
+// on other tabs it goes back to the header.
+function placeSync(t){
+  const s = document.getElementById('sync'), row = document.querySelector('#tab-day .daynav');
+  const home = t === 'day' && row ? row : document.querySelector('header');
+  if(s && s.parentNode !== home) home.appendChild(s);
 }
 function chart(id){
   const el = document.getElementById(id);
@@ -1363,7 +1371,13 @@ function renderTab(t){
 function renderAll(){ renderTab((location.hash||'#day').slice(1)); }
 /* ---------- profile: first-run setup (name, start date, timezone -> settings.yaml) ---------- */
 let PROFILE = null;
-function showWho(){ const b = $('#who'); if(!b || !PROFILE) return; b.hidden = !PROFILE.name; b.textContent = PROFILE.name ? '· ' + PROFILE.name : ''; }
+function showWho(){   // a small profile icon, not the name: the name made the header wrap and pushed the sync status down
+  const b = $('#who'); if(!b || !PROFILE) return;
+  b.hidden = !PROFILE.name;
+  const label = PROFILE.name ? `${PROFILE.name}: profile, start date and timezone` : 'Profile';
+  b.title = label; b.setAttribute('aria-label', label);
+  b.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+}
 function openSetup(first){
   const d = $('#setup'), f = $('#setupform'); if(!d || !PROFILE) return;
   $('#setup-h').textContent = first ? 'Welcome to Body Kaizen' : 'Your profile';
