@@ -228,6 +228,22 @@ eras:                                           # which food a generic name mean
     - {from: 2026-10-20, use: milk-brand-b-lowfat}
 git: {auto_commit: true, auto_push: false}      # commit after each sync; push only if you turn it on
 ```
+### exercises.yaml: muscle tags
+
+Each lift lists the muscles it works, which drive the muscle map on the Training tab and the weekly sets table:
+
+```yaml
+lifts:
+  seated-row:
+    aliases: [row, seated row, cable row]
+    muscles: [upper-back]                    # primary: every working set counts
+    secondary: [biceps, rear-delts, traps]   # secondary: each set counts half
+```
+
+Muscle names: `chest`, `front-delts`, `rear-delts`, `biceps`, `triceps`, `forearms`, `abs`, `obliques`, `traps`,
+`upper-back`, `lower-back`, `glutes`, `quads`, `hamstrings`, `adductors`, `calves`. Broad names still work and
+spread across the muscles they cover: `shoulders`, `back`, `core`, `grip`, `legs`.
+
 ## Commit convention
 
 `YYYY-MM-DD: <what changed>` e.g. `2026-10-16: breakfast, gym, bp`.

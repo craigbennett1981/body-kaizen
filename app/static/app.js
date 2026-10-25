@@ -910,7 +910,7 @@ function renderTrainChips(){
 }
 async function renderTraining(){
   TRAIN = TRAIN || await api('/api/training');
-  renderTrainChips(); renderTrainChart(); renderPlan(); renderLiftTable(); renderRuns(); renderWorkouts();
+  renderTrainChips(); renderTrainChart(); renderPlan(); renderLiftTable(); renderRuns(); renderWorkouts().then(renderMuscles);
 }
 /* ---------- workouts: one session in detail, Hevy + Garmin ---------- */
 let WO = null, WO_SEL = null;
@@ -925,7 +925,7 @@ async function renderWorkouts(){
     const stat = w.type==='gym' ? `${w.sets} sets` : w.distance_km ? `${w.distance_km} km` : w.duration_min ? `${w.duration_min} min` : '';
     return `<button role="tab" aria-selected="${k===WO_SEL}" data-k="${k}"><span class="wd">${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}</span>
       <span class="wn">${WO_IC[w.type]||'•'} ${esc(w.name)}</span><span class="ws">${stat}${w.garmin?' · <span title="Garmin data">⌚</span>':''}</span></button>`; }).join('');
-  el.querySelectorAll('button').forEach(b => b.onclick = () => { WO_SEL = b.dataset.k; renderWorkouts(); });
+  el.querySelectorAll('button').forEach(b => b.onclick = () => { WO_SEL = b.dataset.k; renderWorkouts().then(() => { if(MMODE==='session') renderMuscles(); }); });
   const [date, i] = WO_SEL.split('|');
   const D = await api(`/api/workout?date=${date}&i=${i}`).catch(()=>null);
   const box = $('#wodetail'); if(!D){ box.innerHTML = ''; return; }
@@ -973,6 +973,41 @@ async function renderWorkouts(){
         markArea:{silent:true,label:{show:true,position:'insideRight',color:c.muted,fontSize:10},data:[0,1,2,3,4].map(k=>[{yAxis:B[k],name:'Z'+(k+1),itemStyle:{color:ZC[k],opacity:.08}},{yAxis:B[k+1]}])}},
         {type:'scatter',name:'Efforts',data:T.efforts,symbolSize:7,itemStyle:{color:c.ink},tooltip:{show:false}}]});
   }
+}
+/* ---------- muscle map: sets per muscle, hover a muscle for the lifts behind it ---------- */
+let MMODE = '7';
+document.querySelectorAll('#mrange button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#mrange button').forEach(x => x.setAttribute('aria-pressed', x===b)); MMODE = b.dataset.m; renderMuscles(); });
+async function renderMuscles(){
+  const box = $('#musclemap'); if(!box || !window.BODYMAP) return;
+  let url = `/api/muscles?days=${MMODE}`, what = `the last ${MMODE} days`, over = `over ${what}`;
+  if(MMODE === 'session'){
+    if(!WO_SEL){ box.innerHTML = '<p class="empty">Pick a workout above.</p>'; return; }
+    const [date, i] = WO_SEL.split('|'); url = `/api/muscles?date=${date}&i=${i}`; what = `this workout (${shortDate(date)})`; over = `in ${what}`;
+  }
+  const M = await api(url).catch(() => null); if(!M){ box.innerHTML = ''; return; }
+  const R = M.regions, days = MMODE === 'session' ? 0 : +MMODE;
+  // shade by sets: per session 1/2/4/6+, otherwise per week 1/6/10/16+ scaled to the window
+  const cut = days ? [1, 6, 10, 16].map(v => v * days / 7) : [1, 2, 4, 6];
+  const lvl = v => !v ? 0 : v >= cut[3] ? 4 : v >= cut[2] ? 3 : v >= cut[1] ? 2 : 1;
+  const leg = days ? ['0', `1–${Math.round(cut[1]-1)}`, `${Math.round(cut[1])}–${Math.round(cut[2]-1)}`, `${Math.round(cut[2])}–${Math.round(cut[3]-1)}`, `${Math.round(cut[3])}+`]
+                   : ['0', '1', '2–3', '4–5', '6+'];
+  const fig = (side, title) => `<figure><figcaption>${title}</figcaption><svg viewBox="0 0 100 200" role="img" aria-label="${title} muscles">${
+    BODYMAP[side].map(([r, pts]) => r ? `<polygon class="m" data-r="${r}" points="${pts}" fill="var(--m${lvl(R[r].sets)})"><title>${esc(R[r].label)}: ${fmt(R[r].sets,1)} sets</title></polygon>`
+                                      : `<polygon points="${pts}" fill="var(--mbody)"/>`).join('')}</svg></figure>`;
+  const gaps = M.untrained.map(r => R[r].label.toLowerCase());
+  $('#mnote').textContent = `Hard sets per muscle ${over}; warm-ups excluded and a secondary muscle counts half a set. Hover or tap a muscle to see the lifts behind it.` +
+    (gaps.length ? ` Not trained: ${gaps.join(', ')}.` : '') + (M.untagged.length ? ` No muscles tagged in exercises.yaml for: ${M.untagged.join(', ')}.` : '');
+  const info = r => { const x = R[r];
+    if(!x.lifts.length) return `<h4>${esc(x.label)}</h4><p class="sub">Not trained in ${what}.</p>`;
+    return `<h4>${esc(x.label)} · ${fmt(x.sets,1)} sets</h4><ul>${x.lifts.map(l => `<li><span>${esc(l.name)}${l.role==='secondary'?' <span class="r">(secondary, counts half)</span>':''}</span>
+      <span class="r">${l.sets} set${l.sets!==1?'s':''}${days?` · ${[...new Set(l.dates)].map(shortDate).join(', ')}`:''}</span></li>`).join('')}</ul>`; };
+  const top = Object.keys(R).filter(r => R[r].sets).sort((a, b) => R[b].sets - R[a].sets)[0];
+  box.innerHTML = fig('front', 'Front') + fig('back', 'Back') + `<div class="mside"><div class="mlegend">${leg.map((t, k) => `<span><i style="background:var(--m${k})"></i>${t}${k===0?' sets':''}</span>`).join('')}</div>
+    <div class="mtip" id="mtip">${top ? info(top) : `<p class="sub">${MMODE==='session' ? 'No lifts in this workout. Pick a gym session above.' : 'No lifts logged in this period.'}</p>`}</div></div>`;
+  const show = r => { $('#mtip').innerHTML = info(r); box.querySelectorAll('polygon.m').forEach(p => p.classList.toggle('hl', p.dataset.r === r)); };
+  box.querySelectorAll('polygon.m').forEach(p => { p.onmouseenter = () => show(p.dataset.r); p.onclick = () => show(p.dataset.r); });
+  if(top) show(top);
 }
 function renderTrainChart(){
   if(TVIEW === 'energy') renderEnergy(); else renderLift(TVIEW);

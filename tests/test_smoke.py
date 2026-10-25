@@ -43,7 +43,7 @@ class Smoke(unittest.TestCase):
             routes = ["/", "/api/summary", "/api/training", "/api/body", "/api/reference", f"/api/day?date={day}",
                       f"/api/pace?date={day}", f"/api/glance?date={day}", f"/api/daytimeline?date={day}",
                       f"/api/insights?date={day}", "/api/week", "/api/plan", "/api/longevity", "/api/healthscore",
-                      "/api/advice", "/api/wellbeing", "/api/timeline", "/api/workouts", "/api/todo", "/api/alerts",
+                      "/api/advice", "/api/wellbeing", "/api/timeline", "/api/workouts", "/api/muscles?days=7", "/api/todo", "/api/alerts",
                       "/api/readiness"]
             for path in routes:
                 with self.subTest(path=path):

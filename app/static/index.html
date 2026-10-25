@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Body Kaizen</title>
 <script src="vendor/echarts.min.js"></script>  <!-- ECharts 5.5.1, Apache-2.0: vendor/LICENSE-echarts.txt -->
+<script src="vendor/bodymap.js"></script>  <!-- body outline from react-body-highlighter, MIT: vendor/LICENSE-react-body-highlighter.txt -->
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -79,6 +80,11 @@
     <h2>Workouts</h2>
     <div class="wo-pick" id="wopick" role="tablist" aria-label="Workout"></div>
     <div id="wodetail"></div>
+    <div class="row"><h2>Muscles worked</h2>
+      <div class="seg" id="mrange"><button data-m="session">This workout</button><button data-m="7" aria-pressed="true">7 days</button><button data-m="14">14 days</button><button data-m="28">28 days</button></div>
+    </div>
+    <p class="sub" id="mnote"></p>
+    <div class="mmap" id="musclemap"></div>
     <h2>Calories burnt</h2>
     <div class="chips" id="trainchips" role="tablist" aria-label="Chart"></div>
     <p class="sub" id="trainnote"></p>
