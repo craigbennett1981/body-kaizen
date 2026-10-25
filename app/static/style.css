@@ -404,8 +404,8 @@ table.wo-lifts td:first-child{text-transform:none}
 .lift-note{font-weight:400;font-size:12.5px;color:var(--muted);line-height:1.4;margin-top:3px;max-width:420px;white-space:normal}
 
 /* first-run setup / profile */
-.brand .who{font:inherit;font-size:13px;font-weight:500;color:var(--muted);background:none;border:0;padding:0 0 0 6px;cursor:pointer}
-.brand .who:hover{color:var(--ink);text-decoration:underline}
+.brand .who{display:inline-flex;align-items:center;vertical-align:middle;color:var(--muted);background:none;border:0;padding:4px;margin-left:4px;border-radius:6px;cursor:pointer}
+.brand .who:hover,.brand .who:focus-visible{color:var(--ink);background:var(--surface,rgba(127,127,127,.12))}
 dialog#setup{border:1px solid var(--rule);border-radius:14px;background:var(--surface);color:var(--ink);padding:24px 26px;width:min(440px,92vw)}
 dialog#setup::backdrop{background:rgba(0,0,0,.55)}
 #setupform h2{margin:0 0 6px} #setupform .sub{margin:0 0 16px;font-size:13.5px}
