@@ -282,11 +282,8 @@ button.lv-count[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 
 .hs-dom small{color:var(--muted)} .hs-dom .tr{height:8px;background:var(--rule);border-radius:4px;overflow:hidden;opacity:.9}
 .hs-dom .tr i{display:block;height:100%;border-radius:4px} .hs-dom .v{font-weight:700;text-align:right} .hs-dom .cv{color:var(--muted);font-size:11px}
 @media (max-width:900px){.hs-panel{grid-template-columns:1fr} .hs-dom{grid-template-columns:120px 1fr 44px} .hs-dom .cv{display:none}}
-/* health score box: bottom aligned with the day-type chips, free to rise beside the date controls */
-@media (min-width:701px){
-  .day-head{position:relative;padding-right:280px}
-  .day-head .hs-tile{position:absolute;right:0;bottom:0}
-}
+/* health score box sits beside the date and day-type chips; the row above it holds the date controls and sync status */
+.day-head .hs-tile{align-self:flex-end}
 
 .hs-dom[data-dom]{cursor:pointer;border-radius:6px;padding:2px 4px;margin:3px -4px}
 .hs-dom[data-dom]:hover,.hs-dom[data-dom]:focus-visible{background:var(--accent-soft,rgba(47,91,234,.08));outline:none}

@@ -18,8 +18,16 @@ function showTab(t){
   if(!document.getElementById('tab-'+t)) t = 'day';
   document.querySelectorAll('nav button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab===t));
   document.querySelectorAll('main > section').forEach(s => s.hidden = s.id !== 'tab-'+t);
+  placeSync(t);
   history.replaceState(null,'','#'+t);
   renderTab(t);
+}
+// On the Day tab the sync status sits at the right of the date row, so the header stays on one line;
+// on other tabs it goes back to the header.
+function placeSync(t){
+  const s = document.getElementById('sync'), row = document.querySelector('#tab-day .daynav');
+  const home = t === 'day' && row ? row : document.querySelector('header');
+  if(s && s.parentNode !== home) home.appendChild(s);
 }
 function chart(id){
   const el = document.getElementById(id);
