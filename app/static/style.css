@@ -437,3 +437,7 @@ dialog#setup::backdrop{background:rgba(0,0,0,.55)}
 .mmap .mtip ul{margin:0;padding:0;list-style:none}
 .mmap .mtip li{display:flex;justify-content:space-between;gap:12px;padding:2px 0}
 .mmap .mtip li .r{color:var(--muted)}
+
+/* food table: share of the day's target */
+.meal td.sh-g1,.sh-key .sh-g1{color:var(--good)} .meal td.sh-g2{color:var(--good);font-weight:700}
+.meal td.sh-b1,.sh-key .sh-b1{color:var(--warn)} .meal td.sh-b2,.sh-key .sh-b2{color:var(--bad);font-weight:700}

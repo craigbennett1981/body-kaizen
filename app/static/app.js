@@ -130,6 +130,13 @@ async function renderDay(date){
       <p class="sub daysub">${t.label?'Targets: '+t.label+'.':''}${d.status!=='complete'?' Not judged until the day is complete.':''}${tot.low_confidence_kcal_pct?` ${tot.low_confidence_kcal_pct}% of calories from guessed portions.`:''} Sodium ${fmt(tot.sodium_mg)} mg, caffeine ${fmt(tot.caffeine_mg)} mg.</p>`;
   } else h += `<p class="empty">No food logged.</p>`;
 
+  // each number coloured by its share of the day's target: protein and fibre green (a big share helps),
+  // calories, carbs, fat and saturated fat amber then red (a big share uses up the budget)
+  const shareTd = (v, tk, dp, extra='') => {
+    const T = t[tk], ref = T==null ? null : Array.isArray(T) ? T[1] : T, pc = ref && v ? 100*v/ref : 0;
+    const goal = tk==='protein_min' || tk==='fibre_min', hi = tk==='satfat_max' ? [10,20] : goal ? [10,25] : [15,25];
+    const c = !pc || pc < hi[0] ? '' : goal ? (pc >= hi[1] ? 'sh-g2' : 'sh-g1') : (pc >= hi[1] ? 'sh-b2' : 'sh-b1');
+    return `<td class="${[extra,c].filter(Boolean).join(' ')}"${pc?` title="${Math.round(pc)}% of the day's ${goal?'target':'limit'}"`:''}>${fmt(v,dp)}</td>`; };
   let meals = '';
   for(const [meal, items] of Object.entries(d.meals||{})){
     if(!items || !items.length) continue;
@@ -139,7 +146,7 @@ async function renderDay(date){
       ps.forEach(c => { for(const k in sum) sum[k]+= (c.macros||{})[k]||0; if(c.conf==='low') low=true; });
       const what = ps.filter(c=>c.item!=='creatine').map(c => `${esc(c.name)}${c.g!=null?` ${c.g}g`:c.ml!=null?` ${c.ml}ml`:c.n!=null?` ×${c.n}`:c.kcal!=null?` (${c.kcal} kcal)`:''}`).join(' + ');
       meals += `<tr><td>${it.time?`<span class="it-time">${String(it.time).slice(0,5)}</span>`:''}${what||'<em>unresolved</em>'}<span class="raw">${esc(it.raw)}${it.after?` · after ${esc(it.after)}`:''}</span></td>
-        <td class="${low?'low':''}">${fmt(sum.k)}</td><td>${fmt(sum.p,1)}</td><td>${fmt(sum.c)}</td><td>${fmt(sum.f,1)}</td><td>${fmt(sum.sf,1)}</td><td>${fmt(sum.fib,1)}</td></tr>`;
+        ${shareTd(sum.k,'kcal',0,low?'low':'')}${shareTd(sum.p,'protein_min',1)}${shareTd(sum.c,'carbs',0)}${shareTd(sum.f,'fat',1)}${shareTd(sum.sf,'satfat_max',1)}${shareTd(sum.fib,'fibre_min',1)}</tr>`;
     }
     meals += `</table></div>`;
   }
@@ -167,7 +174,7 @@ async function renderDay(date){
   if(d.steps) kv.push(['Steps', fmt(d.steps)]);
   side += `<h2>Body</h2>` + (kv.length ? `<dl class="kv">${kv.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>` : `<p class="empty">Nothing recorded.</p>`);
   h += `<div id="ready"></div><div id="daytl"></div><div class="notes-tasks"><div id="notes"></div><div id="tasks"></div></div>`;
-  h += `<div class="cols"><div>${meals?'<h2>Food</h2>'+meals:''}</div><div>${side}</div></div>`;
+  h += `<div class="cols"><div>${meals?'<h2>Food</h2><p class="sub sh-key">Numbers are coloured by their share of today\'s target: <span class="sh-g1">protein and fibre</span> greener as they fill more of it; <span class="sh-b1">calories, carbs, fat</span> and <span class="sh-b2">saturated fat</span> amber, then red, as they use up more of the limit. Hover a number for its %.</p>'+meals:''}</div><div>${side}</div></div>`;
   $('#day').innerHTML = h;
   renderNotes(date); renderTasks(); renderHsTile(); renderDayTimeline(date); renderGlance(date);
 }
