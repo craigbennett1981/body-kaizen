@@ -82,3 +82,7 @@ class MuscleMap(unittest.TestCase):
         self.assertTrue(trained)
         for r in trained: self.assertTrue(r["lifts"], "every shaded muscle names the lifts behind it")
 
+    def test_cardio_counts_by_minutes(self):
+        self.assertEqual(muscles._minutes({"time": "25:20"}), 25 + 20 / 60)
+        self.assertEqual(muscles._minutes({"duration_min": 40}), 40.0)
+

@@ -100,16 +100,34 @@ def _activity_summary(api, aid):
     keep = {k: v for k, v in sm.items() if any(t in k.lower() for t in ("recovery", "minhr", "maxhr", "averagehr", "lactate", "trainingload", "activitytrainingload"))}
     return keep
 
+LAP_KEYS = {"distance": "distance_m", "duration": "duration_s", "movingDuration": "moving_s", "averageHR": "hr_avg",
+            "maxHR": "hr_max", "averageSpeed": "speed", "averageRunCadence": "cadence", "elevationGain": "climb_m"}
+
+def _activity_laps(api, aid):
+    """The watch's own laps (auto-lap every km by default, or the lap button), for runs, walks and rides."""
+    if not hasattr(api, "get_activity_splits"): return []
+    sp = _safe(api.get_activity_splits, aid)
+    laps = (sp or {}).get("lapDTOs") if isinstance(sp, dict) else None
+    return [{v: (round(l[k], 2) if isinstance(l.get(k), float) else l.get(k)) for k, v in LAP_KEYS.items() if l.get(k) is not None}
+            for l in laps or []]
+
+def _wants_laps(a):
+    t = ((a or {}).get("activityType") or {}).get("typeKey") or (a or {}).get("type") or ""
+    return any(x in str(t) for x in ("run", "walk", "hik", "cycl", "ride"))
+
 def fetch_activity_detail(api, a):
     """HR (and speed) trace for one activity, saved once to imports/garmin/activities/<id>.json."""
     aid = (a or {}).get("activityId")
     if not aid or not hasattr(api, "get_activity_details"): return None
     p = ACT / f"{aid}.json"
     if p.exists():
-        cur = json.loads(p.read_text())
-        if "summary" in cur: return p
-        cur["summary"] = _activity_summary(api, aid)   # added later: fetch it once for older files
-        p.write_text(json.dumps(cur, separators=(",", ":"))); return p
+        cur = json.loads(p.read_text()); changed = False
+        if "summary" not in cur:
+            cur["summary"] = _activity_summary(api, aid); changed = True   # added later: fetch it once for older files
+        if "laps" not in cur and _wants_laps(a):
+            cur["laps"] = _activity_laps(api, aid); changed = True         # likewise for laps
+        if changed: p.write_text(json.dumps(cur, separators=(",", ":")))
+        return p
     det = _safe(api.get_activity_details, aid)
     if not isinstance(det, dict): return None
     idx = {m.get("key"): m.get("metricsIndex") for m in det.get("metricDescriptors") or []}
@@ -128,7 +146,7 @@ def fetch_activity_detail(api, a):
            "start_gmt": a.get("startTimeGMT"), "duration_s": a.get("duration"), "samples": pts,
            "aerobic_te": a.get("aerobicTrainingEffect"), "anaerobic_te": a.get("anaerobicTrainingEffect"),
            "te_label": a.get("trainingEffectLabel"), "body_battery_change": a.get("differenceBodyBattery"),
-           "summary": _activity_summary(api, aid)}
+           "summary": _activity_summary(api, aid), "laps": _activity_laps(api, aid) if _wants_laps(a) else []}
     ACT.mkdir(parents=True, exist_ok=True); p.write_text(json.dumps(out, separators=(",", ":")))
     return p
 

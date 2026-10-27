@@ -130,6 +130,17 @@ def compute():
                               "cost": round((100 - p["used"]) * dom["weight"] * p["weight"] / sw / 100, 1)})
     drags.sort(key=lambda x: -x["cost"])
     missing = [p["name"] for dom in today["domains"] for p in dom["markers"] if p["assumed"]]
+    # what's still to measure, ranked by how much of the score it carries (its share of the total weight)
+    tw = sum(dm["weight"] for dm in today["domains"]) or 1
+    to_measure = []
+    for dom in today["domains"]:
+        sw = sum(p["weight"] for p in dom["markers"]) or 1
+        for p in dom["markers"]:
+            if not p["assumed"]: continue
+            ds = hist.get(p["id"], ([], []))[0]
+            to_measure.append({"name": p["name"], "domain": dom["label"], "share": round(100 * dom["weight"] * p["weight"] / sw / tw, 1),
+                               "last": ds[-1].isoformat() if ds else None})
+    to_measure.sort(key=lambda x: -x["share"])
     # ages
     fa = None
     fp = data.ROOT / "imports" / "garmin" / "fitness_age.json"
@@ -147,6 +158,6 @@ def compute():
     prof = (data._load(data.ROOT / "athlete.yaml") or {}) if (data.ROOT / "athlete.yaml").exists() else {}
     return {"as_of": last.isoformat(), **today, "history": history, "athlete": {"age": prof.get("age"), "sex": prof.get("sex")},
             "delta": {"week": delta(7), "month": delta(30), "year": delta(365)},
-            "drags": drags[:5], "missing": missing,
+            "drags": drags[:5], "missing": missing, "to_measure": to_measure,
             "ages": {"actual": L["profile"].get("age"), "fitness_age": fa,
                      "phenoage": {"age": ph.get("phenoage"), "date": ph.get("date"), "missing": len(ph.get("missing") or [])}}}

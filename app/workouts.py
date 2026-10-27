@@ -68,6 +68,45 @@ def _trace(e):
             "aerobic_te": a.get("aerobic_te"), "anaerobic_te": a.get("anaerobic_te"), "te_label": a.get("te_label"),
             "body_battery_change": a.get("body_battery_change"), "summary": a.get("summary") or {}}
 
+def _laps(e):
+    """Lap table for a run: the watch's own laps when it recorded several, otherwise 1 km splits worked out from the
+    speed trace, scaled to the session's distance (the treadmill belt's, when that was logged)."""
+    aid = e.get("garmin_id")
+    if not aid: return None
+    try: a = json.loads((data.ROOT / "imports" / "garmin" / "activities" / f"{aid}.json").read_text())
+    except Exception: return None
+    dist_km = e.get("distance_km")
+    watch = [l for l in a.get("laps") or [] if (l.get("distance_m") or 0) >= 50 and l.get("duration_s")]   # drop the stub lap from stopping the watch
+    if len(watch) > 1:
+        out = [{"km": round(l["distance_m"] / 1000, 2), "secs": round(l["duration_s"]), "hr_avg": l.get("hr_avg"), "hr_max": l.get("hr_max"),
+                "cadence": l.get("cadence")} for l in watch]
+        src = "watch laps"
+    else:
+        s = [x for x in a.get("samples") or [] if len(x) > 2]
+        if len(s) < 60 or not any(x[2] for x in s): return None
+        cum, d = [0.0], 0.0
+        for i in range(1, len(s)):
+            d += (s[i][2] or 0) * (s[i][0] - s[i - 1][0]) / 1000; cum.append(d)
+        if d < 500: return None
+        scale = (dist_km * 1000 / d) if dist_km else 1.0
+        cum = [c * scale for c in cum]; total = cum[-1]
+        out, start, mark = [], 0, 1000.0
+        while start < len(s) - 1:
+            end = next((i for i in range(start, len(s)) if cum[i] >= mark), len(s) - 1)
+            seg = s[start:end + 1]; hrs = [x[1] for x in seg if x[1]]
+            km = (cum[end] - cum[start]) / 1000
+            if km >= 0.05:
+                out.append({"km": round(km, 2), "secs": round((s[end][0] - s[start][0]) / 1000),
+                            "hr_avg": round(sum(hrs) / len(hrs)) if hrs else None, "hr_max": max(hrs) if hrs else None})
+            if end >= len(s) - 1: break
+            start, mark = end, mark + 1000
+        src = "1 km splits from the speed trace" + (" (scaled to the belt distance)" if e.get("distance_source") == "belt" else "")
+    for l in out: l["pace_s"] = round(l["secs"] / l["km"]) if l["km"] else None
+    full = [l for l in out if l["km"] >= 0.9]
+    if full:
+        f = min(full, key=lambda l: l["pace_s"]); f["fastest"] = True
+    return {"source": src, "laps": out}
+
 def _summary(s):
     e = s["e"]
     lifts = e.get("lifts") or []
@@ -109,4 +148,5 @@ def detail(date, idx=0):
     return {"session": summ, "prev": prev_summ, "lifts": lifts, "hevy": e.get("hevy"), "note": e.get("note"), "coach": e.get("coach") or [],
             "hr": e.get("hr"), "kcal": e.get("kcal"), "zones_min": e.get("zones_min"), "cadence": e.get("cadence"),
             "time": e.get("time"), "trace": tr_, "max_hr": mx, "hrr": hrr, "training_load": round(load) if load else None,
-            "zone_bounds": [round(mx * f) for f in (0.5, 0.6, 0.7, 0.8, 0.9, 1.0)], "prs": sum(1 for x in lifts if x["pr"])}
+            "zone_bounds": [round(mx * f) for f in (0.5, 0.6, 0.7, 0.8, 0.9, 1.0)], "prs": sum(1 for x in lifts if x["pr"]),
+            "laps": _laps(e) if e.get("type") in ("run", "walk", "ruck") else None}

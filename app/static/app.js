@@ -130,6 +130,13 @@ async function renderDay(date){
       <p class="sub daysub">${t.label?'Targets: '+t.label+'.':''}${d.status!=='complete'?' Not judged until the day is complete.':''}${tot.low_confidence_kcal_pct?` ${tot.low_confidence_kcal_pct}% of calories from guessed portions.`:''} Sodium ${fmt(tot.sodium_mg)} mg, caffeine ${fmt(tot.caffeine_mg)} mg.</p>`;
   } else h += `<p class="empty">No food logged.</p>`;
 
+  // each number coloured by its share of the day's target: protein and fibre green (a big share helps),
+  // calories, carbs, fat and saturated fat amber then red (a big share uses up the budget)
+  const shareTd = (v, tk, dp, extra='') => {
+    const T = t[tk], ref = T==null ? null : Array.isArray(T) ? T[1] : T, pc = ref && v ? 100*v/ref : 0;
+    const goal = tk==='protein_min' || tk==='fibre_min', hi = tk==='satfat_max' ? [10,20] : goal ? [10,25] : [15,25];
+    const c = !pc || pc < hi[0] ? '' : goal ? (pc >= hi[1] ? 'sh-g2' : 'sh-g1') : (pc >= hi[1] ? 'sh-b2' : 'sh-b1');
+    return `<td class="${[extra,c].filter(Boolean).join(' ')}"${pc?` title="${Math.round(pc)}% of the day's ${goal?'target':'limit'}"`:''}>${fmt(v,dp)}</td>`; };
   let meals = '';
   for(const [meal, items] of Object.entries(d.meals||{})){
     if(!items || !items.length) continue;
@@ -139,7 +146,7 @@ async function renderDay(date){
       ps.forEach(c => { for(const k in sum) sum[k]+= (c.macros||{})[k]||0; if(c.conf==='low') low=true; });
       const what = ps.filter(c=>c.item!=='creatine').map(c => `${esc(c.name)}${c.g!=null?` ${c.g}g`:c.ml!=null?` ${c.ml}ml`:c.n!=null?` ×${c.n}`:c.kcal!=null?` (${c.kcal} kcal)`:''}`).join(' + ');
       meals += `<tr><td>${it.time?`<span class="it-time">${String(it.time).slice(0,5)}</span>`:''}${what||'<em>unresolved</em>'}<span class="raw">${esc(it.raw)}${it.after?` · after ${esc(it.after)}`:''}</span></td>
-        <td class="${low?'low':''}">${fmt(sum.k)}</td><td>${fmt(sum.p,1)}</td><td>${fmt(sum.c)}</td><td>${fmt(sum.f,1)}</td><td>${fmt(sum.sf,1)}</td><td>${fmt(sum.fib,1)}</td></tr>`;
+        ${shareTd(sum.k,'kcal',0,low?'low':'')}${shareTd(sum.p,'protein_min',1)}${shareTd(sum.c,'carbs',0)}${shareTd(sum.f,'fat',1)}${shareTd(sum.sf,'satfat_max',1)}${shareTd(sum.fib,'fibre_min',1)}</tr>`;
     }
     meals += `</table></div>`;
   }
@@ -167,7 +174,7 @@ async function renderDay(date){
   if(d.steps) kv.push(['Steps', fmt(d.steps)]);
   side += `<h2>Body</h2>` + (kv.length ? `<dl class="kv">${kv.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>` : `<p class="empty">Nothing recorded.</p>`);
   h += `<div id="ready"></div><div id="daytl"></div><div class="notes-tasks"><div id="notes"></div><div id="tasks"></div></div>`;
-  h += `<div class="cols"><div>${meals?'<h2>Food</h2>'+meals:''}</div><div>${side}</div></div>`;
+  h += `<div class="cols"><div>${meals?'<h2>Food</h2><p class="sub sh-key">Numbers are coloured by their share of today\'s target: <span class="sh-g1">protein and fibre</span> greener as they fill more of it; <span class="sh-b1">calories, carbs, fat</span> and <span class="sh-b2">saturated fat</span> amber, then red, as they use up more of the limit. Hover a number for its %.</p>'+meals:''}</div><div>${side}</div></div>`;
   $('#day').innerHTML = h;
   renderNotes(date); renderTasks(); renderHsTile(); renderDayTimeline(date); renderGlance(date);
 }
@@ -352,12 +359,17 @@ const hsFmtV = v => v==null ? '–' : (typeof v === 'number' ? fmt(v, Math.abs(v
 const hsDelta = (d, lab) => d ? `<span class="hs-d ${d.change>0.4?'up':d.change<-0.4?'down':''}" tabindex="0">${d.change>0.4?'▲':d.change<-0.4?'▼':'▬'} ${d.change>0?'+':''}${fmt(d.change,1)} <small>${lab}</small><span class="hs-tip" role="tooltip"><b>Since ${shortDate(d.date_from)}</b>: ${fmt(d.from,1)} → ${fmt(d.from+d.change,1)}${d.coverage_from<0.5?' (fewer inputs then)':''}
   ${(d.drivers||[]).length ? `<table>${d.drivers.map(x => `<tr><td class="${x.change>0?'good':'bad'}">${x.change>0?'+':''}${fmt(x.change,1)}</td><td>${esc(x.name)}<br><span>${x.why ? x.why : `${hsFmtV(x.from)} → ${hsFmtV(x.to)}`} · ${esc(x.domain)}</span></td></tr>`).join('')}</table>` : '<br><span>No single input moved much; small changes across several.</span>'}</span></span>`
                                 : `<span class="hs-d none" title="Not enough history yet"><small>${lab}</small> –</span>`;
+// "% measured", with a hover list of what's left to measure, biggest share of the score first
+const hsCov = H => { const L = H.to_measure || [], pct = `${Math.round(H.coverage*100)}% measured`;
+  if(!L.length) return pct;
+  return `<span class="hs-d" tabindex="0">${pct} <small>· ${L.length} to go</small><span class="hs-tip" role="tooltip"><b>Still to measure</b>, biggest share of the score first. Each counts as average (50) until measured.
+    <table>${L.map(x => `<tr><td>${fmt(x.share,1)}%</td><td>${esc(x.name)}<br><span>${esc(x.domain)}${x.last?` · last ${shortDate(x.last)}, now out of date`:''}</span></td></tr>`).join('')}</table></span></span>`; };
 async function renderHsTile(){
   const el = $('#hs-tile'); if(!el) return;
   const H = await hsGet(); if(!H || H.score==null){ el.remove(); return; }
   el.innerHTML = `<div class="hs-lab">Health score <small>vs athlete</small></div><div class="hs-row"><div class="hs-num">${fmt(H.score,0)}</div>
     <div class="hs-ds">${hsDelta(H.delta.week,'week')}${hsDelta(H.delta.month,'month')}${hsDelta(H.delta.year,'year')}</div></div>
-    <div class="hs-cov">${Math.round(H.coverage*100)}% measured</div>`;
+    <div class="hs-cov">${hsCov(H)}</div>`;
   el.onclick = e => { e.preventDefault(); showTab('longevity'); };
 }
 function hsPanel(H){
@@ -948,6 +960,17 @@ async function renderWorkouts(){
     return `<div class="zbar">${[1,2,3,4,5].map(k => Z['z'+k] ? `<i style="flex:${Z['z'+k]};background:${ZC[k]}" title="Zone ${k}: ${Z['z'+k]} min"><span>Z${k} ${Z['z'+k]}m</span></i>` : '').join('')}</div>`; })() : '';
   let h = `<div class="wo-head"><div><h3>${WO_IC[S.type]||''} ${esc(S.name)}</h3><span class="sub">${fmtDate(S.date)}${S.start?' · '+S.start:''}${D.hevy?` · <a href="${esc(D.hevy)}" target="_blank" rel="noopener">Hevy</a>`:''}${D.prs?` · <span class="pr-star">★</span> ${D.prs} personal best${D.prs>1?'s':''}`:''}</span>
     ${D.note?`<div class="sub">${esc(D.note)}</div>`:''}</div></div>${coachList(D.coach)}<div class="tiles-g wo-tiles">${tiles.join('')}</div>${zbar}`;
+  const L = D.laps;
+  if(L && L.laps.length){
+    const mm = v => `${Math.floor(v/60)}:${String(v%60).padStart(2,'0')}`;
+    const ps = L.laps.map(l => l.pace_s).filter(Boolean), lo = Math.min(...ps), hi = Math.max(...ps);
+    h += `<div class="notes-h"><h2 class="h3">Laps</h2><span class="sub">${esc(L.source)} · fastest lap starred</span></div>
+      <table class="wo-laps"><tr><th>Lap</th><th>Distance</th><th>Time</th><th>Pace</th><th></th><th>Avg HR</th><th>Max HR</th></tr>` +
+      L.laps.map((l, k) => `<tr${l.fastest?' class="pr"':''}><td>${k+1}${l.fastest?' <span class="pr-star" aria-label="fastest lap">★</span>':''}</td>
+        <td>${fmt(l.km,2)} km</td><td>${mm(l.secs)}</td><td><b>${l.pace_s?mm(l.pace_s):'–'}</b><small> /km</small></td>
+        <td class="lapbar"><i style="width:${l.pace_s && hi>lo ? 25 + 75*(hi-l.pace_s)/(hi-lo) : 60}%"></i></td>
+        <td>${l.hr_avg??'–'}</td><td>${l.hr_max??'–'}</td></tr>`).join('') + `</table>`;
+  }
   if(T) h += `<div class="notes-h"><h2 class="h3">Heart rate</h2><span class="sub">${T.efforts.length} effort${T.efforts.length!==1?'s':''} picked out from heart-rate peaks${T.effort_gap_min?`, about ${fmt(T.effort_gap_min,1)} min apart`:''}${S.type==='gym'&&S.sets?` (you logged ${S.sets} sets)`:''} · zones are estimates from your highest recorded HR (${D.max_hr})</span></div><div id="wohr" class="chart" style="height:220px"></div>`;
   else if(S.garmin===false && S.type==='gym') h += `<p class="sub">No watch data for this session, so no heart-rate trace.</p>`;
   else if(S.garmin) h += `<p class="sub">No heart-rate trace saved for this session yet (recent sessions fetch it on the next Garmin sync).</p>`;
@@ -996,15 +1019,15 @@ async function renderMuscles(){
     BODYMAP[side].map(([r, pts]) => r ? `<polygon class="m" data-r="${r}" points="${pts}" fill="var(--m${lvl(R[r].sets)})"><title>${esc(R[r].label)}: ${fmt(R[r].sets,1)} sets</title></polygon>`
                                       : `<polygon points="${pts}" fill="var(--mbody)"/>`).join('')}</svg></figure>`;
   const gaps = M.untrained.map(r => R[r].label.toLowerCase());
-  $('#mnote').textContent = `Hard sets per muscle ${over}; warm-ups excluded and a secondary muscle counts half a set. Hover or tap a muscle to see the lifts behind it.` +
-    (gaps.length ? ` Not trained: ${gaps.join(', ')}.` : '') + (M.untagged.length ? ` No muscles tagged in exercises.yaml for: ${M.untagged.join(', ')}.` : '');
+  $('#mnote').textContent = `Hard sets per muscle ${over}; warm-ups excluded, a secondary muscle counts half a set, and runs and other cardio count one set per 10 minutes. Hover or tap a muscle to see the lifts and runs behind it.` +
+    (gaps.length && MMODE !== 'session' ? ` Not trained: ${gaps.join(', ')}.` : '') + (M.untagged.length ? ` No muscles tagged in exercises.yaml for: ${M.untagged.join(', ')}.` : '');
   const info = r => { const x = R[r];
     if(!x.lifts.length) return `<h4>${esc(x.label)}</h4><p class="sub">Not trained in ${what}.</p>`;
     return `<h4>${esc(x.label)} · ${fmt(x.sets,1)} sets</h4><ul>${x.lifts.map(l => `<li><span>${esc(l.name)}${l.role==='secondary'?' <span class="r">(secondary, counts half)</span>':''}</span>
-      <span class="r">${l.sets} set${l.sets!==1?'s':''}${days?` · ${[...new Set(l.dates)].map(shortDate).join(', ')}`:''}</span></li>`).join('')}</ul>`; };
+      <span class="r">${l.minutes!=null?`${l.minutes} min ≈ ${fmt(l.sets,1)} set${l.sets!==1?'s':''}`:`${l.sets} set${l.sets!==1?'s':''}`}${days?` · ${[...new Set(l.dates)].map(shortDate).join(', ')}`:''}</span></li>`).join('')}</ul>`; };
   const top = Object.keys(R).filter(r => R[r].sets).sort((a, b) => R[b].sets - R[a].sets)[0];
   box.innerHTML = fig('front', 'Front') + fig('back', 'Back') + `<div class="mside"><div class="mlegend">${leg.map((t, k) => `<span><i style="background:var(--m${k})"></i>${t}${k===0?' sets':''}</span>`).join('')}</div>
-    <div class="mtip" id="mtip">${top ? info(top) : `<p class="sub">${MMODE==='session' ? 'No lifts in this workout. Pick a gym session above.' : 'No lifts logged in this period.'}</p>`}</div></div>`;
+    <div class="mtip" id="mtip">${top ? info(top) : `<p class="sub">${MMODE==='session' ? 'Nothing to show for this workout.' : 'No lifts logged in this period.'}</p>`}</div></div>`;
   const show = r => { $('#mtip').innerHTML = info(r); box.querySelectorAll('polygon.m').forEach(p => p.classList.toggle('hl', p.dataset.r === r)); };
   box.querySelectorAll('polygon.m').forEach(p => { p.onmouseenter = () => show(p.dataset.r); p.onclick = () => show(p.dataset.r); });
   if(top) show(top);

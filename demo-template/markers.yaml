@@ -48,10 +48,10 @@ markers:
                   note: "Optimal <1.13 mmol/L (100 mg/dL); lab's 1.70–2.20 band is borderline."}
 
   # ---------- metabolic ----------
-  cgm_mean:      {name: Average glucose (CGM, 14-day), unit: mmol/L, cat: metabolic, source: cgm, green: [null, 5.6], amber: [5.6, 6.1], verify: true,
+  cgm_mean:      {name: "Average glucose (CGM, 14-day)", unit: mmol/L, cat: metabolic, source: cgm, green: [null, 5.6], amber: [5.6, 6.1], verify: true,
                   note: "FreeStyle Libre, average of all readings. Non-diabetic adults typically average 5.0-5.8."}
-  cgm_tir:       {name: Time in range 3.9-7.8 (CGM, 14-day), unit: "%", cat: metabolic, source: cgm, green: [95, null], amber: [85, 95], verify: true}
-  cgm_cv:        {name: Glucose variability (CGM CV, 14-day), unit: "%", cat: metabolic, source: cgm, green: [null, 18], amber: [18, 25], verify: true,
+  cgm_tir:       {name: "Time in range 3.9-7.8 (CGM, 14-day)", unit: "%", cat: metabolic, source: cgm, green: [95, null], amber: [85, 95], verify: true}
+  cgm_cv:        {name: "Glucose variability (CGM CV, 14-day)", unit: "%", cat: metabolic, source: cgm, green: [null, 18], amber: [18, 25], verify: true,
                   note: "Standard deviation as a % of the mean. Lower = steadier."}
   hba1c:         {name: HbA1c, unit: "%", cat: metabolic, source: lab, green: [null, 5.7], amber: [5.7, 6.5], contested: [null, 5.4], interval_days: 365}
   glucose:       {name: Fasting glucose, unit: mmol/L, cat: metabolic, source: lab, green: [null, 5.6], amber: [5.6, 7.0], interval_days: 365}
