@@ -441,3 +441,9 @@ dialog#setup::backdrop{background:rgba(0,0,0,.55)}
 /* food table: share of the day's target */
 .meal td.sh-g1,.sh-key .sh-g1{color:var(--good)} .meal td.sh-g2{color:var(--good);font-weight:700}
 .meal td.sh-b1,.sh-key .sh-b1{color:var(--warn)} .meal td.sh-b2,.sh-key .sh-b2{color:var(--bad);font-weight:700}
+/* run laps */
+.wo-laps{border-collapse:collapse;margin:4px 0 14px;font-size:13.5px;min-width:min(100%,560px)}
+.wo-laps th{text-align:left;color:var(--muted);font-weight:500;font-size:12px;padding:4px 12px 4px 0}
+.wo-laps td{padding:5px 12px 5px 0;border-top:1px solid var(--rule);font-feature-settings:"tnum"}
+.wo-laps td.lapbar{width:140px} .wo-laps td.lapbar i{display:block;height:8px;border-radius:4px;background:var(--accent);opacity:.75}
+.wo-laps tr.pr td.lapbar i{background:var(--good);opacity:1}

@@ -955,6 +955,17 @@ async function renderWorkouts(){
     return `<div class="zbar">${[1,2,3,4,5].map(k => Z['z'+k] ? `<i style="flex:${Z['z'+k]};background:${ZC[k]}" title="Zone ${k}: ${Z['z'+k]} min"><span>Z${k} ${Z['z'+k]}m</span></i>` : '').join('')}</div>`; })() : '';
   let h = `<div class="wo-head"><div><h3>${WO_IC[S.type]||''} ${esc(S.name)}</h3><span class="sub">${fmtDate(S.date)}${S.start?' · '+S.start:''}${D.hevy?` · <a href="${esc(D.hevy)}" target="_blank" rel="noopener">Hevy</a>`:''}${D.prs?` · <span class="pr-star">★</span> ${D.prs} personal best${D.prs>1?'s':''}`:''}</span>
     ${D.note?`<div class="sub">${esc(D.note)}</div>`:''}</div></div>${coachList(D.coach)}<div class="tiles-g wo-tiles">${tiles.join('')}</div>${zbar}`;
+  const L = D.laps;
+  if(L && L.laps.length){
+    const mm = v => `${Math.floor(v/60)}:${String(v%60).padStart(2,'0')}`;
+    const ps = L.laps.map(l => l.pace_s).filter(Boolean), lo = Math.min(...ps), hi = Math.max(...ps);
+    h += `<div class="notes-h"><h2 class="h3">Laps</h2><span class="sub">${esc(L.source)} · fastest lap starred</span></div>
+      <table class="wo-laps"><tr><th>Lap</th><th>Distance</th><th>Time</th><th>Pace</th><th></th><th>Avg HR</th><th>Max HR</th></tr>` +
+      L.laps.map((l, k) => `<tr${l.fastest?' class="pr"':''}><td>${k+1}${l.fastest?' <span class="pr-star" aria-label="fastest lap">★</span>':''}</td>
+        <td>${fmt(l.km,2)} km</td><td>${mm(l.secs)}</td><td><b>${l.pace_s?mm(l.pace_s):'–'}</b><small> /km</small></td>
+        <td class="lapbar"><i style="width:${l.pace_s && hi>lo ? 25 + 75*(hi-l.pace_s)/(hi-lo) : 60}%"></i></td>
+        <td>${l.hr_avg??'–'}</td><td>${l.hr_max??'–'}</td></tr>`).join('') + `</table>`;
+  }
   if(T) h += `<div class="notes-h"><h2 class="h3">Heart rate</h2><span class="sub">${T.efforts.length} effort${T.efforts.length!==1?'s':''} picked out from heart-rate peaks${T.effort_gap_min?`, about ${fmt(T.effort_gap_min,1)} min apart`:''}${S.type==='gym'&&S.sets?` (you logged ${S.sets} sets)`:''} · zones are estimates from your highest recorded HR (${D.max_hr})</span></div><div id="wohr" class="chart" style="height:220px"></div>`;
   else if(S.garmin===false && S.type==='gym') h += `<p class="sub">No watch data for this session, so no heart-rate trace.</p>`;
   else if(S.garmin) h += `<p class="sub">No heart-rate trace saved for this session yet (recent sessions fetch it on the next Garmin sync).</p>`;
