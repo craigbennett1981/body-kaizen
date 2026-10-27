@@ -1,5 +1,5 @@
 """Read-only view of the repo's YAML data for the dashboard. No database: files are the truth."""
-import datetime as dt, importlib, json, pathlib, re, sys, yaml
+import datetime as dt, importlib, json, pathlib, re, sys, threading, yaml
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "scripts"))
 import bkenv  # noqa: E402
@@ -26,13 +26,18 @@ def _jsonable(o):
     if isinstance(o, list): return [_jsonable(v) for v in o]
     return _s(o)
 
-def _nutrition():
+_nlock = threading.Lock()
+
+def _nutrition(force=False):
+    """The food matcher, reloaded when the food files change. Locked so two requests can't reload it at once
+    (a half-finished reload once left a new food missing until restart)."""
     global _foods_mtime
-    files = [ROOT / f for f in ("foods.yaml", "overrides.yaml", "meals.yaml", "settings.yaml")] + [N.STARTER_PATH]
-    m = sum(f.stat().st_mtime for f in files if f.exists())
-    if _foods_mtime is not None and m != _foods_mtime:
-        importlib.reload(N)
-    _foods_mtime = m
+    with _nlock:
+        files = [ROOT / f for f in ("foods.yaml", "overrides.yaml", "meals.yaml", "settings.yaml")] + [N.STARTER_PATH]
+        m = sum(f.stat().st_mtime for f in files if f.exists())
+        if force or (_foods_mtime is not None and m != _foods_mtime):
+            importlib.reload(N)
+        _foods_mtime = m
     return N
 
 def day_files():
@@ -115,9 +120,12 @@ def day_detail(date):
     d = get_day(date)
     if not d: return None
     n = _nutrition()
+    items_ = [c.get("item") for its in (d.get("meals") or {}).values() for it in its or [] for c in it.get("parsed") or []]
+    if any(i not in n.FOODS for i in items_): n = _nutrition(force=True)   # a food added since the last reload
     for meal, items in (d.get("meals") or {}).items():
         for it in items or []:
             for c in it.get("parsed") or []:
+                if c.get("item") not in n.FOODS: continue   # unknown food: shown unresolved rather than failing the page
                 m = n.macros(c)
                 c["macros"] = {k: round(v, 1) for k, v in m.items() if v}
                 c["name"] = n.FOODS.get(c["item"], {}).get("name", c["item"])
