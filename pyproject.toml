@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "body-kaizen"
-version = "0.1.0"
+version = "0.2.0"
 description = "A private, local dashboard for continuous improvement of your health: food, training, recovery and healthspan in plain files you own."
 readme = "README.md"
 license = {text = "Apache-2.0"}
