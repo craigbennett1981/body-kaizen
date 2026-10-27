@@ -104,6 +104,8 @@ machine changes kept separate and temporary resets when form slips.
 or 28 days. Runs and other cardio count too (one set per 10 minutes). Hover a muscle to see the lifts and runs
 behind it, and spot the ones you never train.
 
+![Muscle map: front and back diagrams shaded by hard sets over the last 7 days, with the lifts behind one muscle](docs/img/muscle-map.png)
+
 **Recovery and readiness.** Sleep stages, HRV and resting heart rate against your own baseline, body battery and
 stress, combined into a readiness score that says what's holding you back.
 
