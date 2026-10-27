@@ -76,7 +76,7 @@ def _laps(e):
     try: a = json.loads((data.ROOT / "imports" / "garmin" / "activities" / f"{aid}.json").read_text())
     except Exception: return None
     dist_km = e.get("distance_km")
-    watch = [l for l in a.get("laps") or [] if l.get("distance_m") and l.get("duration_s")]
+    watch = [l for l in a.get("laps") or [] if (l.get("distance_m") or 0) >= 50 and l.get("duration_s")]   # drop the stub lap from stopping the watch
     if len(watch) > 1:
         out = [{"km": round(l["distance_m"] / 1000, 2), "secs": round(l["duration_s"]), "hr_avg": l.get("hr_avg"), "hr_max": l.get("hr_max"),
                 "cadence": l.get("cadence")} for l in watch]
