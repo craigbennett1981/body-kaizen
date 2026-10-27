@@ -359,12 +359,17 @@ const hsFmtV = v => v==null ? '–' : (typeof v === 'number' ? fmt(v, Math.abs(v
 const hsDelta = (d, lab) => d ? `<span class="hs-d ${d.change>0.4?'up':d.change<-0.4?'down':''}" tabindex="0">${d.change>0.4?'▲':d.change<-0.4?'▼':'▬'} ${d.change>0?'+':''}${fmt(d.change,1)} <small>${lab}</small><span class="hs-tip" role="tooltip"><b>Since ${shortDate(d.date_from)}</b>: ${fmt(d.from,1)} → ${fmt(d.from+d.change,1)}${d.coverage_from<0.5?' (fewer inputs then)':''}
   ${(d.drivers||[]).length ? `<table>${d.drivers.map(x => `<tr><td class="${x.change>0?'good':'bad'}">${x.change>0?'+':''}${fmt(x.change,1)}</td><td>${esc(x.name)}<br><span>${x.why ? x.why : `${hsFmtV(x.from)} → ${hsFmtV(x.to)}`} · ${esc(x.domain)}</span></td></tr>`).join('')}</table>` : '<br><span>No single input moved much; small changes across several.</span>'}</span></span>`
                                 : `<span class="hs-d none" title="Not enough history yet"><small>${lab}</small> –</span>`;
+// "% measured", with a hover list of what's left to measure, biggest share of the score first
+const hsCov = H => { const L = H.to_measure || [], pct = `${Math.round(H.coverage*100)}% measured`;
+  if(!L.length) return pct;
+  return `<span class="hs-d" tabindex="0">${pct} <small>· ${L.length} to go</small><span class="hs-tip" role="tooltip"><b>Still to measure</b>, biggest share of the score first. Each counts as average (50) until measured.
+    <table>${L.map(x => `<tr><td>${fmt(x.share,1)}%</td><td>${esc(x.name)}<br><span>${esc(x.domain)}${x.last?` · last ${shortDate(x.last)}, now out of date`:''}</span></td></tr>`).join('')}</table></span></span>`; };
 async function renderHsTile(){
   const el = $('#hs-tile'); if(!el) return;
   const H = await hsGet(); if(!H || H.score==null){ el.remove(); return; }
   el.innerHTML = `<div class="hs-lab">Health score <small>vs athlete</small></div><div class="hs-row"><div class="hs-num">${fmt(H.score,0)}</div>
     <div class="hs-ds">${hsDelta(H.delta.week,'week')}${hsDelta(H.delta.month,'month')}${hsDelta(H.delta.year,'year')}</div></div>
-    <div class="hs-cov">${Math.round(H.coverage*100)}% measured</div>`;
+    <div class="hs-cov">${hsCov(H)}</div>`;
   el.onclick = e => { e.preventDefault(); showTab('longevity'); };
 }
 function hsPanel(H){
