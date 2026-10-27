@@ -1014,15 +1014,15 @@ async function renderMuscles(){
     BODYMAP[side].map(([r, pts]) => r ? `<polygon class="m" data-r="${r}" points="${pts}" fill="var(--m${lvl(R[r].sets)})"><title>${esc(R[r].label)}: ${fmt(R[r].sets,1)} sets</title></polygon>`
                                       : `<polygon points="${pts}" fill="var(--mbody)"/>`).join('')}</svg></figure>`;
   const gaps = M.untrained.map(r => R[r].label.toLowerCase());
-  $('#mnote').textContent = `Hard sets per muscle ${over}; warm-ups excluded and a secondary muscle counts half a set. Hover or tap a muscle to see the lifts behind it.` +
-    (gaps.length ? ` Not trained: ${gaps.join(', ')}.` : '') + (M.untagged.length ? ` No muscles tagged in exercises.yaml for: ${M.untagged.join(', ')}.` : '');
+  $('#mnote').textContent = `Hard sets per muscle ${over}; warm-ups excluded, a secondary muscle counts half a set, and runs and other cardio count one set per 10 minutes. Hover or tap a muscle to see the lifts and runs behind it.` +
+    (gaps.length && MMODE !== 'session' ? ` Not trained: ${gaps.join(', ')}.` : '') + (M.untagged.length ? ` No muscles tagged in exercises.yaml for: ${M.untagged.join(', ')}.` : '');
   const info = r => { const x = R[r];
     if(!x.lifts.length) return `<h4>${esc(x.label)}</h4><p class="sub">Not trained in ${what}.</p>`;
     return `<h4>${esc(x.label)} · ${fmt(x.sets,1)} sets</h4><ul>${x.lifts.map(l => `<li><span>${esc(l.name)}${l.role==='secondary'?' <span class="r">(secondary, counts half)</span>':''}</span>
-      <span class="r">${l.sets} set${l.sets!==1?'s':''}${days?` · ${[...new Set(l.dates)].map(shortDate).join(', ')}`:''}</span></li>`).join('')}</ul>`; };
+      <span class="r">${l.minutes!=null?`${l.minutes} min ≈ ${fmt(l.sets,1)} set${l.sets!==1?'s':''}`:`${l.sets} set${l.sets!==1?'s':''}`}${days?` · ${[...new Set(l.dates)].map(shortDate).join(', ')}`:''}</span></li>`).join('')}</ul>`; };
   const top = Object.keys(R).filter(r => R[r].sets).sort((a, b) => R[b].sets - R[a].sets)[0];
   box.innerHTML = fig('front', 'Front') + fig('back', 'Back') + `<div class="mside"><div class="mlegend">${leg.map((t, k) => `<span><i style="background:var(--m${k})"></i>${t}${k===0?' sets':''}</span>`).join('')}</div>
-    <div class="mtip" id="mtip">${top ? info(top) : `<p class="sub">${MMODE==='session' ? 'No lifts in this workout. Pick a gym session above.' : 'No lifts logged in this period.'}</p>`}</div></div>`;
+    <div class="mtip" id="mtip">${top ? info(top) : `<p class="sub">${MMODE==='session' ? 'Nothing to show for this workout.' : 'No lifts logged in this period.'}</p>`}</div></div>`;
   const show = r => { $('#mtip').innerHTML = info(r); box.querySelectorAll('polygon.m').forEach(p => p.classList.toggle('hl', p.dataset.r === r)); };
   box.querySelectorAll('polygon.m').forEach(p => { p.onmouseenter = () => show(p.dataset.r); p.onclick = () => show(p.dataset.r); });
   if(top) show(top);

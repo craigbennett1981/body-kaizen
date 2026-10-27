@@ -244,6 +244,15 @@ Muscle names: `chest`, `front-delts`, `rear-delts`, `biceps`, `triceps`, `forear
 `upper-back`, `lower-back`, `glutes`, `quads`, `hamstrings`, `adductors`, `calves`. Broad names still work and
 spread across the muscles they cover: `shoulders`, `back`, `core`, `grip`, `legs`.
 
+Runs, walks, rucks, swims, yoga and rides count too, as set-equivalents: every 10 minutes is one set for the main
+muscles and half a set for the supporting ones (a 25-minute run: 2.5 sets for quads, hamstrings, glutes and calves).
+To change which muscles an activity works, add an `activities:` block in the same shape:
+
+```yaml
+activities:
+  run: {muscles: [quads, hamstrings, glutes, calves], secondary: [abs, obliques, adductors]}
+```
+
 ## Commit convention
 
 `YYYY-MM-DD: <what changed>` e.g. `2026-10-16: breakfast, gym, bp`.

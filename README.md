@@ -101,7 +101,8 @@ fibre and weight, every day coloured hit or miss against the target that applied
 machine changes kept separate and temporary resets when form slips.
 
 **A muscle map.** Front and back body diagrams shaded by hard sets per muscle, for one workout or the last 7, 14
-or 28 days. Hover a muscle to see the lifts behind it, and spot the ones you never train.
+or 28 days. Runs and other cardio count too (one set per 10 minutes). Hover a muscle to see the lifts and runs
+behind it, and spot the ones you never train.
 
 **Recovery and readiness.** Sleep stages, HRV and resting heart rate against your own baseline, body battery and
 stress, combined into a readiness score that says what's holding you back.
