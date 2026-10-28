@@ -1462,4 +1462,4 @@ async function loadProfile(){
   if(PROFILE.needs_setup) openSetup(!PROFILE.name);
 }
 api('/api/summary').then(s => { SUMMARY = s; showTab((location.hash||'#day').slice(1)); pollSync(); alertToasts(); loadProfile(); })
-  .catch(e => { $('main').innerHTML = `<p class="empty">Couldn't load data from the server (${e.message}). Check the terminal running app/server.py.</p>`; });
+  .catch(e => { $('main').innerHTML = `<p class="empty">Couldn't load data from the server (${esc(e.message)}). Check the terminal running app/server.py.</p>`; });
