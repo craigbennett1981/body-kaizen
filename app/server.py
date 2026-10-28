@@ -142,11 +142,11 @@ class Handler(BaseHTTPRequestHandler):
                 if res is None: return self._send(404, '{"error":"not found"}', "application/json")
                 return self._send(200, json.dumps(res), "application/json")
             name = "index.html" if u.path in ("/", "") else u.path.lstrip("/")
-            f = (STATIC / name).resolve()
-            if STATIC in f.parents and f.is_file():
+            f = os.path.realpath(os.path.join(STATIC, name))
+            if f.startswith(str(STATIC) + os.sep) and os.path.isfile(f):
                 ctype = {"html": "text/html; charset=utf-8", "js": "text/javascript; charset=utf-8", "css": "text/css; charset=utf-8",
-                         "woff2": "font/woff2", "txt": "text/plain; charset=utf-8"}.get(f.suffix[1:], "application/octet-stream")
-                return self._send(200, f.read_bytes(), ctype)
+                         "woff2": "font/woff2", "txt": "text/plain; charset=utf-8"}.get(os.path.splitext(f)[1][1:], "application/octet-stream")
+                with open(f, "rb") as fh: return self._send(200, fh.read(), ctype)
             self._send(404, "not found", "text/plain")
         except Exception:
             traceback.print_exc()   # details go to the server log only
