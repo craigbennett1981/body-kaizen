@@ -99,6 +99,40 @@ def weekly_sets(weeks=4, today=None):
         out.append({"week_of": start.isoformat(), "sets": {k: round(v, 1) for k, v in sorted(counts.items())}})
     return out
 
+DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+
+def week_plan(today=None):
+    """The next 7 days from training_plan.week in exercises.yaml: what each day is for, run details with this week's
+    interval step, the extras for every gym session, and when the next run test is due. None if there's no week set."""
+    tp = _cat().get("training_plan") or {}
+    wk = tp.get("week")
+    if not wk: return None
+    today = today or data.bkenv.today()
+    start = tp.get("week_from") or tp.get("block_start")
+    start = dt.date.fromisoformat(str(start)) if start else today
+    runs = tp.get("runs") or {}
+    days = []
+    for k in range(7):
+        d = today + dt.timedelta(days=k)
+        spec = dict(wk.get(DAYS[d.weekday()]) or {})
+        wn = max(0, (d - start).days // 7)
+        if spec.get("kind") == "run":
+            ses = spec.get("session")
+            if isinstance(ses, list): ses = ses[wn % len(ses)]
+            r = runs.get(ses) or {}
+            spec = {**spec, "session": ses, "name": r.get("name", str(ses)), "detail": r.get("detail")}
+            prog = r.get("progression")
+            if prog: spec["step"] = prog[min(wn, len(prog) - 1)] if d >= start else prog[0]
+        days.append({"date": d.isoformat(), "dow": DAYS[d.weekday()], **spec})
+    test = tp.get("run_test") or {}
+    nxt = None
+    if test.get("baseline", {}).get("date") and test.get("every_weeks"):
+        b = dt.date.fromisoformat(str(test["baseline"]["date"]))
+        nxt = b + dt.timedelta(weeks=int(test["every_weeks"]))
+        while nxt < today: nxt += dt.timedelta(weeks=int(test["every_weeks"]))
+    return data._jsonable({"days": days, "every_gym": tp.get("every_gym") or [], "tendon_rule": tp.get("tendon_rule"),
+            "run_test": {**test, "next": nxt.isoformat() if nxt else None} if test else None})
+
 def plan(today=None):
     info = plan_info(today); cat = _cat(); H = history()
     rows = []
@@ -109,4 +143,4 @@ def plan(today=None):
         if info["deload_now"]:
             t = {"target": f"2 sets, same weight as last time, stop 2–3 reps short", "rule": "deload week"}
         rows.append({"lift": lift, "last_date": last_date, "last": last_txt, "sessions": len(sess), **t})
-    return {"info": info, "lifts": rows, "volume": weekly_sets(4, today)}
+    return {"info": info, "lifts": rows, "volume": weekly_sets(4, today), "week": week_plan(today)}

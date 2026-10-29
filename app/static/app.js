@@ -1123,7 +1123,13 @@ async function renderPlan(){
     <table><tr><th>Muscle</th>${p.volume.map(w=>`<th>${shortDate(w.week_of)}</th>`).join('')}</tr>` +
     muscles.map(m => `<tr><td>${m}</td>${p.volume.map(w => { const v = w.sets[m]; const cl = v==null?'':v>=vlo&&v<=vhi?'good':v<vlo?'':'bad'; return `<td class="${cl}">${v??'–'}</td>`; }).join('')}</tr>`).join('') + `</table>
     <p class="sub">Volume is low partly because past workouts were only partly logged. Pasted Hevy workouts give full sets from here on.</p>` : '';
-  $('#plan').innerHTML = banner + `<table><tr><th>Lift</th><th>Last time</th><th>Next target</th><th>Why</th></tr>${rows}</table>` + vol;
+  const W = p.week, IC = {gym:'🏋', run:'🏃', rest:'💤'};
+  const week = W ? `<h3 style="font-size:14px;margin:4px 0 6px">This week</h3><table class="wk-plan">${W.days.map((d, k) => `<tr${k===0?' class="today"':''}>
+      <td><b>${k===0?'Today':new Date(d.date+'T00:00').toLocaleDateString('en-GB',{weekday:'short'})}</b><br><span class="sub">${shortDate(d.date)}</span></td>
+      <td>${IC[d.kind]||'•'} <b>${esc(d.name||d.kind)}</b>${d.step?` · <b>${esc(d.step)}</b>`:''}${d.detail?`<div class="sub">${esc(d.detail)}</div>`:''}${d.kind==='gym'&&W.every_gym.length?`<div class="sub">Plus: ${W.every_gym.map(esc).join(' · ')}</div>`:''}</td></tr>`).join('')}</table>
+    ${W.run_test&&W.run_test.next?`<p class="sub">Next run test: <b>${shortDate(W.run_test.next)}</b>${W.run_test.baseline?` (baseline ${esc(W.run_test.baseline.time)}, ${esc(W.run_test.baseline.what||'')}, ${shortDate(W.run_test.baseline.date)})`:''}. ${esc(W.run_test.note||'')}</p>`:''}
+    ${W.tendon_rule?`<p class="sub">⚠️ ${esc(W.tendon_rule)}</p>`:''}<h3 style="font-size:14px;margin:16px 0 6px">Lifts</h3>` : '';
+  $('#plan').innerHTML = week + banner + `<table><tr><th>Lift</th><th>Last time</th><th>Next target</th><th>Why</th></tr>${rows}</table>` + vol;
   document.querySelectorAll('#plan tr[data-lift]').forEach(r => { r.style.cursor = 'pointer'; r.onclick = () => showTrainView(r.dataset.lift); });
 }
 function renderLiftTable(){
