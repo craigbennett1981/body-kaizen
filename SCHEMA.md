@@ -253,6 +253,26 @@ activities:
   run: {muscles: [quads, hamstrings, glutes, calves], secondary: [abs, obliques, adductors]}
 ```
 
+### exercises.yaml: weekly plan
+
+`training_plan.week` sets what each weekday is for; the Training tab shows the next seven days under "Next session".
+
+```yaml
+training_plan:
+  week:
+    mon: {kind: gym, name: Full-body gym}
+    tue: {kind: run, session: easy}
+    thu: {kind: run, session: [octopus, long-easy]}   # a list alternates week to week
+    sat: {kind: run, session: intervals}
+    sun: {kind: rest, name: Rest}
+  week_from: 2026-11-02                               # week 1 of the pattern
+  every_gym: ["Calf raise 3 x 15"]                    # shown on every gym day
+  runs:
+    easy: {name: Easy run, detail: "30-40 min under 140 bpm"}
+    intervals: {name: VO2 max intervals, detail: "...", progression: ["5 x 3 min", "6 x 3 min"]}   # one step a week
+  run_test: {every_weeks: 5, baseline: {date: 2026-10-27, what: 5K, time: "25:20"}}
+```
+
 ## Commit convention
 
 `YYYY-MM-DD: <what changed>` e.g. `2026-10-16: breakfast, gym, bp`.

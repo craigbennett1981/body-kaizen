@@ -450,3 +450,7 @@ dialog#setup::backdrop{background:rgba(0,0,0,.55)}
 .wo-laps td.lapbar{width:140px} .wo-laps td.lapbar i{display:block;height:8px;border-radius:4px;background:var(--accent);opacity:.75}
 .wo-laps tr.pr td.lapbar i{background:var(--good);opacity:1}
 .hs-cov .hs-d{font-weight:500;color:var(--muted)} .hs-cov .hs-d:hover{color:var(--ink)}
+
+/* weekly plan */
+.wk-plan{border-collapse:collapse;margin:0 0 8px;width:100%} .wk-plan td{padding:6px 12px 6px 0;border-top:1px solid var(--rule);vertical-align:top;text-align:left!important}
+.wk-plan td:first-child{width:70px;white-space:nowrap} .wk-plan tr.today td{background:var(--accent-soft)}
