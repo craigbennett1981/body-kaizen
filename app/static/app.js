@@ -922,7 +922,7 @@ function renderTrainChips(){
 }
 async function renderTraining(){
   TRAIN = TRAIN || await api('/api/training');
-  renderTrainChips(); renderTrainChart(); renderPlan(); renderLiftTable(); renderRuns(); renderWorkouts().then(renderMuscles);
+  renderTrainChips(); renderTrainChart(); renderPlan(); renderLiftTable(); renderRuns(); renderWorkouts().then(() => { renderCalendar(); renderMuscles(); });
 }
 /* ---------- workouts: one session in detail, Hevy + Garmin ---------- */
 let WO = null, WO_SEL = null;
@@ -996,6 +996,53 @@ async function renderWorkouts(){
         markArea:{silent:true,label:{show:true,position:'insideRight',color:c.muted,fontSize:10},data:[0,1,2,3,4].map(k=>[{yAxis:B[k],name:'Z'+(k+1),itemStyle:{color:ZC[k],opacity:.08}},{yAxis:B[k+1]}])}},
         {type:'scatter',name:'Efforts',data:T.efforts,symbolSize:7,itemStyle:{color:c.ink},tooltip:{show:false}}]});
   }
+}
+/* ---------- activity calendar: a year of workouts, coloured by calories burnt ---------- */
+const CAL_STEPS = [150, 300, 450, 600];   // kcal per day: <150, 150–299, 300–449, 450–599, 600+
+function renderCalendar(){
+  const el = $('#actcal'); if(!el || !WO) return;
+  const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  // Sessions with no watch calories get an estimate from the same kind of session: kcal per minute x minutes
+  // when we know how long it lasted, otherwise the median for that type (or for all sessions).
+  const med = a => { if(!a.length) return null; const v = [...a].sort((x,y)=>x-y), m = v.length>>1; return v.length%2 ? v[m] : (v[m-1]+v[m])/2; };
+  const known = WO.filter(w => w.kcal), allMed = med(known.map(w => w.kcal));
+  const estK = w => { const same = known.filter(x => x.type===w.type);
+    const rate = med(same.filter(x => x.duration_min).map(x => x.kcal/x.duration_min));
+    if(rate && w.duration_min) return Math.round(rate*w.duration_min);
+    return Math.round(med(same.map(x => x.kcal)) ?? allMed ?? 0); };
+  WO.forEach(w => { w.kcal_est = w.kcal ? null : estK(w); });
+  const byDay = {};
+  WO.forEach(w => { const b = byDay[w.date] = byDay[w.date] || {kcal:0, est:false, items:[]};
+    b.kcal += w.kcal || w.kcal_est || 0; if(!w.kcal) b.est = true; b.items.push(w); });
+  const today = new Date(); today.setHours(0,0,0,0);
+  const start = new Date(today); start.setDate(start.getDate() - 364);
+  start.setDate(start.getDate() - ((start.getDay()+6)%7));          // back to Monday
+  const level = k => k <= 0 ? 0 : 1 + CAL_STEPS.filter(s => k >= s).length;
+  let cells = '', months = '', lastM = -1, col = 0;
+  for(const d = new Date(start); d <= today; d.setDate(d.getDate()+1)){
+    const dow = (d.getDay()+6)%7; if(dow===0){ col++; if(d.getMonth()!==lastM && d.getDate()<=7){ lastM = d.getMonth();
+      months += `<span style="grid-column:${col+1}">${d.toLocaleDateString('en-GB',{month:'short'})}</span>`; } }
+    const k = iso(d), b = byDay[k];
+    let cls = 'l0', tip = `${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}: rest`;
+    if(b){
+      cls = b.est ? 'lx' : 'l'+level(b.kcal);
+      tip = `${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}: ${b.est?'~':''}${fmt(b.kcal)} kcal${b.est?' (estimated)':''}\n` +
+        b.items.map(w => `${WO_IC[w.type]||'•'} ${w.name} · ${w.kcal?fmt(w.kcal)+' kcal':`~${fmt(w.kcal_est)} kcal estimated, no watch data`}${w.duration_min?` · ${w.duration_min} min`:''}`).join('\n'); }
+    cells += `<i class="${cls}" style="grid-column:${col+1};grid-row:${dow+2}" title="${esc(tip)}"${b?` data-k="${b.items[0].date}|${b.items[0].idx}" tabindex="0" role="button"`:''}></i>`;
+  }
+  const days = ['Mon','','Wed','','Fri','',''].map((t,i) => `<b style="grid-row:${i+2}">${t}</b>`).join('');
+  const key = `<div class="cal-key"><span>Calories burnt</span><i class="l0" title="Rest"></i>${[1,2,3,4,5].map(l => `<i class="l${l}" title="${l===1?'under '+CAL_STEPS[0]:l===5?CAL_STEPS[3]+'+':CAL_STEPS[l-2]+'–'+(CAL_STEPS[l-1]-1)} kcal"></i>`).join('')}
+    <span>${CAL_STEPS[3]}+ kcal</span><i class="lx" title="No watch calories: estimated from similar sessions"></i><span>estimated</span></div>`;
+  el.innerHTML = `<div class="cal-grid" style="grid-template-columns:28px repeat(${col},minmax(6px,1fr))">${months}${days}${cells}</div>${key}`;
+  const first = WO.reduce((m, w) => w.date < m ? w.date : m, WO[0].date);
+  const span = Math.round((today - new Date(first+'T00:00')) / 864e5) + 1;
+  const allK = WO.reduce((a, w) => a + (w.kcal || w.kcal_est || 0), 0), nEst = WO.filter(w => !w.kcal).length;
+  $('#calnote').textContent = `${WO.length} sessions in the last ${fmt(span)} days · ${fmt(allK)} kcal (${fmt(allK/7700,1)} kilos of fat) from workouts`;
+  $('#calnote').title = `Using about 7,700 kcal per kilo of body fat.${nEst?` Includes estimates for ${nEst} session${nEst>1?'s':''} with no watch calories.`:''}`;
+  el.querySelectorAll('i[data-k]').forEach(c => { const go = () => { WO_SEL = c.dataset.k; renderWorkouts().then(() => { if(MMODE==='session') renderMuscles(); });
+      $('#wopick').scrollIntoView({behavior: MOTION?'smooth':'auto', block:'start'}); };
+    c.onclick = go; c.onkeydown = e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } }; });
+  const wrap = el.parentElement; wrap.scrollLeft = wrap.scrollWidth;
 }
 /* ---------- muscle map: sets per muscle, hover a muscle for the lifts behind it ---------- */
 let MMODE = '7';
