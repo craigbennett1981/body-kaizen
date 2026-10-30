@@ -454,3 +454,19 @@ dialog#setup::backdrop{background:rgba(0,0,0,.55)}
 /* weekly plan */
 .wk-plan{border-collapse:collapse;margin:0 0 8px;width:100%} .wk-plan td{padding:6px 12px 6px 0;border-top:1px solid var(--rule);vertical-align:top;text-align:left!important}
 .wk-plan td:first-child{width:70px;white-space:nowrap} .wk-plan tr.today td{background:var(--accent-soft)}
+/* activity calendar */
+.cal-wrap{overflow-x:auto;padding-bottom:4px;margin:4px 0 18px}
+.cal{display:inline-block;min-width:100%}
+.cal-grid{display:grid;grid-template-rows:14px repeat(7,12px);gap:3px;font-size:11px;color:var(--muted)}
+.cal-grid>span{grid-row:1;white-space:nowrap;line-height:12px}
+.cal-grid>b{grid-column:1;font-weight:400;line-height:12px}
+.cal i,.cal-key i{display:block;width:12px;height:12px;border-radius:2px;background:var(--rule)}
+.cal i[data-k]{cursor:pointer} .cal i[data-k]:hover,.cal i[data-k]:focus-visible{outline:1.5px solid var(--ink);outline-offset:0}
+.cal .l0{opacity:.55}
+.cal .l1{background:color-mix(in srgb,var(--cal) 22%,var(--surface))} .cal .l2{background:color-mix(in srgb,var(--cal) 42%,var(--surface))}
+.cal .l3{background:color-mix(in srgb,var(--cal) 62%,var(--surface))} .cal .l4{background:color-mix(in srgb,var(--cal) 82%,var(--surface))}
+.cal .l5{background:var(--cal)}
+.cal .lx{background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--cal)}
+.cal-key{display:flex;align-items:center;gap:4px;margin-top:8px;font-size:11.5px;color:var(--muted);flex-wrap:wrap}
+.cal-key span{margin:0 4px}
+:root{--cal:#E0612E}
