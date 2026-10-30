@@ -1009,13 +1009,13 @@ function renderCalendar(){
   const start = new Date(today); start.setDate(start.getDate() - 364);
   start.setDate(start.getDate() - ((start.getDay()+6)%7));          // back to Monday
   const level = k => k <= 0 ? 0 : 1 + CAL_STEPS.filter(s => k >= s).length;
-  let cells = '', months = '', lastM = -1, col = 0, n = 0, tot = 0;
+  let cells = '', months = '', lastM = -1, col = 0;
   for(const d = new Date(start); d <= today; d.setDate(d.getDate()+1)){
     const dow = (d.getDay()+6)%7; if(dow===0){ col++; if(d.getMonth()!==lastM && d.getDate()<=7){ lastM = d.getMonth();
       months += `<span style="grid-column:${col+1}">${d.toLocaleDateString('en-GB',{month:'short'})}</span>`; } }
     const k = iso(d), b = byDay[k];
     let cls = 'l0', tip = `${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}: rest`;
-    if(b){ n += b.items.length; tot += b.kcal;
+    if(b){
       cls = b.known ? 'l'+level(b.kcal) : 'lx';
       tip = `${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}: ${b.known?fmt(b.kcal)+' kcal':'no watch calories'}\n` +
         b.items.map(w => `${WO_IC[w.type]||'•'} ${w.name}${w.kcal?` · ${fmt(w.kcal)} kcal`:''}${w.duration_min?` · ${w.duration_min} min`:''}`).join('\n'); }
@@ -1025,7 +1025,10 @@ function renderCalendar(){
   const key = `<div class="cal-key"><span>Calories burnt</span><i class="l0" title="Rest"></i>${[1,2,3,4,5].map(l => `<i class="l${l}" title="${l===1?'under '+CAL_STEPS[0]:l===5?CAL_STEPS[3]+'+':CAL_STEPS[l-2]+'–'+(CAL_STEPS[l-1]-1)} kcal"></i>`).join('')}
     <span>${CAL_STEPS[3]}+ kcal</span><i class="lx" title="Session with no watch calories"></i><span>no watch data</span></div>`;
   el.innerHTML = `<div class="cal-grid" style="grid-template-columns:28px repeat(${col},minmax(6px,1fr))">${months}${days}${cells}</div>${key}`;
-  $('#calnote').textContent = `${n} sessions in the last 12 months · ${fmt(tot)} kcal (${fmt(tot/7700,1)} kilos of fat) from workouts`;
+  const first = WO.reduce((m, w) => w.date < m ? w.date : m, WO[0].date);
+  const span = Math.round((today - new Date(first+'T00:00')) / 864e5) + 1;
+  const allK = WO.reduce((a, w) => a + (w.kcal||0), 0);
+  $('#calnote').textContent = `${WO.length} sessions in the last ${fmt(span)} days · ${fmt(allK)} kcal (${fmt(allK/7700,1)} kilos of fat) from workouts`;
   $('#calnote').title = 'Using about 7,700 kcal per kilo of body fat';
   el.querySelectorAll('i[data-k]').forEach(c => { const go = () => { WO_SEL = c.dataset.k; renderWorkouts().then(() => { if(MMODE==='session') renderMuscles(); });
       $('#wopick').scrollIntoView({behavior: MOTION?'smooth':'auto', block:'start'}); };
