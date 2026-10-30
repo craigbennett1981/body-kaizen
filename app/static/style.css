@@ -456,11 +456,12 @@ dialog#setup::backdrop{background:rgba(0,0,0,.55)}
 .wk-plan td:first-child{width:70px;white-space:nowrap} .wk-plan tr.today td{background:var(--accent-soft)}
 /* activity calendar */
 .cal-wrap{overflow-x:auto;padding-bottom:4px;margin:4px 0 18px}
-.cal{display:inline-block;min-width:100%}
+.cal{display:block;width:100%}
 .cal-grid{display:grid;grid-template-rows:14px repeat(7,12px);gap:3px;font-size:11px;color:var(--muted)}
 .cal-grid>span{grid-row:1;white-space:nowrap;line-height:12px}
 .cal-grid>b{grid-column:1;font-weight:400;line-height:12px}
-.cal i,.cal-key i{display:block;width:12px;height:12px;border-radius:2px;background:var(--rule)}
+.cal i{display:block;height:12px;border-radius:2px;background:var(--rule)}
+.cal-key i{width:12px}
 .cal i[data-k]{cursor:pointer} .cal i[data-k]:hover,.cal i[data-k]:focus-visible{outline:1.5px solid var(--ink);outline-offset:0}
 .cal .l0{opacity:.55}
 .cal .l1{background:color-mix(in srgb,var(--cal) 22%,var(--surface))} .cal .l2{background:color-mix(in srgb,var(--cal) 42%,var(--surface))}

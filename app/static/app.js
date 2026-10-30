@@ -1024,7 +1024,7 @@ function renderCalendar(){
   const days = ['Mon','','Wed','','Fri','',''].map((t,i) => `<b style="grid-row:${i+2}">${t}</b>`).join('');
   const key = `<div class="cal-key"><span>Calories burnt</span><i class="l0" title="Rest"></i>${[1,2,3,4,5].map(l => `<i class="l${l}" title="${l===1?'under '+CAL_STEPS[0]:l===5?CAL_STEPS[3]+'+':CAL_STEPS[l-2]+'–'+(CAL_STEPS[l-1]-1)} kcal"></i>`).join('')}
     <span>${CAL_STEPS[3]}+ kcal</span><i class="lx" title="Session with no watch calories"></i><span>no watch data</span></div>`;
-  el.innerHTML = `<div class="cal-grid" style="grid-template-columns:28px repeat(${col},12px)">${months}${days}${cells}</div>${key}`;
+  el.innerHTML = `<div class="cal-grid" style="grid-template-columns:28px repeat(${col},minmax(6px,1fr))">${months}${days}${cells}</div>${key}`;
   $('#calnote').textContent = `${n} sessions in the last 12 months · ${fmt(tot)} kcal from workouts`;
   el.querySelectorAll('i[data-k]').forEach(c => { const go = () => { WO_SEL = c.dataset.k; renderWorkouts().then(() => { if(MMODE==='session') renderMuscles(); });
       $('#wopick').scrollIntoView({behavior: MOTION?'smooth':'auto', block:'start'}); };
