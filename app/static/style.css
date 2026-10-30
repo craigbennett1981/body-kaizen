@@ -470,7 +470,7 @@ dialog#setup::backdrop{background:rgba(0,0,0,.55)}
 .cal .l1{background:color-mix(in srgb,var(--cal) 22%,var(--surface))} .cal .l2{background:color-mix(in srgb,var(--cal) 42%,var(--surface))}
 .cal .l3{background:color-mix(in srgb,var(--cal) 62%,var(--surface))} .cal .l4{background:color-mix(in srgb,var(--cal) 82%,var(--surface))}
 .cal .l5{background:var(--cal)}
-.cal .lx{background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--cal)}
+.cal .lx{background:var(--muted);box-shadow:inset 0 0 0 1.5px var(--cal)}
 .cal-key{display:flex;align-items:center;gap:4px;margin-top:8px;font-size:11.5px;color:var(--muted);flex-wrap:wrap}
 .cal-key span{margin:0 4px}
 :root{--cal:#E0612E}
