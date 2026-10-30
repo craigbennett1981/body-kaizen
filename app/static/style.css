@@ -456,6 +456,7 @@ dialog#setup::backdrop{background:rgba(0,0,0,.55)}
 .wk-plan td:first-child{width:70px;white-space:nowrap} .wk-plan tr.today td{background:var(--accent-soft)}
 /* activity calendar */
 .cal-head{align-items:baseline}
+.cal-head h2{margin-top:22px}
 .cal-wrap{overflow-x:auto;padding-bottom:4px;margin:4px 0 0}
 .cal-wrap+h2{margin-top:24px}
 .cal{display:block;width:100%}
