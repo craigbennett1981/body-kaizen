@@ -1,7 +1,8 @@
 """Where things live, and the user's settings.
 
-CODE  the Body Kaizen code (this repository)
-DATA  your data folder: FT_DATA if set, otherwise the code folder (a single-folder setup)
+CODE  the Body Kaizen code (this repository, or the installed body_kaizen package)
+DATA  your data folder: FT_DATA if set; otherwise the code folder when run from a clone (a single-folder
+      setup), or ~/body-kaizen-data when installed from PyPI
 
 settings.yaml in the data folder holds your profile (name, start date), timezone and options.
 """
@@ -9,7 +10,8 @@ import datetime as dt, os, pathlib, re
 import yaml
 
 CODE = pathlib.Path(__file__).resolve().parent.parent
-DATA = pathlib.Path(os.environ.get("FT_DATA") or CODE).expanduser().resolve()
+DEFAULT_DATA = CODE if (CODE / "pyproject.toml").exists() else pathlib.Path("~/body-kaizen-data")
+DATA = pathlib.Path(os.environ.get("FT_DATA") or DEFAULT_DATA).expanduser().resolve()
 SETTINGS = DATA / "settings.yaml"
 
 _cache = {"mtime": None, "data": {}}

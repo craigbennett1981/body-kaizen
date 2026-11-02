@@ -70,6 +70,20 @@ The server reloads app modules when they change on disk, so you can edit and ref
   nutrition database).
 - CI runs the tests on Python 3.10 to 3.13; it needs to pass before merging.
 
+## Releasing (maintainer)
+
+The package on PyPI is built from the same folders a clone runs: `pyproject.toml` maps `app/`, `scripts/`,
+`foods/` and `demo/` into one `body_kaizen` package, and `body_kaizen/cli.py` is the `body-kaizen` command. A new
+file in those folders is packaged automatically; a new kind of data file needs a pattern under `package-data`.
+
+1. Bump `version` in `pyproject.toml` and merge it.
+2. Optionally, run the **Release** workflow by hand: it uploads to TestPyPI as a dry run.
+3. Publish a GitHub release tagged `vX.Y.Z`, matching that version. The Release workflow checks the tag, builds
+   and uploads to PyPI through trusted publishing (no token is stored in the repository).
+
+To check a build locally: `python -m build && twine check dist/*`, then install `dist/*.whl` in a fresh virtual
+environment and run `body-kaizen demo`.
+
 ## Reporting bugs
 
 Open an issue using the bug template: what you did, what you expected and what happened, plus the server log

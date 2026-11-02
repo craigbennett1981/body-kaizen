@@ -27,3 +27,21 @@ jobs:
         run: node --check app/static/app.js
       - name: Tests
         run: python -m unittest discover -s tests -v
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Build the sdist and wheel
+        run: pip install build twine && python -m build && twine check --strict dist/*
+      - name: Install the wheel on its own and serve the demo
+        run: |
+          python -m venv /tmp/bk && /tmp/bk/bin/pip install dist/*.whl
+          cd /tmp && /tmp/bk/bin/body-kaizen --version
+          /tmp/bk/bin/body-kaizen demo --port 8790 & sleep 5
+          curl -fsS http://127.0.0.1:8790/api/summary > /dev/null
+          curl -fsS http://127.0.0.1:8790/app.js > /dev/null
+          /tmp/bk/bin/body-kaizen init /tmp/bk-data && test -f /tmp/bk-data/targets.yaml

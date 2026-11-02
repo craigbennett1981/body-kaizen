@@ -51,8 +51,9 @@ next to the numbers they're about.
 Hevy · InBody · any smart scale or blood-pressure app you can screenshot.
 
 > **Not medical advice, and no warranty.** Body Kaizen is a personal logging tool. Its scores, targets and
-> suggestions are rules of thumb, not a diagnosis or treatment plan. Integrations are unofficial, and you're
-> responsible for your own health decisions, accounts and data. Read the [Disclaimer](#disclaimer) before using it.
+> suggestions are rules of thumb, not a diagnosis or treatment plan. AI assistants make mistakes, so check what
+> yours logs. Integrations are unofficial, and you're responsible for your own health decisions, accounts and data.
+> Read the [Disclaimer](#disclaimer) before using it.
 
 ## Contents
 
@@ -195,6 +196,18 @@ your phone) or another assistant, see [Setting up your AI assistant](#setting-up
 **4. Run it for real:** `FT_DATA=~/body-kaizen-data .venv/bin/python app/server.py`. On a Mac,
 `scripts/setup_mac.sh` installs a background service that starts the dashboard at login and runs the scheduled
 syncs; undo it with `scripts/setup_mac.sh --uninstall`.
+
+**Or install it from PyPI** instead of cloning (you won't get `setup_mac.sh` or the docs, but nothing else is missing):
+
+```bash
+pipx install body-kaizen         # or pip install; add [garmin], [libre] or [all] for the syncs
+body-kaizen demo                 # the demo data, served from a temporary copy
+body-kaizen init                 # a new data folder at ~/body-kaizen-data (or: body-kaizen init DIR)
+body-kaizen                      # the dashboard on ~/body-kaizen-data (or: --data DIR, or FT_DATA)
+```
+
+The scripts below are subcommands there: `body-kaizen compute`, `body-kaizen garmin-login`, `body-kaizen libre-pull`
+and so on (`body-kaizen --help` lists them).
 
 ## Getting data in: you need an AI assistant
 
