@@ -34,16 +34,16 @@ rolled into a readiness score.</td>
 <td valign="top"><a href="#features"><img src="docs/img/longevity.png" alt="Longevity"></a><br>
 <b>Longevity score.</b> VO2 max, lipids, HbA1c, blood pressure, grip strength and body composition, each with
 target bands and a retest date, combined into one health score.</td>
-<td valign="top"><a href="#features"><img src="docs/img/muscle-map.png" alt="Muscle map"></a><br>
-<b>Muscle map.</b> Front and back diagrams shaded by hard sets per muscle, so the ones you never train stand
-out.</td>
+<td valign="top"><a href="#features"><img src="docs/img/glucose.png" alt="Glucose against meals"></a><br>
+<b>Glucose under every meal.</b> FreeStyle Libre readings on the day timeline with each meal marked on the
+curve, and every meal's rise, peak and time back to baseline.</td>
 <td valign="top"><a href="#features"><img src="docs/img/trends.png" alt="Trends"></a><br>
 <b>Trends and a training week.</b> Every day coloured hit or miss against its targets, an activity calendar by
 calories burnt, and the next seven days laid out: gym, run or rest.</td>
 </tr>
 </table>
 
-**Also:** FreeStyle Libre glucose curves under every meal · blood test reports and InBody scans read from a photo
+**Also:** a muscle map shaded by hard sets per muscle · blood test reports and InBody scans read from a photo
 or PDF · scale and blood-pressure screenshots · a day timeline from sleep to dinner · Claude's comments saved
 next to the numbers they're about.
 
