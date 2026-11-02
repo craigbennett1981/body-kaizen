@@ -84,8 +84,9 @@ def build(day):
             kcal = round(sum((c.get("macros") or {}).get("k", 0) for c in it.get("parsed") or []))
             prot = round(sum((c.get("macros") or {}).get("p", 0) for c in it.get("parsed") or []), 1)
             sfat = round(sum((c.get("macros") or {}).get("sf", 0) for c in it.get("parsed") or []), 1)
+            carb = round(sum((c.get("macros") or {}).get("c", 0) for c in it.get("parsed") or []), 1)
             if not st: untimed += 1; continue
-            ev.append({"lane": "Food", "kind": "food", "start": m(st), "label": it.get("raw", ""), "kcal": kcal, "protein": prot, "satfat": sfat,
+            ev.append({"lane": "Food", "kind": "food", "start": m(st), "label": it.get("raw", ""), "kcal": kcal, "protein": prot, "satfat": sfat, "carbs": carb,
                        "meal": meal, "approx": bool(it.get("time_approx"))})
     # blood pressure
     for b in ((d.get("vitals") or {}).get("bp") or []):

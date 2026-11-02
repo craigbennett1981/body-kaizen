@@ -6,7 +6,7 @@ usage: python tools/make_demo.py [OUT_DIR] [--end YYYY-MM-DD] [--days N] [--seed
        (defaults: demo/, end 2026-10-23, 90 days, seed 7)
 
 Writes day files, Garmin-style raw imports (daily summaries, sleep stages, intraday steps and body
-battery, workout heart-rate traces), measurements and the reference files from demo-template/, then
+battery, workout heart-rate traces), FreeStyle Libre glucose for the last two weeks, measurements and the reference files from demo-template/, then
 runs scripts/compute.py so every day has its totals. Same seed, same data.
 """
 import argparse, datetime as dt, json, math, os, pathlib, random, shutil, subprocess, sys
@@ -210,6 +210,50 @@ def prev_session(path, name):
 def write_json(p, obj):
     p.parent.mkdir(parents=True, exist_ok=True); p.write_text(json.dumps(obj))
 
+# ---------------------------------------------------------------- glucose (FreeStyle Libre)
+CGM_DAYS = 15   # the sensor went on 15 days before the end; its first day reads as "settling in"
+RG = random.Random(A.seed * 1000 + 1)   # its own stream, so adding glucose leaves every other number unchanged
+
+def meal_events(d, meals):
+    """Timed meal items grouped like app/glucose.py (within 20 minutes = one eating event): [(minute of day, carbs g, fat g)]."""
+    rows = sorted((int(e["time"][:2]) * 60 + int(e["time"][3:5]), e["raw"]) for items in meals.values() for e in items if e.get("time"))
+    out = []
+    for m, raw in rows:
+        c = f = 0.0
+        for comp in N.resolve(raw, d.isoformat())[0]:
+            mm = N.macros(comp); c += mm["c"]; f += mm["f"]
+        if out and m - out[-1][3] <= 20: out[-1][1] += c; out[-1][2] += f; out[-1][3] = m
+        else: out.append([m, c, f, m])
+    return [(m, c, f) for m, c, f, _ in out]
+
+def glucose(days):
+    """15-minute mmol/L readings over the last CGM_DAYS days: baseline ~5, a dip overnight, a rise after each meal that scales with
+    its carbs (damped by fat), back to baseline within 2-3 hours, a small dip during workouts. days = [(date, meals, exercise)]."""
+    t0 = dt.datetime.combine(days[-CGM_DAYS][0], dt.time()); eat, move = [], []
+    for d, meals, ex in days:
+        base = dt.datetime.combine(d, dt.time())
+        for m, c, f in meal_events(d, meals):
+            amp = min(5.0, c * 0.045 * RG.uniform(0.8, 1.2) / (1 + f / 60))
+            eat.append((base + dt.timedelta(minutes=m), amp, RG.uniform(38, 55)))
+        for e in ex:
+            if e.get("start"): move.append((base + dt.timedelta(minutes=int(e["start"][:2]) * 60 + int(e["start"][3:])), e["duration_min"]))
+    out, drift, t = {}, 0.0, t0 + dt.timedelta(minutes=RG.randint(1, 14))   # Libre timestamps are not on the quarter hour
+    end = dt.datetime.combine(days[-1][0], dt.time(23, 59))
+    while t <= end:
+        h = t.hour + t.minute / 60
+        drift = drift * 0.92 + RG.gauss(0, 0.05)
+        v = 5.0 + drift - 0.45 * math.exp(-((h - 3.5) ** 2) / 3) + 0.3 * math.exp(-((h - 6.5) ** 2) / 0.8)   # overnight low, dawn rise
+        for te, amp, tp in eat:
+            x = (t - te).total_seconds() / 60 / tp
+            if 0 < x < 5: v += amp * (x ** 2.5 * math.exp(2.5 * (1 - x)) - 0.12 * max(0, x - 2.2) * math.exp(2.2 - x))   # small dip after
+        for ts, dur in move:
+            x = (t - ts).total_seconds() / 60
+            if 0 < x < dur + 60: v -= 0.5 * math.sin(math.pi * x / (dur + 60))
+        mg = round((v + RG.gauss(0, 0.08)) * 18.016)   # LibreLinkUp reports whole mg/dL; libre_pull converts to mmol/L
+        out.setdefault(t.date().isoformat(), {})[t.strftime("%H:%M")] = round(mg / 18.016, 2)
+        t += dt.timedelta(minutes=15)
+    for ds, r in out.items(): write_json(OUT / "imports/libre" / ds[:4] / f"{ds}.json", {"date": ds, "unit": "mmol/L", "readings": r})
+
 def main():
     if OUT.exists(): shutil.rmtree(OUT)
     (OUT / "days").mkdir(parents=True)
@@ -222,6 +266,7 @@ def main():
     aid = 30000000000
     weights, tests, bp_all = [], [], []
     hrv7 = []
+    cgm = []
     for i, d in enumerate(DAYS):
         f = frac(d); ds = d.isoformat()
         kind = PLAN[d.weekday()]
@@ -308,6 +353,7 @@ def main():
         else:
             dtype = "rest" if kind == "rest" else "big" if kind == "long" else "training"
             day["meals"] = meals_for(d, kind, d == END, dtype)
+        if (END - d).days <= CGM_DAYS: cgm.append((d, day["meals"], ex))
         # energy (Garmin): BMR + steps + workouts
         bmr = int(lerp(1760, 1715, f)); active = int(steps * 0.045 + sum((x.get("kcal") or {}).get("active", 0) for x in ex))
         day["energy"] = {"total": bmr + active, "active": active, "bmr": bmr, "source": "garmin"}
@@ -343,6 +389,7 @@ def main():
                           "components": {"bmi": {"value": round(kg / 1.78 ** 2, 1), "targetValue": 23.0}, "rhr": {"value": rhr},
                                          "vigorousDaysAvg": {"value": 1.6, "targetValue": 3}, "vigorousMinutesAvg": {"value": 62, "targetValue": 75}}}
     write_json(OUT / "imports/garmin/vo2max.json", vo2)
+    glucose(cgm)
     write_json(OUT / "imports/garmin/fitness_age.json", fitage)
     # coach comments on the latest gym session and run
     for p in sorted((OUT / "days").rglob("*.yaml"), reverse=True)[:7]:
