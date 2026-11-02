@@ -115,9 +115,10 @@ the Training tab shows the session with Claude's comments: what moved up, what t
 
 **21:30.** "Close the day." The verdict appears at the top of the Day page, and the timeline shows the whole day at
 its clock times: sleep stages, meals (red dots for anything with 3 g or more of saturated fat), protein pace,
-calories eaten against burnt, body battery and steps.
+calories eaten against burnt, body battery and steps, and, with a FreeStyle Libre, the glucose curve with each meal
+marked on it.
 
-![The timeline: protein pace, calories eaten and burnt, energy, sleep stages, training and meals](docs/img/day-timeline.png)
+![The timeline: protein pace, calories eaten and burnt, energy, sleep stages, training, meals, and glucose with each meal marked on the curve](docs/img/day-timeline.png)
 
 ## Features
 
