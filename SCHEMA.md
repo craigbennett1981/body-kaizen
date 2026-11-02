@@ -128,6 +128,13 @@ Common fields on every session:
     # kind: good (win) | bad (warning) | info (observation)
 ```
 
+`circuits:` (optional) says how the session was run: each inner list is a circuit of lifts done one set each,
+looped until their sets run out, and the circuits come in the order they were done. A lift on its own,
+`[leg-curl]`, means straight sets. With it, the Training tab labels each heart-rate peak with its set (hover a dot
+on the trace: "Chin up · set 2 of 3 · bw×8"). The peaks are split between circuits at the longest gaps (moving
+to new equipment); a stray peak such as a warm-up walk is left unlabelled. Without `circuits:`, peaks are shown
+but not labelled, because Hevy doesn't record when each set happened. Names are `exercises.yaml` keys.
+
 Each lift can also carry `note:` (your assistant's comment on that lift, shown under it). Bodyweight sets are
 written `'0x8'` **in quotes** (unquoted, YAML reads `0x8` as the hex number 8).
 
@@ -141,6 +148,9 @@ Type-specific:
     - {ex: farmers-walk,   sets: [50kg@60m, 50kg@60m, 50kg@60m]}
     - {ex: plank,          sets: [60s, 60s, 60s]}
 # set notation: <kg>x<reps> | <kg>kg@<m>m | <sec>s
+  circuits:                 # optional: the order the sets were done in (see below)
+    - [smith-squat, chin-up]
+    - [leg-curl, farmers-walk, plank]
 
 # run
   mode: treadmill           # treadmill | outdoor | trail
