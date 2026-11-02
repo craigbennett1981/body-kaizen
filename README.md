@@ -51,8 +51,9 @@ next to the numbers they're about.
 Hevy · InBody · any smart scale or blood-pressure app you can screenshot.
 
 > **Not medical advice, and no warranty.** Body Kaizen is a personal logging tool. Its scores, targets and
-> suggestions are rules of thumb, not a diagnosis or treatment plan. Integrations are unofficial, and you're
-> responsible for your own health decisions, accounts and data. Read the [Disclaimer](#disclaimer) before using it.
+> suggestions are rules of thumb, not a diagnosis or treatment plan. AI assistants make mistakes, so check what
+> yours logs. Integrations are unofficial, and you're responsible for your own health decisions, accounts and data.
+> Read the [Disclaimer](#disclaimer) before using it.
 
 ## Contents
 
