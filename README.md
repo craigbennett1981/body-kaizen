@@ -16,13 +16,47 @@ Garmin, glucose and gym data, and shows how your day, week and months are going 
 
 ![You send a message, Claude logs it and replies with your totals, and the dashboard updates](docs/img/claude-loop.gif)
 
+## What's inside
+
+<table>
+<tr>
+<td width="33%" valign="top"><a href="#a-day-with-body-kaizen"><img src="docs/img/day.png" alt="The Day page"></a><br>
+<b>Meal photos to macros.</b> Photograph a plate or a label. Claude estimates portions and logs calories, protein,
+carbs, fat, saturated fat and fibre, paced through the day.</td>
+<td width="33%" valign="top"><a href="#a-day-with-body-kaizen"><img src="docs/img/workout.png" alt="A workout"></a><br>
+<b>Workouts with heart rate.</b> Hevy sets on the Garmin heart-rate trace with each effort marked, every lift
+against last time, and a progression plan for the next session.</td>
+<td width="33%" valign="top"><a href="#features"><img src="docs/img/recovery.png" alt="Recovery"></a><br>
+<b>Garmin recovery.</b> Sleep stages, HRV, resting heart rate, body battery and stress, synced automatically and
+rolled into a readiness score.</td>
+</tr>
+<tr>
+<td valign="top"><a href="#features"><img src="docs/img/longevity.png" alt="Longevity"></a><br>
+<b>Longevity score.</b> VO2 max, lipids, HbA1c, blood pressure, grip strength and body composition, each with
+target bands and a retest date, combined into one health score.</td>
+<td valign="top"><a href="#features"><img src="docs/img/muscle-map.png" alt="Muscle map"></a><br>
+<b>Muscle map.</b> Front and back diagrams shaded by hard sets per muscle, so the ones you never train stand
+out.</td>
+<td valign="top"><a href="#features"><img src="docs/img/trends.png" alt="Trends"></a><br>
+<b>Trends and a training week.</b> Every day coloured hit or miss against its targets, an activity calendar by
+calories burnt, and the next seven days laid out: gym, run or rest.</td>
+</tr>
+</table>
+
+**Also:** FreeStyle Libre glucose curves under every meal · blood test reports and InBody scans read from a photo
+or PDF · scale and blood-pressure screenshots · a day timeline from sleep to dinner · Claude's comments saved
+next to the numbers they're about.
+
+**Works with** Claude (or any AI assistant that can edit files) · Garmin Connect · FreeStyle Libre (LibreLinkUp) ·
+Hevy · InBody · any smart scale or blood-pressure app you can screenshot.
+
 > **Not medical advice, and no warranty.** Body Kaizen is a personal logging tool. Its scores, targets and
 > suggestions are rules of thumb, not a diagnosis or treatment plan. Integrations are unofficial, and you're
 > responsible for your own health decisions, accounts and data. Read the [Disclaimer](#disclaimer) before using it.
 
 ## Contents
 
-[Why](#why) · [How it works](#how-it-works) · [A day with Body Kaizen](#a-day-with-body-kaizen) ·
+[What's inside](#whats-inside) · [Why](#why) · [How it works](#how-it-works) · [A day with Body Kaizen](#a-day-with-body-kaizen) ·
 [Features](#features) · [Quick start](#quick-start-five-minutes) · [Getting data in](#getting-data-in-you-need-an-ai-assistant) ·
 [Setting up your assistant](#setting-up-your-ai-assistant) · [Practical kit](#practical-kit-whats-worth-having) · [Privacy in git](#keeping-your-data-private-in-git) · [Integrations](#integrations) · [Compared with](#compared-with-other-trackers) ·
 [FAQ](#faq) · [Roadmap](#roadmap) · [Disclaimer](#disclaimer)
