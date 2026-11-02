@@ -2,6 +2,6 @@
 pyyaml>=6.0.3,<7
 # Optional syncs (unofficial APIs; see docs/integrations.md). Comment out what you don't use.
 garminconnect>=0.3.18,<0.4
-curl_cffi>=0.16,<0.17
+curl_cffi>=0.16,<0.18
 pylibrelinkup>=0.11.1,<0.12
 keyring>=25.7,<26
