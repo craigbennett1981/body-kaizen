@@ -971,7 +971,8 @@ async function renderWorkouts(){
         <td class="lapbar"><i style="width:${l.pace_s && hi>lo ? 25 + 75*(hi-l.pace_s)/(hi-lo) : 60}%"></i></td>
         <td>${l.hr_avg??'–'}</td><td>${l.hr_max??'–'}</td></tr>`).join('') + `</table>`;
   }
-  if(T) h += `<div class="notes-h"><h2 class="h3">Heart rate</h2><span class="sub">${T.efforts.length} effort${T.efforts.length!==1?'s':''} picked out from heart-rate peaks${T.effort_gap_min?`, about ${fmt(T.effort_gap_min,1)} min apart`:''}${S.type==='gym'&&S.sets?` (you logged ${S.sets} sets)`:''} · zones are estimates from your highest recorded HR (${D.max_hr})</span></div><div id="wohr" class="chart" style="height:220px"></div>`;
+  const FIT = T && T.effort_fit, CIRC = FIT && FIT.circuits;
+  if(T) h += `<div class="notes-h"><h2 class="h3">Heart rate</h2><span class="sub">${T.efforts.length} effort${T.efforts.length!==1?'s':''} picked out from heart-rate peaks${T.effort_gap_min?`, about ${fmt(T.effort_gap_min,1)} min apart`:''}${S.type==='gym'&&S.sets?` (you logged ${S.sets} sets)`:''}${CIRC?` · ${FIT.matched} of ${FIT.sets} sets matched to peaks from your circuit order${FIT.exact?'':' (approximate)'}, hover a dot`:''} · zones are estimates from your highest recorded HR (${D.max_hr})</span></div><div id="wohr" class="chart" style="height:220px"></div>`;
   else if(S.garmin===false && S.type==='gym') h += `<p class="sub">No watch data for this session, so no heart-rate trace.</p>`;
   else if(S.garmin) h += `<p class="sub">No heart-rate trace saved for this session yet (recent sessions fetch it on the next Garmin sync).</p>`;
   if(D.lifts.length){
@@ -980,7 +981,7 @@ async function renderWorkouts(){
       const chTxt = l.prev ? `${ch!=null?`<span class="${ch>0?'good':ch<0?'bad':''}">${ch>0?'▲ +':ch<0?'▼ ':'▬ '}${fmt(ch)} kg</span>`:''}${e1?` <span class="sub">· best set ${e1>0?'+':''}${fmt(e1,1)} kg e1RM</span>`:''}` : '<span class="sub">first time</span>';
       return `<tr${l.pr?' class="pr"':''}><td>${esc(l.name)}${l.pr?' <span class="pr-star" aria-label="personal best">★</span>':''}${l.note?`<div class="lift-note">💬 ${esc(l.note)}</div>`:''}</td><td class="sets">${(l.sets_raw||[]).map(x=>String(x).replace(/^0x/,'bw×')).join(', ')}</td>
         <td>${l.metres?`${l.metres} m`:l.volume?fmt(l.volume):`${(l.sets_raw||[]).reduce((a,x)=>a+(+(String(x).split('x')[1])||0),0)} reps`}</td><td>${chTxt}</td><td class="sub">${l.prev?`${shortDate(l.prev.date)}: ${(l.prev.sets_raw||[]).join(', ')}`:'–'}</td></tr>`; }).join('') + `</table>
-      <p class="sub">Volume is weight × reps over all logged sets. The order of lifts isn't matched to the heart-rate trace, because Hevy doesn't record when each set happened.</p>`;
+      <p class="sub">Volume is weight × reps over all logged sets. ${CIRC?'Sets are matched to heart-rate peaks using the circuit order logged with this session.':"Hevy doesn't record when each set happened, so sets aren't matched to the heart-rate trace. Tell your assistant your circuit order (which lifts you loop together) and it will match them."}</p>`;
   }
   box.innerHTML = h;
   if(T){
@@ -991,10 +992,13 @@ async function renderWorkouts(){
       xAxis:{type:'value',min:0,max:Math.ceil(T.points[T.points.length-1][0]),...ax,axisLabel:{...ax.axisLabel,formatter:v=>v+' min'}},
       yAxis:{type:'value',min:Math.floor(lo/10)*10,max:Math.ceil(hi/10)*10,...ax},
       tooltip:{trigger:'axis',...tip(c),formatter:ps => { const p = ps.find(x=>x.seriesName==='HR')||ps[0]; const m = p.value[0], z = B.findIndex((b,k)=>p.value[1]>=b && p.value[1]<B[k+1]);
-        return `${fmt(m,1)} min · <b>${p.value[1]}</b> bpm${z>=0?` <span style="color:${c.muted}">zone ${z+1}</span>`:''}`; }},
+        const EL = T.effort_labels||[]; let ei = -1, best = .5;
+        T.efforts.forEach((q,k) => { const dd = Math.abs(q[0]-m); if(dd < best && EL[k]){ best = dd; ei = k; } });
+        const L = ei>=0 ? EL[ei] : null;
+        return `${fmt(m,1)} min · <b>${p.value[1]}</b> bpm${z>=0?` <span style="color:${c.muted}">zone ${z+1}</span>`:''}${L?`<br><b>${esc(L.name)}</b> · set ${L.set} of ${L.of} · ${esc(L.raw.replace(/^0x/,'bw×'))}`:''}`; }},
       series:[{type:'line',name:'HR',data:T.points,showSymbol:false,lineStyle:{color:'#C8372D',width:1.8},
         markArea:{silent:true,label:{show:true,position:'insideRight',color:c.muted,fontSize:10},data:[0,1,2,3,4].map(k=>[{yAxis:B[k],name:'Z'+(k+1),itemStyle:{color:ZC[k],opacity:.08}},{yAxis:B[k+1]}])}},
-        {type:'scatter',name:'Efforts',data:T.efforts,symbolSize:7,itemStyle:{color:c.ink},tooltip:{show:false}}]});
+        {type:'scatter',name:'Efforts',data:T.efforts.map((q,k) => ({value:q, itemStyle:{color:(T.effort_labels||[])[k]||!CIRC?c.ink:c.muted, opacity:(T.effort_labels||[])[k]||!CIRC?1:.45}})),symbolSize:7,tooltip:{show:false}}]});
   }
 }
 /* ---------- activity calendar: a year of workouts, coloured by calories burnt ---------- */

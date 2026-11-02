@@ -104,6 +104,13 @@ When you log a workout, add your own comments. They show on the dashboard:
 
 Compare against their previous sessions of the same lift before you call something a best.
 
+**Circuit order.** Hevy lists lifts but not when each set happened. If the person trains in circuits (say squat
+and chin-up alternated three times, then the next group), ask once how they group their lifts, write it on the
+session as `circuits:` (see SCHEMA.md) and keep it in their own notes so you can add it to every session without
+asking again. If they changed the order that day, follow what they tell you. The dashboard then matches each
+heart-rate peak to a set, so you can comment on things like which circuit drove their heart rate highest or
+where they waited for a machine.
+
 ## 6. Integrations (optional, the person sets these up)
 
 All run from the code folder with `FT_DATA` set. Credentials never go in the data folder.

@@ -107,6 +107,55 @@ def _laps(e):
         f = min(full, key=lambda l: l["pace_s"]); f["fastest"] = True
     return {"source": src, "laps": out}
 
+def _set_order(e):
+    """The order the sets were done in, from the session's `circuits:` (each circuit looped, one set of each lift
+    per round). Without circuits, lifts are assumed done one after another, all sets of each.
+    Returns one list of sets per block (a circuit, or a lift done as straight sets)."""
+    by = {l["ex"]: l.get("sets") or [] for l in e.get("lifts") or []}
+    circuits = [[ex for ex in c if ex in by] for c in (e.get("circuits") or [[ex] for ex in by])]
+    blocks = []
+    for c in circuits:
+        b = []
+        for r in range(max((len(by[ex]) for ex in c), default=0)):
+            for ex in c:
+                if r < len(by[ex]): b.append({"ex": ex, "name": _nice(ex), "set": r + 1, "of": len(by[ex]), "raw": str(by[ex][r])})
+        if b: blocks.append(b)
+    return blocks, bool(e.get("circuits"))
+
+GAP_PER_SET = 0.5   # minutes of between-peak gap one miscounted set is worth when finding where blocks start
+
+def _label_efforts(efforts, blocks):
+    """Give each heart-rate peak the set it most likely belongs to. The peaks are first split into one run per
+    block, putting the splits at the longest gaps between peaks (moving to new equipment) while keeping each
+    run close to its number of sets. Inside a run, extra peaks (a warm-up walk, waiting for a machine) are
+    dropped lowest HR first; if peaks are missing, the run's last sets go unlabelled."""
+    n, k = len(efforts), len(blocks)
+    if not n or not k: return [], None
+    want = [len(b) for b in blocks]
+    gap = [0] + [efforts[i][0] - efforts[i - 1][0] for i in range(1, n)]
+    INF = float("-inf")
+    # best[j][i]: best score putting the first i peaks into the first j blocks
+    best = [[INF] * (n + 1) for _ in range(k + 1)]; back = [[0] * (n + 1) for _ in range(k + 1)]
+    best[0][0] = 0
+    for j in range(1, k + 1):
+        for i in range(n + 1):
+            for p in range(i + 1):
+                if best[j - 1][p] == INF: continue
+                sc = best[j - 1][p] - GAP_PER_SET * abs((i - p) - want[j - 1]) + (gap[p] if 0 < p < n and j > 1 else 0)
+                if sc > best[j][i]: best[j][i], back[j][i] = sc, p
+    cuts, i = [], n
+    for j in range(k, 0, -1):
+        cuts.append((back[j][i], i)); i = back[j][i]
+    cuts.reverse()
+    labels = [None] * n
+    for (a, b), blk in zip(cuts, blocks):
+        idx = list(range(a, b))
+        keep = sorted(sorted(idx, key=lambda q: efforts[q][1], reverse=True)[:len(blk)])
+        for m, q in enumerate(keep): labels[q] = blk[m]
+    sets = sum(want)
+    exact = n == sets and all((b - a) == w for (a, b), w in zip(cuts, want))
+    return labels, {"peaks": n, "sets": sets, "matched": sum(1 for x in labels if x), "exact": exact}
+
 def _summary(s):
     e = s["e"]
     lifts = e.get("lifts") or []
@@ -142,6 +191,11 @@ def detail(date, idx=0):
     prev_summ = _summary(prev_gym) if prev_gym else None
     mx = _max_hr()
     tr_ = _trace(e)
+    if tr_ and e.get("lifts") and e.get("circuits"):   # without the circuit order, sets can't be placed on the trace
+        blocks, by_circuit = _set_order(e)
+        labels, fit = _label_efforts(tr_["efforts"], blocks)
+        tr_["effort_labels"] = labels
+        tr_["effort_fit"] = {**fit, "circuits": by_circuit} if fit else None
     sm = (tr_ or {}).get("summary") or {}
     hrr = None if e.get("hrr_invalid") else ((e.get("hr") or {}).get("recovery") or sm.get("recoveryHeartRate"))
     load = sm.get("activityTrainingLoad")

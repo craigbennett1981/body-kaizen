@@ -42,6 +42,10 @@ Two ways in:
 
 - **Day to day:** paste the text of a finished workout (Hevy's share button → copy) to your assistant. It logs every
   set straight into the day file, next to the Garmin data for the same session.
+- **Circuits:** if you loop groups of lifts (one set of each, round again), tell your assistant the groups once,
+  for example "1: squat, chin-up. 2: RDL, fly, face pull". It records them as `circuits:` on each session, and
+  the Training tab then labels every heart-rate peak with the set it came from. Mention it when you change the
+  order.
 - **Back-filling history:** export everything from Hevy (Settings → Export & Import Data → Export Workouts) and
   import the CSV:
 

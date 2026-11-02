@@ -6,7 +6,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 os.environ.setdefault("FT_DATA", str(ROOT / "demo"))
 sys.path[:0] = [str(ROOT / "scripts"), str(ROOT / "app")]
 import nutrition as N   # noqa: E402
-import pace, planner, muscles   # noqa: E402
+import pace, planner, muscles, workouts   # noqa: E402
 
 
 class FoodMatcher(unittest.TestCase):
@@ -85,4 +85,26 @@ class MuscleMap(unittest.TestCase):
     def test_cardio_counts_by_minutes(self):
         self.assertEqual(muscles._minutes({"time": "25:20"}), 25 + 20 / 60)
         self.assertEqual(muscles._minutes({"duration_min": 40}), 40.0)
+
+
+class CircuitMatching(unittest.TestCase):
+    SESSION = {"circuits": [["smith-squat", "chin-up"], ["leg-curl"]],
+               "lifts": [{"ex": "smith-squat", "sets": ["60x10", "70x10"]}, {"ex": "chin-up", "sets": ["0x8", "0x6"]},
+                         {"ex": "leg-curl", "sets": ["77x10", "77x10"]}]}
+
+    def test_set_order_loops_each_circuit(self):
+        blocks, by_circuit = workouts._set_order(self.SESSION)
+        self.assertTrue(by_circuit)
+        self.assertEqual([[(x["ex"], x["set"]) for x in b] for b in blocks],
+                         [[("smith-squat", 1), ("chin-up", 1), ("smith-squat", 2), ("chin-up", 2)], [("leg-curl", 1), ("leg-curl", 2)]])
+
+    def test_extra_peak_dropped_and_blocks_split_at_the_gap(self):
+        blocks, _ = workouts._set_order(self.SESSION)
+        # a warm-up bump, four sets of the first circuit, a long walk to the next machine, then two sets
+        efforts = [[0.5, 100], [2, 120], [3, 125], [4, 122], [5, 128], [9, 118], [10.5, 121]]
+        labels, fit = workouts._label_efforts(efforts, blocks)
+        self.assertIsNone(labels[0])
+        self.assertEqual([(l["ex"], l["set"]) for l in labels[1:]],
+                         [("smith-squat", 1), ("chin-up", 1), ("smith-squat", 2), ("chin-up", 2), ("leg-curl", 1), ("leg-curl", 2)])
+        self.assertEqual((fit["matched"], fit["sets"]), (6, 6))
 
