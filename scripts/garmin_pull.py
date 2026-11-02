@@ -210,6 +210,8 @@ def commit_and_push(paths, summary, prefix="garmin"):
     git: {auto_commit: true, auto_push: false} are the defaults. Returns True/False for a push, None if not pushed."""
     opts = bkenv.git_options()
     if not opts["auto_commit"]: return None
+    if bkenv.in_code_repo():   # e.g. demo/ or a stray demo/demo/: its git repo is the code repo, so never commit there
+        log("data folder is inside the code repository: not committing"); return None
     if git("rev-parse", "--is-inside-work-tree", check=False).returncode != 0:
         log("data folder isn't a git repository: not committing"); return None
     rel = [str(pathlib.Path(p).relative_to(ROOT)) for p in paths]
@@ -235,6 +237,8 @@ def main():
     ap.add_argument("--remap", action="store_true", help="re-apply saved raw files only, no network")
     ap.add_argument("--no-git", action="store_true")
     a = ap.parse_args()
+    why = bkenv.sync_blocked()
+    if why and not a.remap: log(f"not pulling: {why}"); return
     today = TODAY()
     start = dt.date.fromisoformat(a.since) if a.since else today - dt.timedelta(days=a.days - 1)
     dates = [start + dt.timedelta(days=i) for i in range((today - start).days + 1)]

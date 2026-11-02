@@ -11,6 +11,8 @@ Keep this folder in a **private** git repository (or none). The dashboard and th
 inside it. The code folder is never written to, so you can update Body Kaizen with a plain `git pull`.
 
 `demo/` in this repository is a complete example. Copy it to start your own and clear out the dated files.
+View it with `FT_NO_SYNC=1 FT_DATA=demo python app/server.py`. Syncs never run, and nothing is committed, while the
+data folder is `demo/`, still has the demo profile ("Sam (demo)"), or sits anywhere inside the code folder.
 
 ## Layout
 

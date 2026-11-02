@@ -73,6 +73,8 @@ def merge(readings):
 def main():
     args = sys.argv[1:]
     if not CFG.exists(): log("not set up (run scripts/libre_login.py)"); return 0
+    why = bkenv.sync_blocked()
+    if why: log(f"not pulling: {why}"); return 0
     now = bkenv.now()
     try:
         r = fetch(); touched = merge(r)

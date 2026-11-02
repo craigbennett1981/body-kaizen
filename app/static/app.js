@@ -1407,7 +1407,8 @@ async function pollSync(){
   let s; try { s = await api('/api/garmin'); } catch(e){ return; }
   const dot = $('#syncdot'), msg = $('#syncmsg'), btn = $('#syncbtn');
   dot.className = 'dot'; btn.hidden = !s.ready; btn.disabled = !!s.running;
-  if(!s.installed){ msg.textContent = 'Garmin: run setup'; $('#sync').title = 'Run scripts/setup_mac.sh to install the Garmin library.'; }
+  if(s.blocked){ msg.textContent = 'Garmin: sync off'; $('#sync').title = s.blocked; }
+  else if(!s.installed){ msg.textContent = 'Garmin: run setup'; $('#sync').title = 'Run scripts/setup_mac.sh to install the Garmin library.'; }
   else if(!s.logged_in){ msg.textContent = 'Garmin: log in once'; $('#sync').title = 'Run .venv/bin/python scripts/garmin_login.py'; }
   else if(s.running){ dot.classList.add('run'); msg.textContent = 'Syncing Garmin…'; }
   else if(s.last_error && (!s.last_success || s.last_error_at > s.last_success)){ dot.classList.add('err'); msg.textContent = 'Garmin sync failed'; $('#sync').title = s.last_error; }
