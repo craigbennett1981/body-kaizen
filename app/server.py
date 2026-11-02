@@ -173,6 +173,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200 if item else 404, json.dumps(item or {"error": "no such item"}), "application/json")
         if u.path == "/api/garmin/sync":
             st = scheduler.status()
+            if st["blocked"]:
+                return self._send(409, json.dumps({"error": f"Sync is off: {st['blocked']}", **st}), "application/json")
             if not st["ready"]:
                 return self._send(409, json.dumps({"error": "Garmin isn't set up yet", **st}), "application/json")
             started = scheduler.run_pull_async()
@@ -187,7 +189,8 @@ def main():
         sys.exit(f"Refusing to listen on {HOST}: the dashboard has no login, so it only runs on this computer "
                  "(127.0.0.1). Set FT_ALLOW_REMOTE=1 only if you've put your own authentication in front of it.")
     srv = ThreadingHTTPServer((HOST, PORT), Handler)
-    if not os.environ.get("FT_NO_SYNC"): scheduler.start()   # FT_NO_SYNC=1: no Garmin/Libre pulls (tests, demo)
+    if not os.environ.get("FT_NO_SYNC"): scheduler.start()   # FT_NO_SYNC=1: no Garmin/Libre pulls (tests, demo);
+                                                              # start() also refuses demo data and folders inside the repo
     print(f"Body Kaizen dashboard on http://{HOST}:{PORT} (data: {data.ROOT})", flush=True)
     srv.serve_forever()
 

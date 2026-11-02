@@ -53,8 +53,12 @@ Out of scope:
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-FT_DATA=demo FT_PORT=8799 .venv/bin/python app/server.py
+FT_NO_SYNC=1 FT_DATA=demo FT_PORT=8799 .venv/bin/python app/server.py
 ```
+
+Always run the demo with `FT_NO_SYNC=1` and a port other than 8765 (where your own dashboard runs). Without it,
+an installed Garmin or Libre login would pull your **real** health data. The server also refuses to sync or commit
+when the data folder is `demo/`, a demo copy, or anything else inside this repository, but don't rely on that alone.
 
 The server reloads app modules when they change on disk, so you can edit and refresh. To rebuild the demo data:
 `python tools/make_demo.py`.
@@ -63,7 +67,8 @@ The server reloads app modules when they change on disk, so you can edit and ref
 
 - One change per pull request, with a short description of what it does and why.
 - Run the tests: `python -m unittest discover -s tests`. Add a test for a bug fix or new logic where you can.
-- Run `FT_DATA=demo python scripts/compute.py` and load every tab before you open it; check the browser console
+- Run `FT_DATA=demo python scripts/compute.py` and load every tab (server started with `FT_NO_SYNC=1 FT_DATA=demo`)
+  before you open it; check the browser console
   for errors.
 - For a visual change, include a before-and-after screenshot taken **with demo data**.
 - New foods: macros per 100 g (or per unit), and where the figures came from (a product label, or a named

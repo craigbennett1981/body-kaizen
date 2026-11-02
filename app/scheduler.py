@@ -31,8 +31,9 @@ def installed():
 
 def status():
     s = _state()
-    ready = installed() and TOKENS.exists()
-    return {**s, "running": _running, "ready": ready, "installed": installed(), "logged_in": TOKENS.exists(),
+    blocked = bkenv.sync_blocked()
+    ready = installed() and TOKENS.exists() and not blocked
+    return {**s, "running": _running, "ready": ready, "blocked": blocked, "installed": installed(), "logged_in": TOKENS.exists(),
             "python": sys.executable, "output_tail": _last_output[-1500:]}
 
 def due(now, s):
@@ -45,11 +46,13 @@ def due(now, s):
 
 def run_pull(*args):
     global _running, _last_output
+    if bkenv.sync_blocked(): return False
     with _lock:
         if _running: return False
         _running = True
     try:
-        r = subprocess.run([sys.executable, str(PULL), *args], cwd=ROOT, capture_output=True, text=True, timeout=1800)
+        r = subprocess.run([sys.executable, str(PULL), *args], cwd=ROOT, env=bkenv.child_env(),
+                           capture_output=True, text=True, timeout=1800)
         _last_output = (r.stdout or "") + (r.stderr or "")
         print(_last_output.strip()[-800:], flush=True)
     except Exception as e:
@@ -90,11 +93,11 @@ LIBRE_EVERY = 30 * 60
 _libre_last = [0.0]
 def libre_tick(now):
     """Pull CGM readings every 30 minutes (LibreLinkUp keeps ~12 h, so a missed run loses nothing)."""
-    if not LIBRE_CFG.exists() or time.time() - _libre_last[0] < LIBRE_EVERY: return
+    if bkenv.sync_blocked() or not LIBRE_CFG.exists() or time.time() - _libre_last[0] < LIBRE_EVERY: return
     _libre_last[0] = time.time()
     def go():
         try:
-            r = subprocess.run([sys.executable, str(LIBRE)], cwd=ROOT, capture_output=True, text=True, timeout=300)
+            r = subprocess.run([sys.executable, str(LIBRE)], cwd=ROOT, env=bkenv.child_env(), capture_output=True, text=True, timeout=300)
             out = (r.stdout + r.stderr).strip()
             if out: print(out, flush=True)
         except Exception as e:
@@ -116,4 +119,8 @@ def _loop():
         time.sleep(CHECK_EVERY)
 
 def start():
+    """Start the background syncs, unless this data folder must never be synced (demo data, or inside the code repo)."""
+    why = bkenv.sync_blocked()
+    if why: print(f"scheduler off: {why}", flush=True); return False
     threading.Thread(target=_loop, daemon=True, name="garmin-scheduler").start()
+    return True

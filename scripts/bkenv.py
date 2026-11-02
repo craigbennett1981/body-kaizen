@@ -64,6 +64,31 @@ def git_options():
     g = settings().get("git") or {}
     return {"auto_commit": g.get("auto_commit", True), "auto_push": g.get("auto_push", False)}
 
+def in_code_repo(data=None):
+    """True when the data folder sits inside the code folder without being it (demo/, or a stray demo/demo/).
+    The single-folder setup (data folder == code folder) is not counted."""
+    data = pathlib.Path(data or DATA).resolve()
+    return data != CODE and data.is_relative_to(CODE)
+
+def is_demo(data=None):
+    """The repo's demo/ folder, or any folder whose settings say it's the demo person."""
+    data = pathlib.Path(data or DATA).resolve()
+    if data == CODE / "demo": return True
+    try: s = settings() if data == DATA else yaml.safe_load((data / "settings.yaml").read_text()) or {}
+    except (OSError, yaml.YAMLError): s = {}
+    return "(demo)" in str((s.get("profile") or {}).get("name") or "")
+
+def sync_blocked():
+    """Why Garmin/Libre syncs must not run against this data folder, or None if they may."""
+    if is_demo(): return "this is demo data: syncing would pull your real health data into it"
+    if in_code_repo(): return "the data folder is inside the code repository: syncing would put health data in it"
+    return None
+
+def child_env():
+    """Environment for sync subprocesses: FT_DATA made absolute, so a relative FT_DATA can't resolve twice
+    against the child's working directory."""
+    return {**os.environ, "FT_DATA": str(DATA)}
+
 def save_profile(name, start, timezone):
     """Write profile + timezone into settings.yaml, keeping the rest of the file (and its comments) as it is."""
     txt = SETTINGS.read_text() if SETTINGS.exists() else ""

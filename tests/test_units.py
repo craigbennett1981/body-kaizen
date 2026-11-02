@@ -1,12 +1,13 @@
 """Unit tests for the pieces most likely to break quietly: the food matcher, brand eras, pace windows and the
 lift planner. They run against the demo data folder (FT_DATA must point at demo/; CI sets it)."""
-import datetime as dt, os, pathlib, sys, unittest
+import datetime as dt, os, pathlib, subprocess, sys, tempfile, unittest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 os.environ.setdefault("FT_DATA", str(ROOT / "demo"))
 sys.path[:0] = [str(ROOT / "scripts"), str(ROOT / "app")]
 import nutrition as N   # noqa: E402
 import pace, planner, muscles, workouts   # noqa: E402
+import bkenv, garmin_pull, scheduler   # noqa: E402
 
 
 class FoodMatcher(unittest.TestCase):
@@ -108,3 +109,52 @@ class CircuitMatching(unittest.TestCase):
                          [("smith-squat", 1), ("chin-up", 1), ("smith-squat", 2), ("chin-up", 2), ("leg-curl", 1), ("leg-curl", 2)])
         self.assertEqual((fit["matched"], fit["sets"]), (6, 6))
 
+
+
+class DemoNeverSyncs(unittest.TestCase):
+    """Running the dashboard on demo data must never pull or commit real health data into the code repo."""
+    def test_demo_and_folders_inside_the_repo_are_recognised(self):
+        self.assertTrue(bkenv.is_demo(ROOT / "demo"))
+        self.assertTrue(bkenv.in_code_repo(ROOT / "demo"))
+        self.assertTrue(bkenv.in_code_repo(ROOT / "demo" / "demo"))
+        self.assertFalse(bkenv.in_code_repo(ROOT))   # the single-folder setup may commit
+        with tempfile.TemporaryDirectory() as d:
+            d = pathlib.Path(d)
+            self.assertFalse(bkenv.in_code_repo(d))
+            (d / "settings.yaml").write_text("profile: {name: Alex, start_date: '2026-01-01'}\n")
+            self.assertFalse(bkenv.is_demo(d))
+            (d / "settings.yaml").write_text("profile: {name: Sam (demo), start_date: '2026-01-01'}\n")
+            self.assertTrue(bkenv.is_demo(d))   # a copy of demo/ that hasn't been made your own yet
+
+    def test_sync_is_blocked_on_demo_data(self):
+        self.assertEqual(bkenv.DATA, (ROOT / "demo").resolve())
+        self.assertTrue(bkenv.sync_blocked())
+        self.assertFalse(scheduler.start())
+        self.assertTrue(scheduler.status()["blocked"])
+        self.assertFalse(scheduler.status()["ready"])
+        real_run = subprocess.run
+        def no_run(*a, **k): raise AssertionError("a sync subprocess was started on demo data")
+        subprocess.run = no_run
+        try:
+            self.assertFalse(scheduler.run_pull())
+        finally:
+            subprocess.run = real_run
+
+    def test_no_commit_inside_the_code_repo(self):
+        real_git = garmin_pull.git
+        def no_git(*a, **k): raise AssertionError("git was called for a data folder inside the code repo")
+        garmin_pull.git = no_git
+        try:
+            self.assertIsNone(garmin_pull.commit_and_push([ROOT / "demo" / "todo.yaml"], "test"))
+        finally:
+            garmin_pull.git = real_git
+
+    def test_relative_data_folder_resolves_once_in_a_sync_child(self):
+        # Sync children run with cwd = the data folder, so a relative FT_DATA=demo would resolve to demo/demo/.
+        def child_data(env):
+            env = {**env, "PYTHONPATH": str(ROOT / "scripts")}
+            return subprocess.run([sys.executable, "-c", "import bkenv; print(bkenv.DATA)"], cwd=bkenv.DATA, env=env,
+                                  capture_output=True, text=True, check=True).stdout.strip()
+        self.assertEqual(child_data({**os.environ, "FT_DATA": "demo"}), str(bkenv.DATA / "demo"))   # the old bug
+        self.assertTrue(pathlib.Path(bkenv.child_env()["FT_DATA"]).is_absolute())
+        self.assertEqual(child_data(bkenv.child_env()), str(bkenv.DATA))
