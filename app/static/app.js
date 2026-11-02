@@ -173,10 +173,10 @@ async function renderDay(date){
   ((d.vitals||{}).bp||[]).forEach(b => kv.push([`BP ${b.time||''}`, `${b.sys}/${b.dia}${b.pulse?`, pulse ${b.pulse}`:''}`]));
   if(d.steps) kv.push(['Steps', fmt(d.steps)]);
   side += `<h2>Body</h2>` + (kv.length ? `<dl class="kv">${kv.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>` : `<p class="empty">Nothing recorded.</p>`);
-  h += `<div id="ready"></div><div id="daytl"></div><div class="notes-tasks"><div id="notes"></div><div id="tasks"></div></div>`;
+  h += `<div id="ready"></div><div id="daytl"></div><div id="glucose"></div><div class="notes-tasks"><div id="notes"></div><div id="tasks"></div></div>`;
   h += `<div class="cols"><div>${meals?'<h2>Food</h2><p class="sub sh-key">Numbers are coloured by their share of today\'s target: <span class="sh-g1">protein and fibre</span> greener as they fill more of it; <span class="sh-b1">calories, carbs, fat</span> and <span class="sh-b2">saturated fat</span> amber, then red, as they use up more of the limit. Hover a number for its %.</p>'+meals:''}</div><div>${side}</div></div>`;
   $('#day').innerHTML = h;
-  renderNotes(date); renderTasks(); renderHsTile(); renderDayTimeline(date); renderGlance(date);
+  renderNotes(date); renderTasks(); renderHsTile(); renderDayTimeline(date); renderGlucose(date); renderGlance(date);
 }
 /* ---------- next move + readiness strip ---------- */
 async function renderGlance(date){
@@ -228,6 +228,9 @@ async function renderDayTimeline(date){
   if(C) panels.push(['calories', 92]);
   if(hasWatch) panels.push(['energy', 74]);
   if(lanes.length) panels.push(['lanes', lanes.length*LANE]);
+  const G = T.glucose && T.glucose.readings.length ? T.glucose : null;
+  const GP = G ? G.readings.map(([t,v]) => [+t.slice(0,2)*60 + +t.slice(3,5), v]) : [];
+  if(G) panels.push(['glucose', 140]);
   const gap = 22; let top = 8; const grids = [], xA = [], yA = [], series = []; const hovers = {};
   const ax = {axisLine:{lineStyle:{color:c.rule}},axisLabel:{color:c.muted,fontSize:11,fontFamily:'Archivo'},splitLine:{lineStyle:{color:c.rule,opacity:.4}}};
   const xBase = {type:'value',min:0,max:1440,interval:180,...ax,axisLabel:{...ax.axisLabel,formatter:v=>mmhm(v)}};
@@ -267,6 +270,21 @@ async function renderDayTimeline(date){
         itemStyle:{color:c.accent,opacity:.35},barMaxWidth:6,z:1});
       series.push({type:'line',name:'Body battery',xAxisIndex:i,yAxisIndex:yA.length-2,data:T.body_battery||[],showSymbol:false,smooth:.2,
         lineStyle:{color:'#1baf7a',width:2},areaStyle:{color:'#1baf7a',opacity:.10},markLine:nowLine,z:3});
+    } else if(key==='glucose'){
+      const [lo, hi] = G.range, gmax = Math.max(9, Math.ceil(Math.max(...GP.map(p=>p[1])) + 0.5));
+      yA.push({type:'value',gridIndex:i,min:3,max:gmax,interval:2,...ax,axisLabel:{...ax.axisLabel,showMaxLabel:false}});
+      const yi = yA.length-1;
+      titles.push({text:'Glucose',top:top+h/2-16,left:6,textStyle:{color:c.ink,fontSize:12,fontWeight:600,fontFamily:'Archivo'},subtext:'mmol/L',subtextStyle:{color:c.muted,fontSize:10}});
+      series.push({type:'line',name:'Glucose',xAxisIndex:i,yAxisIndex:yi,data:GP,showSymbol:false,smooth:.3,lineStyle:{color:c.accent,width:2},z:3,markLine:nowLine,
+        markArea:{silent:true,label:{show:false},data:[[{yAxis:lo,itemStyle:{color:c.good,opacity:.08}},{yAxis:hi}]]}});
+      // one dot on the curve per mealtime, sized by its carbs
+      const eats = [];
+      T.events.filter(e => e.kind==='food').forEach(e => { const prev = eats.find(x => x.start===e.start);
+        if(prev){ prev.items.push(e); prev.carbs += e.carbs||0; } else eats.push({start:e.start, meal:e.meal, approx:e.approx, carbs:e.carbs||0, items:[e]}); });
+      series.push({type:'scatter',name:'Meal on glucose',xAxisIndex:i,yAxisIndex:yi,z:21,
+        data:eats.map(m => ({value:[m.start, tlAt(GP, m.start, false) ?? tlAt(GP, m.start, true)], eat:m})).filter(d => d.value[1]!=null)
+          .map(d => ({...d, symbolSize:Math.max(8, Math.min(22, Math.sqrt(d.eat.carbs+4)*2.2)),
+            itemStyle:{color:TL_COL.food,borderColor:c.surface,borderWidth:1.5,opacity:d.eat.approx?.7:1}}))});
     } else {
       yA.push({type:'category',gridIndex:i,data:lanes,inverse:true,...ax,axisTick:{show:false},splitLine:{show:true,lineStyle:{color:c.rule,opacity:.3}},axisLabel:{color:c.ink,fontSize:12,fontWeight:600,fontFamily:'Archivo'}});
       const yi = yA.length-1;
@@ -306,7 +324,8 @@ async function renderDayTimeline(date){
   const key = [P ? `<span class="k"><i style="background:${c.good}"></i>protein so far</span><span class="k"><i class="dash"></i>pace to ${P.target} g by 21:00</span>` : '',
     lanes.includes('Food') ? `<span class="k"><i class="dot" style="background:${c.bad}"></i>food with ${SF_HIGH} g+ saturated fat</span>` : '',
     C ? `<span class="k"><i style="background:${TL_COL.food}"></i>eaten ${fmt(C.eaten_now)}</span><span class="k"><i style="background:#eb6834"></i>burnt ${fmt(C.burnt_now)}${C.source!=='garmin'?' (estimated, no watch data)':C.estimated_after!=null?` (Garmin to ${mmhm(C.sync)}, estimated after)`:' (Garmin)'}</span><span class="k"><b style="color:${C.eaten_now-C.burnt_now>=0?c.good:c.warn}">${C.eaten_now-C.burnt_now>=0?'+':''}${fmt(C.eaten_now-C.burnt_now)} kcal</b>&nbsp;${isToday?'so far':'for the day'}</span>` : '',
-    hasWatch ? `<span class="k"><i style="background:#1baf7a"></i>body battery</span><span class="k"><i style="background:${c.accent};opacity:.4"></i>steps</span>` : ''].join('');
+    hasWatch ? `<span class="k"><i style="background:#1baf7a"></i>body battery</span><span class="k"><i style="background:${c.accent};opacity:.4"></i>steps</span>` : '',
+    G ? `<span class="k"><i style="background:${c.accent}"></i>glucose</span><span class="k"><i class="dot" style="background:${TL_COL.food}"></i>meal, sized by carbs</span><span class="k"><i style="background:${c.good};opacity:.35"></i>range ${G.range[0]}–${G.range[1]}</span>` : ''].join('');
   el.innerHTML = `<div class="notes-h"><h2>Timeline</h2><span class="sub">${notes.join(' · ') || 'everything logged, at its time'}</span></div><div class="tl-key">${key}</div><div id="tlday" class="chart" style="height:${H}px"></div>`;
   chart('tlday').setOption({animation:MOTION,textStyle:{fontFamily:'Archivo'},title:titles,grid:grids,xAxis:xA,yAxis:yA,series,
     axisPointer:{link:[{xAxisIndex:'all'}]},
@@ -321,8 +340,14 @@ async function renderDayTimeline(date){
         if(k==='energy'){ const bb = tlAt(T.body_battery, t, false), st = (T.steps||[]).find(x => x[0] <= p.value[0] && p.value[0] < x[0]+15);
           const cum = (T.steps||[]).filter(x => x[0] <= p.value[0]).reduce((a,x) => a + x[1], 0);
           return `${head}<br>Body battery <b>${bb!=null?Math.round(bb):'–'}</b><br>Steps <b>${st?fmt(st[1]):0}</b> <span style="color:${c.muted}">· ${fmt(cum)} for the day so far</span>`; }
+        if(k==='glucose'){ const g = tlAt(GP, t, false);
+          return `${head}<br>Glucose <b>${g!=null?fmt(g,1):'–'}</b> mmol/L${g!=null&&(g<G.range[0]||g>G.range[1])?mu(' (out of range)'):''}`; }
         return '';
       }
+      if(p.seriesName==='Glucose') return `${mmhm(p.value[0])} · glucose <b>${fmt(p.value[1],1)}</b> mmol/L`;
+      if(p.seriesName==='Meal on glucose'){ const m = p.data.eat, r = (G.meals||[]).find(x => !x.pending && x.time===mmhm(m.start));
+        return `<b>${mmhm(m.start)}</b>${m.approx?' (about)':''} · ${m.meal} · <b>${fmt(m.carbs,0)} g</b> carbs<br>${m.items.map(x => `${esc(x.label)} <span style="color:${c.muted}">${fmt(x.carbs||0,0)} g carbs</span>`).join('<br>')}`
+          + (r ? `<br>Glucose ${fmt(r.base,1)} → ${fmt(r.peak,1)} <b>(${r.rise>=0?'+':''}${fmt(r.rise,1)})</b> <span style="color:${c.muted}">peak at ${r.peak_min} min${r.back_min!=null?`, back down at ${r.back_min} min`:''}</span>` : ''); }
       if(p.seriesName==='Protein so far') return `${mmhm(p.value[0])} · <b>${fmt(p.value[1],0)} g</b> protein so far`;
       if(p.seriesName==='Eaten') return `${mmhm(p.value[0])} · <b>${fmt(p.value[1])}</b> kcal eaten so far`;
       if(p.seriesName.startsWith('Burnt')) return `${mmhm(p.value[0])} · <b>${fmt(p.value[1])}</b> kcal burnt so far${p.seriesName.includes('est')||C.source!=='garmin'?' (estimated)':''}`;
@@ -348,7 +373,7 @@ async function renderGlucose(date){
     ${G.meals.length?`<table class="g-meals"><tr><th>Meal</th><th class="num">Before</th><th class="num">Peak</th><th class="num">Rise</th><th class="num">Peak at</th><th class="num">Back down</th></tr>${G.meals.map(m => m.pending
       ? `<tr><td>${m.time} ${m.meal}<br><span class="sub">${esc(m.label)}</span></td><td colspan="5" class="sub">${m.why||'waiting for 2 hours of readings'}</td></tr>`
       : `<tr><td>${m.time} ${m.meal}<br><span class="sub">${esc(m.label)}</span></td><td class="num">${fmt(m.base,1)}</td><td class="num">${fmt(m.peak,1)}</td>
-         <td class="num ${m.rise>=3?'bad':m.rise<=1.5?'good':''}"><b>+${fmt(m.rise,1)}</b></td><td class="num">${m.peak_min} min</td><td class="num">${m.back_min!=null?m.back_min+' min':'>2½ h'}</td></tr>`).join('')}</table>`
+         <td class="num ${m.rise>=3?'bad':m.rise<=1.5?'good':''}"><b>${m.rise>=0?'+':''}${fmt(m.rise,1)}</b></td><td class="num">${m.peak_min} min</td><td class="num">${m.back_min!=null?m.back_min+' min':'>2½ h'}</td></tr>`).join('')}</table>`
       : `<p class="sub">Add a time to meals when you log them (e.g. "L 13:10: rice 102, beef 125") to see each meal's spike here.</p>`}`;
 }
 
@@ -1315,7 +1340,7 @@ async function renderGlucoseOverview(){
         markArea:{silent:true,label:{show:false},data:[[{yAxis:lo,itemStyle:{color:c.good,opacity:.08}},{yAxis:hi}]]}}]});
   const M = O.meals;
   $('#gmeals').innerHTML = M.length ? `<h3 class="g-h3">Meals ranked by spike (last ${O.window} days)</h3><table class="g-meals"><tr><th>Meal</th><th class="num">Rise</th><th class="num">Peak</th><th class="num">Peak at</th><th class="num">Back down</th></tr>${M.slice(0,15).map(m => `<tr>
-      <td>${shortDate(m.date)} ${m.time} ${m.meal}<br><span class="sub">${esc(m.label)}</span></td><td class="num ${m.rise>=3?'bad':m.rise<=1.5?'good':''}"><b>+${fmt(m.rise,1)}</b></td>
+      <td>${shortDate(m.date)} ${m.time} ${m.meal}<br><span class="sub">${esc(m.label)}</span></td><td class="num ${m.rise>=3?'bad':m.rise<=1.5?'good':''}"><b>${m.rise>=0?'+':''}${fmt(m.rise,1)}</b></td>
       <td class="num">${fmt(m.peak,1)}</td><td class="num">${m.peak_min} min</td><td class="num">${m.back_min!=null?m.back_min+' min':'>2½ h'}</td></tr>`).join('')}</table>`
     : `<p class="sub">Meals logged with a time will be ranked here by how much they raise your glucose.</p>`;
 }

@@ -131,6 +131,12 @@ fibre and weight, every day coloured hit or miss against the target that applied
 
 ![Trends: 30 days of calories, macros and weight against their targets](docs/img/trends.png)
 
+**Glucose against every meal.** With a FreeStyle Libre connected, the Day timeline draws the glucose curve with a dot
+on it for each meal (sized by its carbs; hover for the foods), and each timed meal gets its rise, peak and time back
+to baseline. The Body tab adds a 14-day profile and your meals ranked by spike.
+
+![Glucose: the day's curve with each meal marked on it, and each meal's rise, peak and time back to baseline](docs/img/glucose.png)
+
 **A progression planner.** Next targets for every lift from double progression (add reps, then weight), with
 machine changes kept separate and temporary resets when form slips.
 
@@ -309,7 +315,7 @@ Readiness and Recovery views, the training-load chart and the daily calorie targ
 A **FreeStyle Libre** sensor read through [LibreLinkUp](docs/integrations.md#abbott-librelinkup-continuous-glucose)
 gives every timed meal a glucose curve: the rise, the peak, and how long until you're back to baseline. A few
 two-week sensors are usually enough to learn which of your regular meals spike you and whether a walk after eating
-helps. You don't need to wear one all the time.
+helps. You don't need to wear one all the time. [Here is what it looks like](docs/img/glucose.png) on the Day page.
 
 - Give meals a time ("L 13:10: …") so they line up with the curve.
 - Rules on whether you need a prescription vary by country. If you have diabetes, follow your care team's
@@ -368,7 +374,7 @@ never overwrites what you or your assistant logged (sets, notes, effort, a tread
 | Source | What it adds | How it gets in |
 |---|---|---|
 | **Garmin Connect** | Steps through the day, calories burnt, sleep with stages and score, overnight HRV, resting heart rate, body battery, stress; every activity with its heart-rate trace, zones, training effect and recovery heart rate; VO2 max and fitness age | Pulled automatically four times a day (08:00, 13:00, 19:00, 22:00) and on "Sync now" |
-| **Abbott LibreLinkUp** | Continuous glucose from a FreeStyle Libre sensor, drawn on the Day timeline next to your meals | Pulled automatically every 30 minutes |
+| **Abbott LibreLinkUp** | Continuous glucose from a FreeStyle Libre sensor, drawn on the Day timeline with each meal marked on the curve, plus each meal's rise and peak | Pulled automatically every 30 minutes |
 | **Hevy** | Gym sessions with every set, matched to your lifts for progression and personal bests | Paste the workout text to your assistant; for history, import Hevy's CSV export with `scripts/hevy_import.py` |
 | **Smart scales** | Weight, body fat, muscle, visceral fat, body water, BMR | Screenshot of the scale's app, read by your assistant |
 | **Blood-pressure monitors** | Systolic, diastolic and pulse, with time of day | Screenshot of the monitor's app, read by your assistant |

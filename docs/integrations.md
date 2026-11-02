@@ -31,7 +31,10 @@ Adds glucose readings from a FreeStyle Libre sensor shared through LibreLinkUp.
 .venv/bin/python scripts/libre_login.py     # once: email saved to ~/.body-kaizen/libre.json, password to the keychain
 ```
 
-The dashboard then pulls every 30 minutes. Glucose shows on the Day timeline next to meals.
+The dashboard then pulls every 30 minutes. The Day timeline draws the glucose curve with a dot for each meal at the
+time it was eaten (sized by carbs; hover for the foods and that meal's rise), and a table below gives each timed meal's
+rise, peak and minutes back to baseline. The Body tab shows the last 14 days: daily stats, a 24-hour profile and
+meals ranked by spike.
 
 > Uses the unofficial [`pylibrelinkup`](https://github.com/robberwick/pylibrelinkup) library. Not endorsed by
 > Abbott. Use at your own risk, and never for treatment decisions.
