@@ -14,7 +14,7 @@ You tell an AI assistant like Claude what you ate, send it a photo of a label or
 it writes everything into your own private git repository. Body Kaizen works out the macros, pulls in your
 Garmin, glucose and gym data, and shows how your day, week and months are going against the targets you set.
 
-![The Day page: macros paced through the day, readiness and the day's verdict](docs/img/day.png)
+![You send a message, Claude logs it and replies with your totals, and the dashboard updates](docs/img/claude-loop.gif)
 
 > **Not medical advice, and no warranty.** Body Kaizen is a personal logging tool. Its scores, targets and
 > suggestions are rules of thumb, not a diagnosis or treatment plan. Integrations are unofficial, and you're
@@ -44,8 +44,6 @@ Three beliefs shape it:
 
 ## How it works
 
-![You send a message, Claude logs it and replies with your totals, and the dashboard updates](docs/img/claude-loop.gif)
-
 ```mermaid
 flowchart LR
     you(["You: messages, photos,<br/>screenshots"]) --> claude["Claude or another<br/>AI assistant"]
@@ -61,6 +59,8 @@ Everything runs on your own computer. The only things that leave it are the requ
 AI assistant, to Garmin and LibreLinkUp if you connect them, and to your private git remote.
 
 ## A day with Body Kaizen
+
+![The Day page: macros paced through the day, readiness and the day's verdict](docs/img/day.png)
 
 **07:30.** You weigh in and send the scale app's screenshot. Claude logs weight, body fat, muscle and water, and the
 readiness strip shows last night's sleep, HRV and resting heart rate against your normal.
