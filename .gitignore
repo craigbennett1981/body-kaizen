@@ -29,3 +29,8 @@ logs/
 
 # OS
 .DS_Store
+
+# Packaging
+build/
+dist/
+*.egg-info/

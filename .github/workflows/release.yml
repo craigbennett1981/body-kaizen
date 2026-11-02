@@ -1,0 +1,51 @@
+name: Release
+
+# Publishing a GitHub release (tag vX.Y.Z, matching the version in pyproject.toml) uploads that version to PyPI.
+# Running this workflow by hand uploads to TestPyPI instead, for a dry run.
+# Uses PyPI trusted publishing: no API token is stored here. Each index needs a trusted publisher for this
+# repository, workflow release.yml and the environment named below (pypi / testpypi).
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Check the tag matches the package version
+        if: github.event_name == 'release'
+        run: |
+          v=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          [ "$GITHUB_REF_NAME" = "v$v" ] || { echo "tag $GITHUB_REF_NAME doesn't match version $v in pyproject.toml"; exit 1; }
+      - name: Point README links at this release, for the PyPI page
+        run: python tools/pypi_readme.py "${{ github.event_name == 'release' && github.ref_name || github.sha }}"
+      - name: Build
+        run: pip install build twine && python -m build && twine check --strict dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event_name == 'release' && 'pypi' || 'testpypi' }}
+    permissions:
+      id-token: write   # trusted publishing
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: ${{ github.event_name == 'release' && 'https://upload.pypi.org/legacy/' || 'https://test.pypi.org/legacy/' }}
