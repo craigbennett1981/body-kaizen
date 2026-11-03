@@ -393,7 +393,7 @@ async function renderHsTile(){
   const el = $('#hs-tile'); if(!el) return;
   const H = await hsGet(); if(!H || H.score==null){ el.remove(); return; }
   el.innerHTML = `<div class="hs-lab">Health score <small>vs athlete</small></div><div class="hs-row"><div class="hs-num">${fmt(H.score,0)}</div>
-    <div class="hs-ds">${hsDelta(H.delta.week,'week')}${hsDelta(H.delta.month,'month')}${hsDelta(H.delta.year,'year')}</div></div>
+    <div class="hs-ds">${hsDelta(H.delta.week,'7 days')}${hsDelta(H.delta.month,'30 days')}${hsDelta(H.delta.year,'year')}</div></div>
     <div class="hs-cov">${hsCov(H)}</div>`;
   el.onclick = e => { e.preventDefault(); showTab('longevity'); };
 }
@@ -405,7 +405,7 @@ function hsPanel(H){
   const a = H.ages, age = (v, lab, why) => `<div class="hs-age"><div class="lab">${lab}</div><div class="big">${v??'–'}</div><div class="sub">${why}</div></div>`;
   return `<div class="hs-panel"><div class="hs-left">
       <div class="lab">Health score · vs ${athleteWho(H)} athlete</div><div class="hs-big">${fmt(H.score,0)}<small>/100</small></div>
-      <div class="hs-ds">${hsDelta(H.delta.week,'week')}${hsDelta(H.delta.month,'month')}${hsDelta(H.delta.year,'year')}</div>
+      <div class="hs-ds">${hsDelta(H.delta.week,'7 days')}${hsDelta(H.delta.month,'30 days')}${hsDelta(H.delta.year,'year')}</div>
       <div class="sub">${Math.round(H.coverage*100)}% measured. Counted as average until measured: ${H.missing.slice(0,6).join(', ')}${H.missing.length>6?` and ${H.missing.length-6} more`:''}.</div>
       <div class="hs-ages">${age(a.actual,'Your age','')}${age(a.fitness_age?fmt(a.fitness_age.age,1):null,'Fitness age', a.fitness_age?`Garmin, ${shortDate(a.fitness_age.date)}${a.fitness_age.achievable?` · could reach ${fmt(a.fitness_age.achievable,1)}`:''}`:'from Garmin at the next sync')}${age(a.phenoage.age!=null?fmt(a.phenoage.age,1):null,'PhenoAge', a.phenoage.age!=null?'from blood tests':`needs ${a.phenoage.missing} more blood markers`)}</div>
     </div><div class="hs-right"><div id="hschart" class="chart" style="height:170px"></div>${H.domains.map(bar).join('')}
