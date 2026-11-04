@@ -104,7 +104,7 @@ class Hardening(WriteProtection):
             with self.subTest(path=path):
                 _, body, h = self.req("GET", path, body=None)
                 nonce = re.search(r"'nonce-([^']+)'", h["Content-Security-Policy"]).group(1)
-                tags = re.findall(rb"<script[^>]*>", body)
+                tags = re.findall(rb"<script\b[^>]*>", body, re.IGNORECASE)
                 self.assertTrue(tags)
                 for t in tags: self.assertIn(f'nonce="{nonce}"'.encode(), t)
         n1 = re.search(r"'nonce-([^']+)'", self.req("GET", "/", body=None)[2]["Content-Security-Policy"]).group(1)

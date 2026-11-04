@@ -3,7 +3,7 @@
 
 run:  python3 app/server.py            -> http://127.0.0.1:8765
 """
-import datetime as dt, hmac, importlib, json, os, pathlib, secrets, sys, time, traceback, urllib.parse
+import datetime as dt, hmac, importlib, json, os, pathlib, re, secrets, sys, time, traceback, urllib.parse
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -197,7 +197,7 @@ class Handler(BaseHTTPRequestHandler):
                 if name.endswith(".html"):
                     body = body.replace(b'name="bk-token" content=""', f'name="bk-token" content="{SESSION_TOKEN}"'.encode(), 1)
                     nonce = secrets.token_urlsafe(16)
-                    body = body.replace(b"<script", f'<script nonce="{nonce}"'.encode())
+                    body = re.sub(rb"<script\b", f'<script nonce="{nonce}"'.encode(), body, flags=re.IGNORECASE)
                 return self._send(200, body, ctype, nonce)
             self._send(404, "not found", "text/plain")
         except Exception:
