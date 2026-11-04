@@ -506,8 +506,17 @@ may be against those services' terms of use and could, in principle, get your ac
 suspended. They can stop working, or return wrong or incomplete data, without notice whenever those services
 change. All trademarks belong to their owners.
 
+These libraries (`garminconnect`, `pylibrelinkup` and their dependencies) are third-party software, written and
+maintained by other people, and Body Kaizen's authors are not responsible for them. They handle your login details
+and send them to those services. By connecting an integration you accept the terms of the service you connect to
+and the licences of the software used to reach it, and you are responsible for checking that your use complies
+with both.
+
 **Security.** You are responsible for keeping your data and accounts secure:
 
+- Body Kaizen sends nothing anywhere by itself. Your data goes only to the services you connect: your AI
+  assistant, Garmin and Abbott when you sync, and any git host you push your data repository to. Each handles it
+  under its own terms and privacy policy, which you agree to separately;
 - the dashboard is built to run on your own computer and has **no login or access control**. Don't expose it to a
   network or the internet (it binds to `127.0.0.1` for this reason);
 - login tokens and passwords for the integrations live on your computer (`~/.garminconnect`, your system
