@@ -3,7 +3,7 @@
 
 run:  python3 app/server.py            -> http://127.0.0.1:8765
 """
-import datetime as dt, importlib, json, os, pathlib, sys, traceback, urllib.parse
+import datetime as dt, hmac, importlib, json, os, pathlib, secrets, sys, traceback, urllib.parse
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -36,6 +36,11 @@ LOOPBACK = {"127.0.0.1", "localhost", "::1"}
 # Requests must name this server in their Host header. A web page can't then read the dashboard through a
 # rebound DNS name (DNS rebinding): its requests carry the attacker's host name and are refused.
 ALLOWED_HOSTS = {f"{h}:{PORT}" for h in ("127.0.0.1", "localhost", "[::1]")} | {f"{HOST}:{PORT}"}
+ALLOWED_ORIGINS = {f"http://{h}" for h in ALLOWED_HOSTS}
+# A fresh secret each time the server starts. Only the dashboard's own page gets it (written into index.html as it
+# is served); every request that changes anything must send it back in the X-BK-Token header.
+SESSION_TOKEN = secrets.token_urlsafe(32)
+MAX_BODY = 10_000
 
 ROUTES = {
     "/api/summary": lambda q: data.summary(),
@@ -60,6 +65,9 @@ ROUTES = {
     "/api/workout": lambda q: workouts.detail(q.get("date", [""])[0], q.get("i", ["0"])[0]),
     "/api/pace": lambda q: pace.build(q.get("date", [data.bkenv.today().isoformat()])[0], q.get("now", [None])[0]),   # now=HH:MM for tests and screenshots
     "/api/profile": lambda q: profile_info(),
+    # The page's write token again, for a tab left open across a server restart. Safe to hand out on GET: only a
+    # page on this dashboard's own address can read the reply (Host check, no CORS headers).
+    "/api/session": lambda q: {"token": SESSION_TOKEN},
     "/api/glance": lambda q: glance.build(q.get("date", [data.bkenv.today().isoformat()])[0]),
     "/api/daytimeline": lambda q: daytimeline.build(q.get("date", [data.bkenv.today().isoformat()])[0]),
     "/api/glucose_overview": lambda q: glucose.overview(int(q.get("days", ["14"])[0])),
@@ -148,27 +156,50 @@ class Handler(BaseHTTPRequestHandler):
             if f.startswith(str(STATIC) + os.sep) and os.path.isfile(f):
                 ctype = {"html": "text/html; charset=utf-8", "js": "text/javascript; charset=utf-8", "css": "text/css; charset=utf-8",
                          "woff2": "font/woff2", "txt": "text/plain; charset=utf-8"}.get(os.path.splitext(f)[1][1:], "application/octet-stream")
-                with open(f, "rb") as fh: return self._send(200, fh.read(), ctype)
+                with open(f, "rb") as fh: body = fh.read()
+                if name == "index.html": body = body.replace(b'name="bk-token" content=""', f'name="bk-token" content="{SESSION_TOKEN}"'.encode(), 1)
+                return self._send(200, body, ctype)
             self._send(404, "not found", "text/plain")
         except Exception:
             traceback.print_exc()   # details go to the server log only
             self._send(500, '{"error":"server error: see the server log"}', "application/json")
 
+    def _write_ok(self):
+        """Every request that changes something must come from the dashboard's own page. Layers, any one of which
+        blocks a hostile website on its own: the Host check (DNS rebinding); the browser-set Origin and
+        Sec-Fetch-Site headers (cross-site posts); JSON only (plain HTML forms can't send it); and the per-start
+        secret in a custom header, which another site can neither read nor send without a CORS preflight this
+        server never answers."""
+        h = self.headers
+        why = ("origin" if h.get("Origin") not in ALLOWED_ORIGINS else
+               "site" if h.get("Sec-Fetch-Site") not in (None, "same-origin") else
+               "type" if (h.get("Content-Type") or "").split(";")[0].strip().lower() != "application/json" else
+               "token" if not hmac.compare_digest(h.get("X-BK-Token") or "", SESSION_TOKEN) else None)
+        if why:
+            print(f"refused {self.command} {self.path.split('?')[0]}: {why}", file=sys.stderr)
+            self._send(403, '{"error":"forbidden"}', "application/json")
+            return False
+        return True
+
+    def _json_body(self):
+        n = int(self.headers.get("Content-Length") or 0)
+        if n > MAX_BODY: self._send(413, '{"error":"too large"}', "application/json"); return None
+        try: body = json.loads(self.rfile.read(n) or b"{}")
+        except ValueError: self._send(400, '{"error":"bad json"}', "application/json"); return None
+        return body if isinstance(body, dict) else {}
+
+    def do_OPTIONS(self):   # never grant a CORS preflight: other sites may not call this server
+        self._send(405, '{"error":"not allowed"}', "application/json")
+
+    do_PUT = do_DELETE = do_PATCH = do_OPTIONS
+
     def do_POST(self):
-        if not self._host_ok(): return
-        # Only this page may trigger actions: a custom header can't be sent cross-site without a CORS
-        # preflight, which this server never answers, and the Origin must be the dashboard itself.
-        origin = self.headers.get("Origin")
-        allowed = {f"http://{HOST}:{PORT}", f"http://localhost:{PORT}"}
-        if self.headers.get("X-Logbook") != "1" or (origin and origin not in allowed):
-            return self._send(403, '{"error":"forbidden"}', "application/json")
+        if not self._host_ok() or not self._write_ok(): return
         u = urllib.parse.urlparse(self.path)
         if u.path == "/api/setup":
-            n = int(self.headers.get("Content-Length") or 0)
-            if n > 10_000: return self._send(413, '{"error":"too large"}', "application/json")
-            try: body = json.loads(self.rfile.read(n) or b"{}")
-            except ValueError: return self._send(400, '{"error":"bad json"}', "application/json")
-            err = save_setup(body if isinstance(body, dict) else {})
+            body = self._json_body()
+            if body is None: return
+            err = save_setup(body)
             return self._send(400 if err else 200, json.dumps({"error": err} if err else profile_info()), "application/json")
         if u.path == "/api/todo/toggle":
             item = todo.toggle(urllib.parse.parse_qs(u.query).get("id", [""])[0])

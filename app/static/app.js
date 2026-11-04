@@ -40,6 +40,17 @@ function theme(){
   return {ink:css('--ink'),muted:css('--muted'),rule:css('--rule'),accent:css('--accent'),good:css('--good'),bad:css('--bad'),
           warn:css('--warn'),soft:css('--accent-soft'),surface:css('--surface')};
 }
+// Requests that change something carry the per-start token the server wrote into this page (see server.py _write_ok).
+let BK_TOKEN = (document.querySelector('meta[name="bk-token"]')||{}).content || '';
+const post = async (url, body) => {
+  const send = () => fetch(url, {method:'POST', headers:{'Content-Type':'application/json', 'X-BK-Token':BK_TOKEN}, body: JSON.stringify(body||{})});
+  let r = await send();
+  if(r.status === 403){   // the server restarted since this page loaded: fetch the new token and try once more
+    const s = await fetch('/api/session', {cache:'no-store'}).then(x => x.json()).catch(() => null);
+    if(s && s.token && s.token !== BK_TOKEN){ BK_TOKEN = s.token; r = await send(); }
+  }
+  return r;
+};
 const MOTION = !matchMedia('(prefers-reduced-motion: reduce)').matches;
 const ring = c => ({borderColor:c.surface, borderWidth:2});
 // 45° hatch: second encoding for "missed" so it never relies on red alone.
@@ -458,7 +469,7 @@ const UNDO_MS = 8000;
 const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
 const PRI = {high:0, normal:1, low:2};
 async function toggleTask(id){
-  const r = await fetch('/api/todo/toggle?id='+encodeURIComponent(id), {method:'POST', headers:{'X-Logbook':'1'}}).catch(()=>null);
+  const r = await post('/api/todo/toggle?id='+encodeURIComponent(id)).catch(()=>null);
   if(!r || !r.ok){ toast('todo:'+Date.now(), 'err', 'Could not update that task', 'Restart the dashboard service if this keeps happening.'); return null; }
   return r.json();
 }
@@ -1465,7 +1476,7 @@ async function pollSync(){
 }
 $('#syncbtn').onclick = async () => {
   $('#syncbtn').disabled = true;
-  await fetch('/api/garmin/sync', {method:'POST', headers:{'X-Logbook':'1'}}).catch(()=>{});
+  await post('/api/garmin/sync').catch(()=>{});
   pollSync();
 };
 // Toasts for problems with the scheduled Garmin pull. Each problem has a key; dismissing hides that key only.
@@ -1486,7 +1497,7 @@ function toast(key, kind, title, why, actions=[]){
   $('#toasts').appendChild(el);
 }
 function clearToasts(prefix){ document.querySelectorAll('.toast').forEach(t => { if(t.dataset.key.startsWith(prefix)) t.remove(); }); }
-const syncAgain = ['Sync again', async () => { await fetch('/api/garmin/sync', {method:'POST', headers:{'X-Logbook':'1'}}).catch(()=>{}); pollSync(); }, true];
+const syncAgain = ['Sync again', async () => { await post('/api/garmin/sync').catch(()=>{}); pollSync(); }, true];
 function garminToasts(s){
   if(!s.ready) return;   // setup not finished: the header already says what to do
   const failed = s.last_error && (!s.last_success || s.last_error_at > s.last_success);
@@ -1551,7 +1562,7 @@ function openSetup(first){
 async function saveSetup(ev){
   ev.preventDefault(); const f = $('#setupform');
   const body = {name: f.name.value, start_date: f.start_date.value, timezone: f.timezone.value.trim()};
-  const r = await fetch('/api/setup', {method:'POST', headers:{'X-Logbook':'1', 'Content-Type':'application/json'}, body: JSON.stringify(body)}).catch(()=>null);
+  const r = await post('/api/setup', body).catch(()=>null);
   const j = r ? await r.json().catch(()=>({})) : {error:'The server did not answer.'};
   if(!r || !r.ok){ $('#setuperr').textContent = j.error || 'Could not save.'; return; }
   PROFILE = j; showWho(); $('#setup').close(); reloadData();
