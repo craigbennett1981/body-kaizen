@@ -226,12 +226,16 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/api/todo/toggle":
             item = todo.toggle(urllib.parse.parse_qs(u.query).get("id", [""])[0])
             return self._send(200 if item else 404, json.dumps(item or {"error": "no such item"}), "application/json")
-        if u.path in ("/api/connections/libre/connect", "/api/connections/libre/disconnect", "/api/connections/libre/pull"):
+        CONNECT = {"/api/connections/libre/connect": connections.libre_connect,
+                   "/api/connections/libre/disconnect": lambda b: connections.libre_disconnect(),
+                   "/api/connections/libre/pull": lambda b: connections.libre_pull(),
+                   "/api/connections/garmin/connect": connections.garmin_connect,
+                   "/api/connections/garmin/disconnect": lambda b: connections.garmin_disconnect(),
+                   "/api/connections/garmin/pull": lambda b: connections.garmin_pull()}
+        if u.path in CONNECT:
             body = self._json_body()
             if body is None: return
-            act = u.path.rsplit("/", 1)[1]
-            code, res = (connections.libre_connect(body) if act == "connect" else
-                         connections.libre_disconnect() if act == "disconnect" else connections.libre_pull())
+            code, res = CONNECT[u.path](body)
             return self._send(code, json.dumps(res), "application/json")
         if u.path == "/api/garmin/sync":
             st = scheduler.status()

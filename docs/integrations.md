@@ -8,6 +8,11 @@ All of these are optional. Each one writes into your data folder and never overw
 Adds steps, calories burnt, sleep with stages, overnight HRV, resting heart rate, body battery, stress, and
 every activity with its heart-rate trace, zones and recovery heart rate.
 
+Connect from the dashboard: **Connections** (at the foot of every page) › Garmin Connect, then your Garmin email and
+password, and the code Garmin sends if your account has two-step verification. The password is used once to get a
+token (saved to `~/.garminconnect`, owner-only, renewed automatically) and is never stored; the half-finished
+two-step login lives only in the dashboard's memory, for at most 10 minutes and 5 tries. Or from the console:
+
 ```bash
 .venv/bin/python scripts/garmin_login.py                 # once: password and MFA; token saved to ~/.garminconnect
 .venv/bin/python scripts/garmin_pull.py --since 2026-07-01   # back-fill history
@@ -15,7 +20,7 @@ every activity with its heart-rate trace, zones and recovery heart rate.
 
 While the dashboard is running it pulls four times a day (08:00, 13:00, 19:00, 22:00) and catches up after the
 computer wakes; there's a "Sync now" button in the header. If the header says the sync failed, the token has
-expired: run `garmin_login.py` again.
+expired: log in again on the Connections page (or run `garmin_login.py`).
 
 Raw responses are saved in `imports/garmin/` with personal and location fields removed. After a change to how
 fields are mapped, `garmin_pull.py --remap` re-applies them without fetching again.

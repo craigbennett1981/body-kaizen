@@ -400,8 +400,8 @@ never overwrites what you or your assistant logged (sets, notes, effort, a tread
 | **Blood-pressure monitors** | Systolic, diastolic and pulse, with time of day | Screenshot of the monitor's app, read by your assistant |
 | **InBody and lab reports** | Body-composition scans and blood results, with target bands on the Longevity tab | Photo or PDF, read by your assistant into `measurements/` |
 
-Setup for Garmin and LibreLinkUp is a one-time login. For LibreLinkUp, use **Connections** at the foot of the
-dashboard (email and password, saved to your keychain), or the console:
+Setup for Garmin and LibreLinkUp is a one-time login: use **Connections** at the foot of the dashboard (Garmin
+asks for its two-step code there too), or the console:
 
 ```bash
 .venv/bin/python scripts/garmin_login.py     # password + MFA; token kept in ~/.garminconnect
