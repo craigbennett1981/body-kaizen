@@ -1,17 +1,33 @@
 """Where things live, and the user's settings.
 
 CODE  the Body Kaizen code (this repository, or the installed body_kaizen package)
-DATA  your data folder: FT_DATA if set; otherwise the code folder when run from a clone (a single-folder
-      setup), or ~/body-kaizen-data when installed from PyPI
+DATA  your data folder: FT_DATA if set; else the folder chosen in the dashboard's first-run setup (saved in
+      ~/.body-kaizen/config.json); else the code folder when run from a clone (a single-folder setup), or
+      ~/body-kaizen-data when installed from PyPI
 
 settings.yaml in the data folder holds your profile (name, start date), timezone and options.
 """
-import datetime as dt, os, pathlib, re
+import datetime as dt, json, os, pathlib, re, shutil
 import yaml
 
 CODE = pathlib.Path(__file__).resolve().parent.parent
 DEFAULT_DATA = CODE if (CODE / "pyproject.toml").exists() else pathlib.Path("~/body-kaizen-data")
-DATA = pathlib.Path(os.environ.get("FT_DATA") or DEFAULT_DATA).expanduser().resolve()
+# Your choice of data folder from the first-run setup. BK_CONFIG moves it (tests use a temporary one).
+CONFIG = pathlib.Path(os.environ.get("BK_CONFIG") or "~/.body-kaizen/config.json").expanduser()
+DATA_DIRS = ("days", "imports", "measurements")   # the dated part of a data folder; the rest is reference files
+
+def read_config():
+    try: c = json.loads(CONFIG.read_text())
+    except (OSError, ValueError): return {}
+    return c if isinstance(c, dict) else {}
+
+def resolve_data(env=None, cfg=None):
+    """FT_DATA wins; then the folder saved by the first-run setup; then the default."""
+    env = os.environ if env is None else env
+    cfg = read_config() if cfg is None else cfg
+    return pathlib.Path(env.get("FT_DATA") or cfg.get("data_dir") or DEFAULT_DATA).expanduser().resolve()
+
+DATA = resolve_data()
 SETTINGS = DATA / "settings.yaml"
 
 _cache = {"mtime": None, "data": {}}
@@ -110,3 +126,36 @@ def libre_cfg():
 
 def libre_service():
     return LIBRE_SERVICE_NEW if libre_cfg() == LIBRE_CFG_NEW else LIBRE_SERVICE_OLD
+
+
+# ---------- the data folder itself ----------
+def is_data_folder(path):
+    """A folder that already holds Body Kaizen data (its settings or targets file)."""
+    p = pathlib.Path(path)
+    return (p / "settings.yaml").exists() or (p / "targets.yaml").exists()
+
+def needs_data_setup():
+    """True until there is a data folder to read: the dashboard then shows the first-run folder setup."""
+    return not is_data_folder(DATA)
+
+def init_data_folder(out, template=None):
+    """A new data folder from the demo's reference files (targets, settings, markers...), without the demo
+    person or any dated data. `out` must be missing or empty."""
+    out = pathlib.Path(out).expanduser().resolve()
+    if out.exists() and any(out.iterdir()): raise FileExistsError(f"{out} isn't empty")
+    template = pathlib.Path(template or CODE / "demo")
+    shutil.copytree(template, out, ignore=shutil.ignore_patterns(*DATA_DIRS, "__pycache__", "*.pyc"), dirs_exist_ok=True)
+    for d in DATA_DIRS: (out / d).mkdir(exist_ok=True)
+    s = out / "settings.yaml"   # forget the demo person: the dashboard asks for your own name, start date and timezone
+    if s.exists():
+        s.write_text(re.sub(r"(?m)^timezone:.*\n?", "", re.sub(r"(?m)^profile:.*\n(?:[ \t]+.*\n?)*", "", s.read_text())).lstrip("\n"))
+    return out
+
+def save_config(**values):
+    """Merge values into ~/.body-kaizen/config.json (private to you: 0600)."""
+    c = {**read_config(), **values}
+    CONFIG.parent.mkdir(parents=True, exist_ok=True)
+    CONFIG.write_text(json.dumps(c, indent=2) + "\n")
+    try: CONFIG.chmod(0o600)
+    except OSError: pass
+    return c

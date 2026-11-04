@@ -29,10 +29,7 @@ def _run(rel, args):
 def _serve(args):
     if args.data: os.environ["FT_DATA"] = str(pathlib.Path(args.data).expanduser())
     if args.port: os.environ["FT_PORT"] = str(args.port)
-    data = pathlib.Path(os.environ.get("FT_DATA") or "~/body-kaizen-data").expanduser()
-    if "FT_DATA" not in os.environ and not (CODE / "pyproject.toml").exists() and not data.exists():
-        sys.exit(f"No data folder at {data}. Create one with `body-kaizen init`, point at yours with --data DIR "
-                 "(or FT_DATA), or try `body-kaizen demo`.")
+    # With no data folder yet the dashboard opens on its first-run setup, where you choose or create one.
     _run("app/server.py", [])
 
 def _demo(args):
