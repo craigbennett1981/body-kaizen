@@ -188,7 +188,8 @@ gh repo create body-kaizen-data --private --source . --push   # --private is the
 ```
 
 Set your targets in `targets.yaml` and your defaults (timezone, the milk in your tea, what "1 scoop" means) in
-`settings.yaml`. The layout is explained in [docs/data-folder.md](docs/data-folder.md).
+`settings.yaml`. The layout is explained in [docs/data-folder.md](docs/data-folder.md). Every threshold the dashboard judges you against, and where each one comes from, is in
+[docs/thresholds.md](docs/thresholds.md) (and on the dashboard under **Thresholds**).
 
 **3. Connect your AI assistant.** Copy [docs/CLAUDE.example.md](docs/CLAUDE.example.md) into your data folder as
 `CLAUDE.md`, open the folder in Claude Code, and send your first meal. For a Claude project (so you can log from
