@@ -26,6 +26,7 @@ import daytimeline  # noqa: E402
 import glance  # noqa: E402
 import workouts  # noqa: E402
 import thresholds  # noqa: E402
+import datasetup  # noqa: E402
 import muscles  # noqa: E402
 import pace  # noqa: E402
 
@@ -41,6 +42,7 @@ ALLOWED_ORIGINS = {f"http://{h}" for h in ALLOWED_HOSTS}
 # is served); every request that changes anything must send it back in the X-BK-Token header.
 SESSION_TOKEN = secrets.token_urlsafe(32)
 MAX_BODY = 10_000
+SETUP_MODE = data.bkenv.needs_data_setup()   # no data folder yet: serve only the first-run folder setup
 
 ROUTES = {
     "/api/summary": lambda q: data.summary(),
@@ -77,7 +79,7 @@ ROUTES = {
 }
 
 # Reload app code when it changes on disk, so edits never leave a stale server running.
-MODULES = ["insights", "weekly", "readiness", "planner", "longevity", "habits", "todo", "alerts", "timeline", "doctor", "advice", "wellbeing", "healthscore", "glucose", "daytimeline", "glance", "workouts", "muscles", "pace", "thresholds"]
+MODULES = ["insights", "weekly", "readiness", "planner", "longevity", "habits", "todo", "alerts", "timeline", "doctor", "advice", "wellbeing", "healthscore", "glucose", "daytimeline", "glance", "workouts", "muscles", "pace", "thresholds", "datasetup"]
 _HERE = pathlib.Path(data.__file__).parent
 _CODE = [_HERE / "data.py", _HERE.parent / "scripts" / "nutrition.py"] + [_HERE / f"{n}.py" for n in MODULES]
 _code_mtime = tuple(f.stat().st_mtime for f in _CODE if f.exists())   # baseline at startup, not first request: an edit made
@@ -145,7 +147,12 @@ class Handler(BaseHTTPRequestHandler):
         if not self._host_ok(): return
         u = urllib.parse.urlparse(self.path)
         try:
-            if u.path.startswith("/api/"):
+            if u.path == "/api/datasetup":
+                return self._send(200, json.dumps(datasetup.info()), "application/json")
+            if SETUP_MODE:
+                if u.path.startswith("/api/"): return self._send(503, '{"error":"choose a data folder first","setup":true}', "application/json")
+                if u.path in ("/", "", "/index.html"): u = u._replace(path="/setup.html")
+            elif u.path.startswith("/api/"):
                 _maybe_reload()
             if u.path in ROUTES:
                 res = ROUTES[u.path](urllib.parse.parse_qs(u.query))
@@ -157,7 +164,7 @@ class Handler(BaseHTTPRequestHandler):
                 ctype = {"html": "text/html; charset=utf-8", "js": "text/javascript; charset=utf-8", "css": "text/css; charset=utf-8",
                          "woff2": "font/woff2", "txt": "text/plain; charset=utf-8"}.get(os.path.splitext(f)[1][1:], "application/octet-stream")
                 with open(f, "rb") as fh: body = fh.read()
-                if name == "index.html": body = body.replace(b'name="bk-token" content=""', f'name="bk-token" content="{SESSION_TOKEN}"'.encode(), 1)
+                if name.endswith(".html"): body = body.replace(b'name="bk-token" content=""', f'name="bk-token" content="{SESSION_TOKEN}"'.encode(), 1)
                 return self._send(200, body, ctype)
             self._send(404, "not found", "text/plain")
         except Exception:
@@ -196,6 +203,19 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         if not self._host_ok() or not self._write_ok(): return
         u = urllib.parse.urlparse(self.path)
+        if u.path.startswith("/api/datasetup/"):
+            if not SETUP_MODE: return self._send(409, '{"error":"a data folder is already set up"}', "application/json")
+            body = self._json_body()
+            if body is None: return
+            act = u.path.rsplit("/", 1)[1]
+            if act == "pick": return self._send(200, json.dumps(datasetup.pick()), "application/json")
+            if act == "check": return self._send(200, json.dumps(datasetup.check(body.get("path"))), "application/json")
+            if act == "create":
+                try: res = datasetup.create(body)
+                except OSError as e: res = {"ok": False, "error": f"Couldn't create the folder: {e.strerror or e}"}
+                return self._send(200 if res.get("ok") else 400, json.dumps(res), "application/json")
+            return self._send(404, '{"error":"not found"}', "application/json")
+        if SETUP_MODE: return self._send(503, '{"error":"choose a data folder first","setup":true}', "application/json")
         if u.path == "/api/setup":
             body = self._json_body()
             if body is None: return
@@ -222,7 +242,9 @@ def main():
         sys.exit(f"Refusing to listen on {HOST}: the dashboard has no login, so it only runs on this computer "
                  "(127.0.0.1). Set FT_ALLOW_REMOTE=1 only if you've put your own authentication in front of it.")
     srv = ThreadingHTTPServer((HOST, PORT), Handler)
-    if not os.environ.get("FT_NO_SYNC"): scheduler.start()   # FT_NO_SYNC=1: no Garmin/Libre pulls (tests, demo);
+    if SETUP_MODE:
+        print(f"No data folder yet: open http://{HOST}:{PORT} to choose one.", flush=True)
+    elif not os.environ.get("FT_NO_SYNC"): scheduler.start()   # FT_NO_SYNC=1: no Garmin/Libre pulls (tests, demo);
                                                               # start() also refuses demo data and folders inside the repo
     print(f"Body Kaizen dashboard on http://{HOST}:{PORT} (data: {data.ROOT})", flush=True)
     srv.serve_forever()

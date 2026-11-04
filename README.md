@@ -177,7 +177,12 @@ FT_NO_SYNC=1 FT_DATA=demo .venv/bin/python app/server.py   # demo/ is generated 
 Open <http://127.0.0.1:8765>. The demo opens as "Sam (demo)"; with your own data folder, the first visit asks for your
 name, start date and timezone.
 
-**2. Start your own data folder**, in its own private repository:
+**2. Start your own data folder.** The easy way: run the dashboard without `FT_DATA`
+(`.venv/bin/python app/server.py`, or `body-kaizen`) and the first page asks where to keep your data, with your
+computer's own folder picker. It creates the folder from the starter files (as a git repository if you tick the box),
+remembers the choice in `~/.body-kaizen/config.json` and opens the dashboard on it. `FT_DATA` still wins when set.
+
+Or by hand, in its own private repository:
 
 ```bash
 cp -r demo ~/body-kaizen-data && cd ~/body-kaizen-data

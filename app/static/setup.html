@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="bk-token" content="">
+<title>Set up Body Kaizen</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body{padding:32px 16px} main{max-width:640px;margin:0 auto}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:22px 22px 18px;margin-top:18px}
+label{display:block;font-weight:600;margin:0 0 6px}
+.row{display:flex;gap:8px;flex-wrap:wrap} .row input[type=text]{flex:1 1 280px;min-width:0;font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
+button{font:inherit;padding:8px 14px;border-radius:8px;border:1px solid var(--rule);background:var(--surface);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600} button:disabled{opacity:.5;cursor:default}
+.msg{margin:10px 0 0;font-size:13.5px;min-height:1.4em} .msg.ok{color:var(--good)} .msg.err{color:var(--bad)}
+.opt{display:flex;gap:8px;align-items:flex-start;margin-top:14px;font-size:14px} .opt input{margin-top:3px}
+.foot{margin-top:18px;font-size:12.5px;color:var(--muted)} .linkish{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;cursor:pointer}
+</style></head>
+<body><main>
+<h1>Welcome to Body Kaizen</h1>
+<p class="sub">First, choose where your personal data will live: your food log, workouts, measurements and targets.
+It's a normal folder of text files on this computer, kept separate from the Body Kaizen code. Nothing is uploaded anywhere.</p>
+<div class="card">
+  <label for="path">Data folder</label>
+  <div class="row"><input type="text" id="path" autocomplete="off" spellcheck="false"><button id="pick" hidden>Choose folder…</button></div>
+  <p class="msg" id="msg" role="status" aria-live="polite"></p>
+  <label class="opt" id="gitopt" hidden><input type="checkbox" id="git" checked><span>Keep a history of changes with git (recommended). If you ever
+    copy it online, use a <b>private</b> repository: this is your health data.</span></label>
+  <p class="msg err" id="envwarn" hidden></p>
+  <div class="row" style="margin-top:16px"><button class="primary" id="go" disabled>Use this folder</button></div>
+</div>
+<p class="foot">You can move it later: the choice is saved in <code>~/.body-kaizen/config.json</code>. Next you'll be asked for your name, start date and timezone.</p>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+const TOKEN = (document.querySelector('meta[name="bk-token"]')||{}).content || '';
+const post = (url, body) => fetch(url, {method:'POST', headers:{'Content-Type':'application/json','X-BK-Token':TOKEN}, body: JSON.stringify(body||{})}).then(r => r.json());
+let last = null, timer = null;
+const show = (c) => {
+  last = c; const m = $('#msg');
+  m.className = 'msg ' + (c.ok ? 'ok' : 'err');
+  m.innerHTML = c.ok ? c.message : (c.error || '') + (c.suggest ? ` <button class="linkish" id="usesub">Use ${c.suggest_short} instead</button>` : '');
+  if(c.suggest) $('#usesub').onclick = () => { $('#path').value = c.suggest; check(); };
+  $('#gitopt').hidden = !(c.ok && c.mode === 'new' && window.HAS_GIT);
+  $('#go').disabled = !c.ok;
+  $('#go').textContent = c.ok && c.mode === 'existing' ? 'Use this data folder' : 'Create my data folder';
+};
+const check = () => post('/api/datasetup/check', {path: $('#path').value}).then(show).catch(() => show({ok:false, error:'Could not reach the dashboard.'}));
+$('#path').addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(check, 300); });
+$('#pick').onclick = async () => {
+  $('#pick').disabled = true; $('#msg').className = 'msg'; $('#msg').textContent = 'A folder window has opened on this computer…';
+  const r = await post('/api/datasetup/pick').catch(() => ({error:'Could not open the folder picker.'}));
+  $('#pick').disabled = false;
+  if(r.path){ $('#path').value = r.path; check(); } else if(r.error){ show({ok:false, error:r.error}); } else { check(); }
+};
+$('#go').onclick = async () => {
+  if(!last || !last.ok) return;
+  $('#go').disabled = true; $('#pick').disabled = true; $('#path').disabled = true;
+  $('#msg').className = 'msg'; $('#msg').textContent = 'Setting up your data folder…';
+  const r = await post('/api/datasetup/create', {path: last.path, git: $('#git').checked}).catch(() => null);
+  if(!r || !r.ok){ $('#path').disabled = false; $('#pick').disabled = false; return show(r || {ok:false, error:'Something went wrong; see the server log.'}); }
+  $('#msg').className = 'msg ok'; $('#msg').textContent = `Done: ${r.short}${r.git ? ' (with git history)' : ''}. Starting the dashboard…`;
+  for(let i = 0; i < 60; i++){   // the server restarts on the new folder; wait for it, then open the dashboard
+    await new Promise(res => setTimeout(res, 500));
+    const ok = await fetch('/api/datasetup', {cache:'no-store'}).then(x => x.json()).then(x => !x.needs_setup).catch(() => false);
+    if(ok){ location.href = '/'; return; }
+  }
+  $('#msg').textContent = 'The dashboard is taking a while to restart. Reload this page in a moment.';
+};
+fetch('/api/datasetup', {cache:'no-store'}).then(r => r.json()).then(I => {
+  if(!I.needs_setup){ location.href = '/'; return; }
+  window.HAS_GIT = I.git; $('#pick').hidden = !I.picker;
+  $('#path').value = I.suggested;
+  if(I.env_override){ $('#envwarn').hidden = false; $('#envwarn').textContent = 'Note: FT_DATA is set when the dashboard starts, and it overrides this choice. Remove it (or point it at the folder you choose) for this to stick.'; }
+  check();
+});
+</script></body></html>
