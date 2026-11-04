@@ -14,7 +14,7 @@ import data, healthscore
 # (section, [(threshold, rule, defined in, shown on, basis)])
 RULES = [
     ("Food and the day's macros", [
-        ("Day judged", "Each target is ticked or crossed only once the day is closed (status complete); "
+        ("Day judged", "Each target is ticked or crossed only once the day is closed; "
          "before that you see over/under arrows", "data.py evaluate", "Day, Trends, Week", "design rule"),
         ("Live colour", "Inside the target = green; missed by up to 10% = amber; more = red", "app.js liveStatus",
          "Day macro tiles", "heuristic"),
@@ -29,7 +29,7 @@ RULES = [
     ]),
     ("Pace through the day", [
         ("Floors and ranges", "Eaten ÷ expected-so-far: 85%+ green, 65–85% amber, below red "
-         "(the 85% and 65% come from targets.yaml pace)", "pace.py", "Day pace strips", "heuristic"),
+         "(85% and 65% are adjustable in your pace settings)", "pace.py", "Day pace strips", "heuristic"),
         ("Caps (saturated fat)", "Up to 105% of the allowance so far green, up to 125% amber, above red; over the "
          "full-day cap is always red", "pace.py", "Day pace strips", "heuristic"),
         ("Range ceiling", "More than 115% of the upper end so far = amber (red once over the full-day upper)",
@@ -41,7 +41,7 @@ RULES = [
         ("Category", "Normal under 120/80; elevated 120–129 systolic; stage 1 130–139 or 80–89; "
          "stage 2 140+ or 90+; crisis 180+ or 120+", "data.py bp_category", "Body, Day notes, Doctor page",
          "2017 ACC/AHA adult guideline"),
-        ("Morning reading", "Before the time in settings.yaml (vitals.bp.morning_before, default 09:00)",
+        ("Morning reading", "Taken before 09:00 (adjustable in your settings)",
          "data.py", "Body (30-day morning average)", "measurement practice: same time, before coffee"),
         ("Pulse pressure", "Systolic − diastolic: under 30 narrow; 30–50 healthy; 50–60 upper normal; "
          "over 60 wide, worth watching", "app.js ppCat", "Body", "40 typical and 60+ linked with artery stiffness "
@@ -80,7 +80,7 @@ RULES = [
          "heuristic"),
         ("Load spike", "7-day load ÷ 4-week load above 1.2", "readiness.py", "Day, Recovery",
          "acute:chronic workload ratio (Gabbett 2016, inferred)"),
-        ("HRV dip", "HRV under 90% of your baseline (targets.yaml) = 'go easier'", "insights.py", "Day notes",
+        ("HRV dip", "HRV under 90% of your HRV baseline = 'go easier'", "insights.py", "Day notes",
          "heuristic"),
         ("Resting HR rising", "7-day mean more than 2 SD above the 60-day baseline for 3+ days", "alerts.py",
          "Day notes, toasts", "heuristic"),
@@ -115,7 +115,7 @@ RULES = [
     ]),
     ("Health score", [
         ("Scoring curve", "100 at the 'top' reference, 50 at 'average', 0 at 'poor', straight lines between",
-         "healthscore.py", "Day, Longevity", "design; reference values in athlete.yaml (below)"),
+         "healthscore.py", "Day, Longevity", "design; reference values below"),
         ("Unmeasured", "A marker never measured, or stale, counts as 50", "healthscore.py UNMEASURED",
          "Day, Longevity", "design rule: no credit for unknowns"),
         ("Stale after", "Labs, InBody and manual tests 400 days; watch, CGM and calculated 21 days",

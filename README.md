@@ -189,7 +189,7 @@ gh repo create body-kaizen-data --private --source . --push   # --private is the
 
 Set your targets in `targets.yaml` and your defaults (timezone, the milk in your tea, what "1 scoop" means) in
 `settings.yaml`. The layout is explained in [docs/data-folder.md](docs/data-folder.md). Every threshold the dashboard judges you against, and where each one comes from, is in
-[docs/thresholds.md](docs/thresholds.md) (and on the dashboard under **Thresholds**).
+[docs/thresholds.md](docs/thresholds.md) (and on the dashboard under **How your numbers are judged**, linked at the foot of every page).
 
 **3. Connect your AI assistant.** Copy [docs/CLAUDE.example.md](docs/CLAUDE.example.md) into your data folder as
 `CLAUDE.md`, open the folder in Claude Code, and send your first meal. For a Claude project (so you can log from
@@ -493,6 +493,12 @@ as a suggestion, not a verdict.
 suggestions, including anything an AI assistant tells you while logging, are rules of thumb that can be wrong.
 Glucose, blood pressure and lab values are shown for interest, never for diagnosis or treatment decisions. Talk to a
 doctor before changing your diet, training, medication or supplements, and about any reading that worries you.
+
+**Thresholds.** The bands and cut-offs the dashboard judges you against (listed on its "How your numbers are judged" page and in
+[docs/thresholds.md](docs/thresholds.md)) are taken from published guidelines where one exists and are otherwise
+judgement calls. We make a best effort to get them right and to say where each one comes from, but guidelines
+change and we can get them wrong. If you spot a problem, please
+[raise a GitHub issue](https://github.com/craigbennett1981/body-kaizen/issues).
 
 **Integrations.** The Garmin Connect and LibreLinkUp syncs use unofficial, community-maintained libraries. They are
 not endorsed by, affiliated with, or supported by Garmin, Abbott, Hevy or any other company named here. Using them
