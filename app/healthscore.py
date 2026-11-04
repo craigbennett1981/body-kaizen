@@ -145,7 +145,7 @@ def compute():
     fa = None
     fp = data.ROOT / "imports" / "garmin" / "fitness_age.json"
     if fp.exists():
-        fah = json.loads(fp.read_text())
+        fah = json.loads(fp.read_text(encoding="utf-8"))
         if fah:
             d_, v_ = sorted(fah.items())[-1]
             fa = {"age": round(float(v_["fitnessAge"]), 1), "date": d_, "achievable": v_.get("achievableFitnessAge"),

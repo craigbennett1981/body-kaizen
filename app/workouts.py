@@ -50,7 +50,7 @@ def _trace(e):
     aid = e.get("garmin_id")
     if not aid: return None
     p = data.ROOT / "imports" / "garmin" / "activities" / f"{aid}.json"
-    try: a = json.loads(p.read_text())
+    try: a = json.loads(p.read_text(encoding="utf-8"))
     except Exception: return None
     s = a.get("samples") or []
     if not s: return None
@@ -73,7 +73,7 @@ def _laps(e):
     speed trace, scaled to the session's distance (the treadmill belt's, when that was logged)."""
     aid = e.get("garmin_id")
     if not aid: return None
-    try: a = json.loads((data.ROOT / "imports" / "garmin" / "activities" / f"{aid}.json").read_text())
+    try: a = json.loads((data.ROOT / "imports" / "garmin" / "activities" / f"{aid}.json").read_text(encoding="utf-8"))
     except Exception: return None
     dist_km = e.get("distance_km")
     watch = [l for l in a.get("laps") or [] if (l.get("distance_m") or 0) >= 50 and l.get("duration_s")]   # drop the stub lap from stopping the watch

@@ -22,7 +22,7 @@ _last_output = ""
 _on_done = []
 
 def _state():
-    try: return json.loads(STATE.read_text())
+    try: return json.loads(STATE.read_text(encoding="utf-8"))
     except Exception: return {}
 
 def installed():
@@ -52,7 +52,7 @@ def run_pull(*args):
         _running = True
     try:
         r = subprocess.run([sys.executable, str(PULL), *args], cwd=ROOT, env=bkenv.child_env(),
-                           capture_output=True, text=True, timeout=1800)
+                           capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800)
         _last_output = (r.stdout or "") + (r.stderr or "")
         print(_last_output.strip()[-800:], flush=True)
     except Exception as e:
@@ -75,7 +75,7 @@ def weekly_review_due(now):
     """Sunday from 21:00 (or any later day if Sunday was missed): save the week that started last Monday."""
     week_start = (now.date() - dt.timedelta(days=now.weekday()))
     target = week_start if (now.weekday() == 6 and now.hour >= 21) else week_start - dt.timedelta(days=7)
-    try: last = REVIEW_STATE.read_text().strip()
+    try: last = REVIEW_STATE.read_text(encoding="utf-8").strip()
     except Exception: last = ""
     return target.isoformat() if last < target.isoformat() else None
 
@@ -83,7 +83,7 @@ def save_weekly_review(start):
     sys.path.insert(0, str(CODE / "app")); sys.path.insert(0, str(CODE / "scripts"))
     import weekly, garmin_pull
     p = weekly.save(start)
-    REVIEW_STATE.write_text(start)
+    REVIEW_STATE.write_text(start, encoding="utf-8")
     garmin_pull.commit_and_push([p], p.stem, prefix="weekly review")
     print("weekly review saved:", p.name, flush=True)
 
@@ -97,7 +97,7 @@ def libre_running(): return _libre_running[0]
 def _libre_go():
     _libre_running[0] = True
     try:
-        r = subprocess.run([sys.executable, str(LIBRE)], cwd=ROOT, env=bkenv.child_env(), capture_output=True, text=True, timeout=300)
+        r = subprocess.run([sys.executable, str(LIBRE)], cwd=ROOT, env=bkenv.child_env(), capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300)
         out = (r.stdout + r.stderr).strip()
         if out: print(out, flush=True)
     except Exception as e:

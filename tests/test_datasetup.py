@@ -28,7 +28,7 @@ class Resolve(unittest.TestCase):
             out = bkenv.init_data_folder(pathlib.Path(t) / "mine")
             self.assertTrue((out / "targets.yaml").exists())
             for d in bkenv.DATA_DIRS: self.assertEqual(list((out / d).iterdir()), [])
-            self.assertNotIn("profile:", (out / "settings.yaml").read_text())
+            self.assertNotIn("profile:", (out / "settings.yaml").read_text(encoding="utf-8"))
 
 
 class SetupMode(unittest.TestCase):
@@ -89,7 +89,7 @@ class SetupMode(unittest.TestCase):
         new = pathlib.Path(self.tmp.name) / "my data"
         status, res = self.post("/api/datasetup/create", {"path": str(new), "git": False})
         self.assertEqual(status, 200, res); self.assertTrue(res["restarting"])
-        self.assertEqual(json.loads(self.cfg.read_text())["data_dir"], str(new.resolve()))
+        self.assertEqual(json.loads(self.cfg.read_text(encoding="utf-8"))["data_dir"], str(new.resolve()))
         self.assertTrue((new / "targets.yaml").exists())
         time.sleep(1.0)
         for _ in range(75):

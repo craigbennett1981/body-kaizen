@@ -21,4 +21,4 @@ def absolute(ref, text):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2: sys.exit(__doc__)
-    README.write_text(absolute(sys.argv[1], README.read_text()))
+    README.write_text(absolute(sys.argv[1], README.read_text(encoding="utf-8")), encoding="utf-8")

@@ -46,7 +46,7 @@ def load(path):
 
 def apply(w, dry):
     d = w["start"].date(); p = ROOT / "days" / str(d.year) / f"{d.isoformat()}.yaml"
-    day = yaml.safe_load(p.read_text()) if p.exists() else {"date": d, "status": "unlogged", "day_type": "training", "meals": {}}
+    day = yaml.safe_load(p.read_text(encoding="utf-8")) if p.exists() else {"date": d, "status": "unlogged", "day_type": "training", "meals": {}}
     ex = day.setdefault("exercise", []) or []
     day["exercise"] = ex
     gyms = [e for e in ex if e.get("type") == "gym"]
@@ -68,7 +68,7 @@ def apply(w, dry):
     if day.get("day_type") == "rest": day["day_type"] = "training"
     changed = old != e["lifts"]
     if not dry and (changed or action == "added"):
-        p.write_text(yaml.safe_dump(day, sort_keys=False, allow_unicode=True, default_flow_style=None, width=140))
+        p.write_text(yaml.safe_dump(day, sort_keys=False, allow_unicode=True, default_flow_style=None, width=140), encoding="utf-8")
     return p, action if changed or action == "added" else "same", old
 
 def main():

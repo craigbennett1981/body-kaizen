@@ -99,5 +99,5 @@ def save(start=None):
     w = week(start)
     iso = dt.date.fromisoformat(w["start"]).isocalendar()
     p = data.ROOT / "reviews" / f"{iso[0]}-W{iso[1]:02d}.md"
-    p.parent.mkdir(exist_ok=True); p.write_text(markdown(w))
+    p.parent.mkdir(exist_ok=True); p.write_text(markdown(w), encoding="utf-8")
     return p

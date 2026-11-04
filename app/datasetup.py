@@ -13,7 +13,7 @@ PICK_TIMEOUT = 300   # seconds the folder picker may stay open
 
 
 def _home(p):
-    try: return "~/" + str(pathlib.Path(p).relative_to(pathlib.Path.home()))
+    try: return "~/" + pathlib.Path(p).relative_to(pathlib.Path.home()).as_posix()
     except ValueError: return str(p)
 
 
@@ -30,9 +30,12 @@ def _picker():
     if sysname == "Darwin" and shutil.which("osascript"):
         return ["osascript", "-e", f'POSIX path of (choose folder with prompt "{prompt}")']
     if sysname == "Windows" and shutil.which("powershell"):
-        return ["powershell", "-NoProfile", "-Command",
+        return ["powershell", "-NoProfile", "-STA", "-Command",   # -STA: the Windows Forms dialog needs it
+                "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; "   # folder names outside the code page
                 "Add-Type -AssemblyName System.Windows.Forms; $f = New-Object System.Windows.Forms.FolderBrowserDialog; "
-                f"$f.Description = '{prompt}'; if ($f.ShowDialog() -eq 'OK') {{ $f.SelectedPath }}"]
+                f"$f.Description = '{prompt}'; $f.ShowNewFolderButton = $true; "
+                "$top = New-Object System.Windows.Forms.Form -Property @{TopMost = $true}; "   # in front of the browser
+                "if ($f.ShowDialog($top) -eq 'OK') { $f.SelectedPath }"]
     for cmd in (["zenity", "--file-selection", "--directory", f"--title={prompt}"],
                 ["kdialog", "--getexistingdirectory", str(pathlib.Path.home()), "--title", prompt]):
         if shutil.which(cmd[0]): return cmd
@@ -43,7 +46,7 @@ def pick():
     """Open the folder picker on this computer. {'path': ...}, {'cancelled': True} or {'error': ...}."""
     cmd = _picker()
     if not cmd: return {"error": "This computer has no folder picker the dashboard can open. Type the path instead."}
-    try: r = subprocess.run(cmd, capture_output=True, text=True, timeout=PICK_TIMEOUT)
+    try: r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=PICK_TIMEOUT)
     except subprocess.TimeoutExpired: return {"cancelled": True}
     path = r.stdout.strip()
     if r.returncode != 0 or not path: return {"cancelled": True}
@@ -56,7 +59,8 @@ def check(path):
     if not raw: return {"ok": False, "error": "Choose or type a folder."}
     raw = os.path.expanduser(raw)
     if not os.path.isabs(raw): return {"ok": False, "error": "Use a full path, for example ~/body-kaizen-data."}
-    # Normalise before touching the disk, and only ever look inside your home folder.
+    # Normalise before touching the disk, and only ever look inside your home folder. realpath also gives Windows
+    # paths their real case (c:\\users\\sam -> C:\\Users\\Sam), so the comparison isn't fooled by how it was typed.
     home = os.path.realpath(os.path.expanduser("~"))
     full = os.path.realpath(raw)
     if not full.startswith(home + os.sep):
@@ -94,7 +98,13 @@ def create(body):
 
 
 def _restart(p):
-    """Start this same server again, now on the chosen folder."""
-    os.environ["FT_DATA"] = str(p)
+    """Start this same server again, now on the chosen folder. On macOS and Linux the process replaces itself
+    (same process id, so launchd or systemd keep tracking it). Windows has no such call: start a new server,
+    which waits for this one to let go of the port, and exit."""
+    os.environ["FT_DATA"] = str(p); os.environ["BK_RESTARTED"] = "1"
     sys.stdout.flush(); sys.stderr.flush()
-    os.execv(sys.executable, [sys.executable, *sys.orig_argv[1:]])
+    argv = [sys.executable, *sys.orig_argv[1:]]
+    if os.name == "nt":
+        subprocess.Popen(argv, env=os.environ.copy())
+        os._exit(0)
+    os.execv(sys.executable, argv)

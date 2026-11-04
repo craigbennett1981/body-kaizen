@@ -14,7 +14,7 @@ def _load(path):
     hit = _cache.get(path)
     if hit and hit[0] == m:
         return hit[1]
-    d = yaml.safe_load(path.read_text()) or {}
+    d = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     _cache[path] = (m, d)
     return d
 
@@ -196,7 +196,7 @@ def energy():
 def _act_hrr(aid):
     """The watch's recovery heart rate for an activity, from its saved Garmin detail file (if fetched)."""
     if not aid: return None
-    try: return (json.loads((ROOT / "imports" / "garmin" / "activities" / f"{aid}.json").read_text()).get("summary") or {}).get("recoveryHeartRate")
+    try: return (json.loads((ROOT / "imports" / "garmin" / "activities" / f"{aid}.json").read_text(encoding="utf-8")).get("summary") or {}).get("recoveryHeartRate")
     except Exception: return None
 
 def training():
@@ -247,7 +247,7 @@ def body():
         w = d.get("weight")
         if w and w.get("kg"):
             scale.append({"date": d["date"], **{k: w.get(k) for k in ("kg", "fasted", "bf_pct", "muscle_kg", "ffm_kg", "note")}})
-    inbody = _jsonable(yaml.safe_load((ROOT / "measurements" / "inbody.yaml").read_text()))
+    inbody = _jsonable(yaml.safe_load((ROOT / "measurements" / "inbody.yaml").read_text(encoding="utf-8")))
     wt = [{"date": str(w["from"]), "kg": w["kg"], "source": w.get("source")} for w in sorted(_targets_file().get("weight", []), key=lambda b: str(b["from"]))]
     return {"scale": scale, "inbody": inbody, "weight_targets": wt, "bp": bp_readings()}
 

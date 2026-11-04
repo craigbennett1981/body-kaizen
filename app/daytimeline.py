@@ -6,7 +6,7 @@ STAGE = {0: "deep", 1: "light", 2: "rem", 3: "awake"}
 STAGE_LABEL = {"deep": "Deep", "light": "Light", "rem": "REM", "awake": "Awake"}
 
 def _raw(day):
-    try: return json.loads((data.ROOT / "imports" / "garmin" / day[:4] / f"{day}.json").read_text())
+    try: return json.loads((data.ROOT / "imports" / "garmin" / day[:4] / f"{day}.json").read_text(encoding="utf-8"))
     except Exception: return {}
 
 def _gmt_min(v, day):

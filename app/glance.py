@@ -81,7 +81,7 @@ def readiness(date):
            "rhr": r.get("rhr"), "rhr_base": basel("rhr"), "bb_charge": r.get("body_battery"), "bb_now": None}
     raw = data.ROOT / "imports" / "garmin" / date[:4] / f"{date}.json"
     try:
-        s = json.loads(raw.read_text()).get("summary") or {}
+        s = json.loads(raw.read_text(encoding="utf-8")).get("summary") or {}
         out["bb_now"] = s.get("bodyBatteryMostRecentValue")
     except Exception: pass
     try:
@@ -100,7 +100,7 @@ def watch_upto():
     """Latest point Garmin has data for: the newest raw day's wellness end time (local, 'YYYY-MM-DDTHH:MM')."""
     raw_dir = data.ROOT / "imports" / "garmin"
     for f in sorted(raw_dir.glob("*/*.json"), reverse=True)[:3]:
-        try: sm = json.loads(f.read_text()).get("summary") or {}
+        try: sm = json.loads(f.read_text(encoding="utf-8")).get("summary") or {}
         except Exception: continue
         if sm.get("wellnessEndTimeLocal") and sm.get("totalKilocalories"): return sm["wellnessEndTimeLocal"][:16]
     return None

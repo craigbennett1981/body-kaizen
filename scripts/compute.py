@@ -31,7 +31,7 @@ def clean(c):
     return out
 
 def process(path):
-    d = yaml.safe_load(path.read_text())
+    d = yaml.safe_load(path.read_text(encoding="utf-8"))
     tot = dict.fromkeys(TOTAL_KEYS, 0.0); low_k = 0.0; problems = []
     for meal, items in (d.get("meals") or {}).items():
         for it in items or []:
@@ -56,7 +56,7 @@ def process(path):
     order = ["date", "status", "day_type", "notepad_label", "note", "weight", "recovery", "feel", "vitals",
              "environment", "steps", "exercise", "skipped_meals", "unknown_meals", "meals", "totals", "parse_problems"]
     d = {k: d[k] for k in order if k in d} | {k: v for k, v in d.items() if k not in order}
-    path.write_text(yaml.safe_dump(d, sort_keys=False, allow_unicode=True, default_flow_style=None, width=200))
+    path.write_text(yaml.safe_dump(d, sort_keys=False, allow_unicode=True, default_flow_style=None, width=200), encoding="utf-8")
     return d
 
 if __name__ == "__main__":

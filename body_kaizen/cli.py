@@ -52,7 +52,7 @@ def _init(args):
     shutil.copytree(CODE / "demo", out, ignore=shutil.ignore_patterns(*DATA_DIRS), dirs_exist_ok=True)
     for d in DATA_DIRS: (out / d).mkdir()
     s = out / "settings.yaml"   # forget Sam: the dashboard asks for your own name, start date and timezone
-    s.write_text(re.sub(r"(?m)^timezone:.*\n?", "", re.sub(r"(?m)^profile:.*\n(?:[ \t]+.*\n?)*", "", s.read_text())).lstrip("\n"))
+    s.write_text(re.sub(r"(?m)^timezone:.*\n?", "", re.sub(r"(?m)^profile:.*\n(?:[ \t]+.*\n?)*", "", s.read_text(encoding="utf-8"))).lstrip("\n"), encoding="utf-8")
     print(f"""Created {out}
 
 Next:

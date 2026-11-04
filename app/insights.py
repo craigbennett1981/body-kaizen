@@ -210,7 +210,7 @@ def last_watch_date():
     raw_dir = data.ROOT / "imports" / "garmin"
     for f in sorted(raw_dir.glob("*/*.json"))[-7:]:
         try:
-            s = (json.load(open(f)).get("summary") or {})
+            s = (json.load(open(f, encoding="utf-8")).get("summary") or {})
         except Exception:
             continue
         sync = (s.get("lastSyncTimestampGMT") or "")[:10]

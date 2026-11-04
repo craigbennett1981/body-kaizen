@@ -178,7 +178,9 @@ folder picker. **Connections** logs you in to Garmin (two-step code included) an
 
 ## Quick start (five minutes)
 
-You need Python 3.10 or newer.
+You need Python 3.10 or newer. It runs on macOS, Linux and Windows. On Windows, write `.venv\Scripts\python` where
+this says `.venv/bin/python`, and set variables with `set FT_DATA=...` (or `$env:FT_DATA="..."` in PowerShell).
+The easiest route there is `pipx install body-kaizen` and then `body-kaizen`: the first page sets up your data folder.
 
 **1. See it with demo data** (about 90 days of made-up data for a fictional person):
 

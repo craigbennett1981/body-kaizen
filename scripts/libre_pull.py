@@ -14,10 +14,10 @@ MGDL = 18.016
 
 def log(*a): print(bkenv.now().strftime("%H:%M:%S"), "libre:", *a, flush=True)
 def state():
-    try: return json.loads(STATE.read_text())
+    try: return json.loads(STATE.read_text(encoding="utf-8"))
     except Exception: return {}
 def save_state(**kw):
-    s = state(); s.update(kw); RAW.mkdir(parents=True, exist_ok=True); STATE.write_text(json.dumps(s, indent=2, default=str))
+    s = state(); s.update(kw); RAW.mkdir(parents=True, exist_ok=True); STATE.write_text(json.dumps(s, indent=2, default=str), encoding="utf-8")
 
 def to_local(ts):
     if ts.tzinfo is None: ts = ts.replace(tzinfo=dt.timezone.utc)   # FactoryTimestamp is UTC
@@ -27,7 +27,7 @@ def fetch():
     import keyring
     from pylibrelinkup import PyLibreLinkUp, APIUrl
     from pylibrelinkup.exceptions import RedirectError
-    cfg = json.loads(CFG.read_text())
+    cfg = json.loads(CFG.read_text(encoding="utf-8"))
     pw = keyring.get_password(SERVICE, cfg["email"])
     if not pw: raise RuntimeError("No LibreLinkUp password in the Keychain; run scripts/libre_login.py")
     region = APIUrl.from_string(cfg.get("region", "AP"))
@@ -35,7 +35,7 @@ def fetch():
         c = PyLibreLinkUp(email=cfg["email"], password=pw, api_url=region); c.authenticate()
     except RedirectError as e:
         c = PyLibreLinkUp(email=cfg["email"], password=pw, api_url=e.region); c.authenticate()
-        cfg["region"] = e.region.name; CFG.write_text(json.dumps(cfg, indent=2))
+        cfg["region"] = e.region.name; CFG.write_text(json.dumps(cfg, indent=2), encoding="utf-8")
     from uuid import UUID
     raw = c._get_graph_data_json(UUID(cfg["patient_id"]))   # parsed by hand: the library rejects an empty (warming-up) sensor
     return parse_graph(raw)
@@ -63,11 +63,11 @@ def merge(readings):
     for t, v in readings: by_day.setdefault(t.date().isoformat(), {})[t.strftime("%H:%M")] = v
     for day, vals in by_day.items():
         p = RAW / day[:4] / f"{day}.json"; p.parent.mkdir(parents=True, exist_ok=True)
-        old = json.loads(p.read_text()) if p.exists() else {"date": day, "unit": "mmol/L", "readings": {}}
+        old = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {"date": day, "unit": "mmol/L", "readings": {}}
         n0 = len(old["readings"]); old["readings"].update(vals)
         old["readings"] = dict(sorted(old["readings"].items()))
         if len(old["readings"]) != n0 or not p.exists():
-            p.write_text(json.dumps(old, indent=1)); touched.append(p)
+            p.write_text(json.dumps(old, indent=1), encoding="utf-8"); touched.append(p)
     return touched
 
 def main():
