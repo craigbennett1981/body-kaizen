@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Thresholds</title>
+<title>How your numbers are judged</title>
 <link rel="stylesheet" href="style.css">
 <style>
 body{padding:24px 16px} main{max-width:1100px;margin:0 auto}
@@ -44,7 +44,7 @@ fetch('/api/thresholds').then(r => r.json()).then(T => {
   body += sec('Health score reference', `<p class="note">Each marker scores 100 at "top" (a fit, athletic ${A.age??''}-year-old ${esc(A.sex||'')}), 50 at "average" and 0 at "poor", straight lines between. Domain weights are a judgement informed by the evidence, not a validated model; use the score to track your own change.</p>` +
     tbl(['Domain','Weight','Marker','Top','Average','Poor','Unit','Weight in domain'],
       A.domains.flatMap(d => d.markers.map((m,i)=>`<tr>${i===0?`<td class="k" rowspan="${d.markers.length}">${esc(d.label)}</td><td rowspan="${d.markers.length}">${d.weight}</td>`:''}<td>${esc(m.key.replace(/_/g,' '))}${m.verify?'<span class="tag">verify</span>':''}</td><td>${m.top??'–'}</td><td>${m.avg??'–'}</td><td>${m.poor??'–'}</td><td>${esc(m.unit||'')}</td><td>${m.weight}</td></tr>`))), true);
-  document.getElementById('r').innerHTML = `<div class="top"><div><h1>Thresholds</h1><p class="sub">Every number the dashboard judges you against, and where it comes from. Sections marked "your own settings" show the targets you have set; the rest are the dashboard's built-in rules.</p></div><a href="/">Back to the dashboard</a></div>
+  document.getElementById('r').innerHTML = `<div class="top"><div><h1>How your numbers are judged</h1><p class="sub">Every number the dashboard judges you against, and where it comes from. Sections marked "your own settings" show the targets you have set; the rest are the dashboard's built-in rules.</p></div><a href="/">Back to the dashboard</a></div>
     <nav class="toc">${secs.map(s=>`<a href="#${slug(s)}">${esc(s)}</a>`).join('')}</nav>${body}
     <p class="note" style="margin-top:24px">"Inferred" means a recognised guideline clearly underlies the number but isn't formally cited. "Heuristic" means a hand-set judgement. These are self-tracking aids, not medical advice.</p>
     <p class="note"><b>We make a best effort to get these right</b> and to say where each one comes from, but guidelines change and we can get them wrong. If you spot a problem, please <a href="https://github.com/craigbennett1981/body-kaizen/issues" target="_blank" rel="noopener">raise a GitHub issue</a>.</p>`;

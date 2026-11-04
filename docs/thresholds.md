@@ -1,7 +1,7 @@
 # Thresholds
 
 Every number Body Kaizen judges your data against, where it is defined and where it comes from. The dashboard
-shows the same list, with your own values filled in, at **Thresholds** in the header (`/thresholds.html`).
+shows the same list, with your own values filled in, on **How your numbers are judged**, linked at the foot of the dashboard (`/thresholds.html`).
 
 Two kinds:
 
@@ -10,7 +10,7 @@ Two kinds:
   target and the resting-HR walk-only line), `markers.yaml` (green and amber bands, test intervals and notes for
   every longevity marker), `athlete.yaml` (the health score's top / average / poor reference points) and
   `exercises.yaml` (`training_plan`: rep range, sets, deload rhythm, weekly sets guide). Change them there; the
-  Thresholds page always shows what is in force.
+  page always shows what is in force.
 - **Rules fixed in the code**, listed below. They live in `app/thresholds.py` (`RULES`) as well, so the page and
   this file must be edited together.
 
