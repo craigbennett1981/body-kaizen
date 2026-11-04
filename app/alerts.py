@@ -59,7 +59,7 @@ def compute(today=None):
                 was = longevity.status(m, prev[-1][1], ref) if prev else None
                 if rank[now] > 0 and (was is None or rank[now] > rank[was]):
                     add(f"lab-{k}", latest["date"], f"{m['name']} is {'off target' if now == 'red' else 'in the amber zone'}",
-                        f"{m['name']} {r['value']:g} {r.get('unit','')} on {_d(latest['date']).strftime('%-d %b')}" + (f", was {prev[-1][1]:g}" if prev else ", first result") + ".",
+                        f"{m['name']} {r['value']:g} {r.get('unit','')} on {_d(latest['date']).day} {_d(latest['date']):%b}" + (f", was {prev[-1][1]:g}" if prev else ", first result") + ".",
                         (longevity.WHY.get(k) or "") + " Discuss it with your doctor; the Longevity tab shows the target range.")
 
     # 4. Protein under 1.4 g/kg (7-day average of complete days)
