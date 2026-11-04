@@ -197,6 +197,8 @@ name, start date and timezone.
 computer's own folder picker. It creates the folder from the starter files (as a git repository if you tick the box),
 remembers the choice in `~/.body-kaizen/config.json` and opens the dashboard on it. `FT_DATA` still wins when set.
 
+<img src="docs/img/setup.png" width="540" alt="First run: choose where your data lives, with the computer's own folder picker">
+
 Or by hand, in its own private repository:
 
 ```bash
@@ -230,6 +232,8 @@ syncs; undo it with `scripts/setup_mac.sh --uninstall`.
   email and password on the Connections page. Readings arrive every 30 minutes.
 
 Both need their libraries: `scripts/setup_mac.sh` installs them, or `pip install 'body-kaizen[all]'`.
+
+<img src="docs/img/connections.png" width="480" alt="Connections: log in to LibreLinkUp and Garmin Connect from the dashboard">
 
 **Or install it from PyPI** instead of cloning (you won't get `setup_mac.sh` or the docs, but nothing else is missing):
 
