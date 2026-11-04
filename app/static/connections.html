@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="bk-token" content="">
+<title>Connections</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body{padding:24px 16px} main{max-width:680px;margin:0 auto}
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:20px 22px 18px;margin-top:18px}
+.card h2{margin:0 0 4px;font-size:18px;display:flex;align-items:center;gap:8px}
+.st{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--muted)} .st.ok{background:var(--good)} .st.err{background:var(--bad)} .st.warn{background:var(--warn)}
+.facts{margin:10px 0 0;font-size:14px;line-height:1.6} .facts b{font-weight:600}
+form{margin-top:14px;display:grid;gap:10px}
+label{display:grid;gap:4px;font-weight:600;font-size:14px}
+input[type=email],input[type=password]{font:inherit;font-weight:400;padding:8px 10px;border-radius:8px;border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+button{font:inherit;padding:8px 14px;border-radius:8px;border:1px solid var(--rule);background:var(--surface);color:var(--ink);cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600} button:disabled{opacity:.5;cursor:default}
+.msg{margin:10px 0 0;font-size:13.5px;min-height:1.2em} .msg.ok{color:var(--good)} .msg.err{color:var(--bad)}
+.note{color:var(--muted);font-size:12.5px;margin:10px 0 0}
+code{font-size:12.5px} [hidden]{display:none!important}
+</style></head>
+<body><main>
+<div class="top"><div><h1>Connections</h1><p class="sub">Link the services the dashboard pulls from. Passwords go to this computer's keychain, never into your data or code folder, and nothing here leaves this computer except the login itself.</p></div><a href="/">Back to the dashboard</a></div>
+
+<section class="card" id="libre" aria-labelledby="libre-h">
+  <h2 id="libre-h"><span class="st" id="libre-dot" aria-hidden="true"></span>FreeStyle Libre (LibreLinkUp)</h2>
+  <p class="sub" style="margin:0">Glucose from your sensor every 30 minutes, matched to your meals. It uses a LibreLinkUp follower account that your LibreLink app shares with.</p>
+  <div class="facts" id="libre-facts"></div>
+  <form id="libre-form" hidden autocomplete="on">
+    <label>LibreLinkUp email<input type="email" id="libre-email" autocomplete="username" required></label>
+    <label>LibreLinkUp password<input type="password" id="libre-pw" autocomplete="current-password" required></label>
+    <div class="row"><button class="primary" id="libre-go" type="submit">Connect</button><button type="button" id="libre-cancel" hidden>Cancel</button></div>
+  </form>
+  <div class="row" id="libre-acts" hidden><button id="libre-pull">Pull now</button><button id="libre-change">Change login</button><button id="libre-off">Disconnect</button></div>
+  <p class="msg" id="libre-msg" role="status" aria-live="polite"></p>
+  <p class="note">No LibreLinkUp account yet? In the LibreLink app: Menu › Connected Apps › LibreLinkUp › Add connection, then accept the invite in the LibreLinkUp app and log in here with that account.</p>
+</section>
+
+<section class="card" aria-labelledby="garmin-h">
+  <h2 id="garmin-h"><span class="st" id="garmin-dot" aria-hidden="true"></span>Garmin Connect</h2>
+  <p class="sub" style="margin:0" id="garmin-sub">Coming next: log in here. For now run <code>body-kaizen garmin-login</code> (or <code>.venv/bin/python scripts/garmin_login.py</code>) once.</p>
+</section>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+let TOKEN = (document.querySelector('meta[name="bk-token"]')||{}).content || '';
+async function post(url, body){
+  const go = () => fetch(url, {method:'POST', headers:{'Content-Type':'application/json','X-BK-Token':TOKEN}, body: JSON.stringify(body||{})});
+  let r = await go();
+  if(r.status === 403){ try{ TOKEN = (await (await fetch('/api/session',{cache:'no-store'})).json()).token || TOKEN; }catch(e){} r = await go(); }
+  let j = {}; try{ j = await r.json(); }catch(e){}
+  return {status: r.status, ...j};
+}
+const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+function ago(iso){ if(!iso) return null; const m = Math.round((Date.now() - new Date(iso)) / 60000);
+  return m < 1 ? 'just now' : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m/60)} h ago` : `${Math.round(m/1440)} d ago`; }
+const hm = iso => iso ? iso.slice(11,16) : '';
+const msg = (t, kind) => { const m = $('#libre-msg'); m.className = 'msg' + (kind ? ' '+kind : ''); m.textContent = t || ''; };
+let L = null, editing = false, poll = null;
+
+function render(){
+  const f = $('#libre-facts'), dot = $('#libre-dot');
+  const failed = L.last_error && (!L.last_success || L.last_error_at > L.last_success);
+  dot.className = 'st' + (L.connected ? (failed ? ' err' : L.last_success ? ' ok' : ' warn') : '');
+  if(!L.installed){
+    f.innerHTML = `The Libre packages aren't installed. Run <code>pip install 'body-kaizen[libre]'</code> (in a clone: <code>.venv/bin/pip install -r requirements.txt</code>), then restart the dashboard.`;
+  } else if(L.connected){
+    const lines = [`Connected as <b>${esc(L.email)}</b> (region ${esc(L.region||'?')})`];
+    if(L.pulling) lines.push('Pulling now…');
+    else if(failed) lines.push(`<span style="color:var(--bad)">Last pull failed ${ago(L.last_error_at)}: ${esc(L.last_error)}</span>`);
+    else if(L.last_success){
+      const stale = L.last_reading && (Date.now() - new Date(L.last_reading)) > 3*3600e3;
+      const when = L.last_reading ? (stale ? `on ${new Date(L.last_reading).toLocaleDateString('en-GB',{day:'numeric',month:'short'})} at ${hm(L.last_reading)}` : `at ${hm(L.last_reading)}`) : '';
+      lines.push(`Last pull ${ago(L.last_success)}${L.latest_mmol!=null ? ` · latest <b>${L.latest_mmol.toFixed(1)} mmol/L</b> ${when}` : ' · no readings yet'}`);
+      if(stale) lines.push(`<span style="color:var(--warn)">The login works, but LibreLinkUp has had nothing new since then. Is a sensor active and is the LibreLink app still sharing?</span>`);
+    }
+    else lines.push('Not pulled yet.');
+    if(L.blocked) lines.push(`<span style="color:var(--warn)">Sync is off: ${esc(L.blocked)}</span>`);
+    if(L.legacy) lines.push('<span class="note">Using an older login from ~/.foodtracker. Connect again here to move it.</span>');
+    f.innerHTML = lines.join('<br>');
+  } else f.innerHTML = 'Not connected.';
+  const showForm = L.installed && (!L.connected || editing);
+  $('#libre-form').hidden = !showForm; $('#libre-acts').hidden = !L.connected || editing;
+  $('#libre-cancel').hidden = !(L.connected && editing);
+  $('#libre-go').textContent = L.connected ? 'Save new login' : 'Connect';
+  $('#libre-pull').disabled = !!L.pulling || !!L.blocked;
+  if(showForm && !$('#libre-email').value && L.email) $('#libre-email').value = L.email;
+  if(!L.pulling && $('#libre-msg').textContent === 'Pulling…') msg('');
+  clearTimeout(poll); if(L.pulling) poll = setTimeout(load, 2500);
+}
+async function load(){ try{ L = (await (await fetch('/api/connections',{cache:'no-store'})).json()).libre; render(); }catch(e){ msg('Could not reach the dashboard.', 'err'); } }
+
+$('#libre-form').onsubmit = async e => {
+  e.preventDefault();
+  const pw = $('#libre-pw');
+  $('#libre-go').disabled = true; msg('Logging in to LibreLinkUp…');
+  const r = await post('/api/connections/libre/connect', {email: $('#libre-email').value, password: pw.value}).catch(() => ({error:'Could not reach the dashboard.'}));
+  $('#libre-go').disabled = false;
+  if(r.error){ msg(r.error, 'err'); return; }
+  pw.value = ''; editing = false; L = r.libre;
+  const c = r.connected_as || {};
+  msg(`Connected${c.patient ? ` to ${c.patient}'s sensor` : ''}.${c.latest ? ` Latest reading ${c.latest.mmol.toFixed(1)} mmol/L at ${hm(c.latest.time)}.` : ' No readings yet: the sensor may still be warming up.'}`, 'ok');
+  render(); if(r.pull_started) setTimeout(load, 2500);
+};
+$('#libre-change').onclick = () => { editing = true; msg(''); render(); $('#libre-pw').focus(); };
+$('#libre-cancel').onclick = () => { editing = false; $('#libre-pw').value = ''; msg(''); render(); };
+$('#libre-pull').onclick = async () => {
+  const r = await post('/api/connections/libre/pull');
+  if(r.error){ msg(r.error, 'err'); return; }
+  L = r.libre; msg(r.pull_started ? 'Pulling…' : 'A pull is already running.'); render(); setTimeout(load, 2500);
+};
+$('#libre-off').onclick = async () => {
+  if($('#libre-off').dataset.sure !== '1'){ $('#libre-off').dataset.sure = '1'; $('#libre-off').textContent = 'Click again to disconnect'; return; }
+  const r = await post('/api/connections/libre/disconnect');
+  $('#libre-off').dataset.sure = ''; $('#libre-off').textContent = 'Disconnect';
+  if(r.error){ msg(r.error, 'err'); return; }
+  L = r.libre; msg('Disconnected. The password is gone from the keychain; readings already pulled stay in your data folder.', 'ok'); render();
+};
+fetch('/api/garmin',{cache:'no-store'}).then(r=>r.json()).then(g => {
+  $('#garmin-dot').className = 'st' + (g.logged_in ? ' ok' : '');
+  if(g.logged_in) $('#garmin-sub').textContent = 'Logged in (tokens in ~/.garminconnect). Logging in from this page is coming next.';
+}).catch(()=>{});
+load();
+</script></body></html>

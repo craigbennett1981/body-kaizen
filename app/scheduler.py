@@ -88,21 +88,34 @@ def save_weekly_review(start):
     print("weekly review saved:", p.name, flush=True)
 
 LIBRE = CODE / "scripts" / "libre_pull.py"
-LIBRE_CFG = bkenv.libre_cfg()
 LIBRE_EVERY = 30 * 60
 _libre_last = [0.0]
+_libre_running = [False]
+
+def libre_running(): return _libre_running[0]
+
+def _libre_go():
+    _libre_running[0] = True
+    try:
+        r = subprocess.run([sys.executable, str(LIBRE)], cwd=ROOT, env=bkenv.child_env(), capture_output=True, text=True, timeout=300)
+        out = (r.stdout + r.stderr).strip()
+        if out: print(out, flush=True)
+    except Exception as e:
+        print("libre:", e, flush=True)
+    finally:
+        _libre_running[0] = False
+
+def libre_pull_now():
+    """Pull now (after connecting, or from the Connections page). False if one is running or sync is off."""
+    if _libre_running[0] or bkenv.sync_blocked() or not bkenv.libre_cfg().exists(): return False
+    _libre_last[0] = time.time()
+    threading.Thread(target=_libre_go, daemon=True).start()
+    return True
+
 def libre_tick(now):
     """Pull CGM readings every 30 minutes (LibreLinkUp keeps ~12 h, so a missed run loses nothing)."""
-    if bkenv.sync_blocked() or not LIBRE_CFG.exists() or time.time() - _libre_last[0] < LIBRE_EVERY: return
-    _libre_last[0] = time.time()
-    def go():
-        try:
-            r = subprocess.run([sys.executable, str(LIBRE)], cwd=ROOT, env=bkenv.child_env(), capture_output=True, text=True, timeout=300)
-            out = (r.stdout + r.stderr).strip()
-            if out: print(out, flush=True)
-        except Exception as e:
-            print("libre:", e, flush=True)
-    threading.Thread(target=go, daemon=True).start()
+    if time.time() - _libre_last[0] < LIBRE_EVERY: return
+    libre_pull_now()
 
 def _loop():
     time.sleep(20)

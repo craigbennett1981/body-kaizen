@@ -117,7 +117,7 @@ def save_profile(name, start, timezone):
 
 # Libre login: config file and keychain service. New installs use ~/.body-kaizen; an earlier
 # ~/.foodtracker login keeps working (read only) until libre_login.py is run again.
-LIBRE_CFG_NEW = pathlib.Path("~/.body-kaizen/libre.json").expanduser()
+LIBRE_CFG_NEW = CONFIG.parent / "libre.json"   # beside config.json (BK_CONFIG moves both: tests)
 LIBRE_CFG_OLD = pathlib.Path("~/.foodtracker/libre.json").expanduser()
 LIBRE_SERVICE_NEW, LIBRE_SERVICE_OLD = "body-kaizen-librelinkup", "foodtracker-librelinkup"
 

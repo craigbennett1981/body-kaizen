@@ -478,4 +478,4 @@ dialog#setup::backdrop{background:rgba(0,0,0,.55)}
 .hs-tip table{table-layout:fixed}
 .hs-tip td{white-space:normal;overflow-wrap:break-word}
 .hs-tip td:first-child{width:64px;white-space:nowrap}
-.site-foot{max-width:1280px;margin:0 auto 28px;padding:14px 32px 0;border-top:1px solid var(--rule);display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;font-size:13px;color:var(--muted)} .site-foot a{font-weight:600} @media (max-width:900px){.site-foot{padding:14px 16px 0}}
+.site-foot{max-width:1280px;margin:0 auto 28px;padding:14px 32px 0;border-top:1px solid var(--rule);display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;font-size:13px;color:var(--muted)} .site-foot a{font-weight:600} .site-foot span+a{margin-left:14px} @media (max-width:900px){.site-foot{padding:14px 16px 0}}

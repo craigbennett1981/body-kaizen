@@ -27,6 +27,12 @@ fields are mapped, `garmin_pull.py --remap` re-applies them without fetching aga
 
 Adds glucose readings from a FreeStyle Libre sensor shared through LibreLinkUp.
 
+Connect from the dashboard: **Connections** (at the foot of every page) › FreeStyle Libre, then your LibreLinkUp
+email and password. The page shows when it last pulled and the latest reading, warns when LibreLinkUp has nothing
+new (an expired sensor, or sharing turned off), and can pull now or disconnect (which removes the password from the
+keychain; readings already pulled stay). The password is sent once, to this computer's dashboard only, and never
+written to a file or log. Or from the console:
+
 ```bash
 .venv/bin/python scripts/libre_login.py     # once: email saved to ~/.body-kaizen/libre.json, password to the keychain
 ```

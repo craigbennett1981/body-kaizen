@@ -27,6 +27,7 @@ import glance  # noqa: E402
 import workouts  # noqa: E402
 import thresholds  # noqa: E402
 import datasetup  # noqa: E402
+import connections  # noqa: E402
 import muscles  # noqa: E402
 import pace  # noqa: E402
 
@@ -50,6 +51,7 @@ ROUTES = {
     "/api/body": lambda q: data.body(),
     "/api/reference": lambda q: data.reference(),
     "/api/day": lambda q: data.day_detail(q.get("date", [""])[0]),
+    "/api/connections": lambda q: connections.status(),
     "/api/garmin": lambda q: {**scheduler.status(), "last_watch_date": insights.last_watch_date(), "watch_upto": glance.watch_upto()},
     "/api/insights": lambda q: insights.for_day(q.get("date", [""])[0]),
     "/api/week": lambda q: weekly.week(q.get("start", [None])[0]),
@@ -224,6 +226,13 @@ class Handler(BaseHTTPRequestHandler):
         if u.path == "/api/todo/toggle":
             item = todo.toggle(urllib.parse.parse_qs(u.query).get("id", [""])[0])
             return self._send(200 if item else 404, json.dumps(item or {"error": "no such item"}), "application/json")
+        if u.path in ("/api/connections/libre/connect", "/api/connections/libre/disconnect", "/api/connections/libre/pull"):
+            body = self._json_body()
+            if body is None: return
+            act = u.path.rsplit("/", 1)[1]
+            code, res = (connections.libre_connect(body) if act == "connect" else
+                         connections.libre_disconnect() if act == "disconnect" else connections.libre_pull())
+            return self._send(code, json.dumps(res), "application/json")
         if u.path == "/api/garmin/sync":
             st = scheduler.status()
             if st["blocked"]:
