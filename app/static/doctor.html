@@ -17,27 +17,28 @@ th{font-weight:600;color:var(--muted)} td.n,th.n{text-align:right;font-variant-n
 <body><main id="r"><p class="sub">Loading…</p></main>
 <script>
 const $ = s => document.querySelector(s);
-const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 const sd = s => new Date(s+'T00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
 const f = (v, d) => v==null ? '–' : (+v).toLocaleString('en-GB',{maximumFractionDigits:d??2});
 fetch('/api/doctor').then(r => r.json()).then(R => {
   const p = R.profile, t = R.trends, w = R.weight;
   let h = `<div class="bar"><div><h1>Health summary${R.name ? ': ' + esc(R.name) : ''}</h1>
-    <div class="sub">${p.sex||'male'}, ${p.age} y, ${p.height_cm} cm · data to ${sd(R.as_of)} · printed ${sd(R.generated)}</div></div>
-    <div class="noprint"><button onclick="window.print()">Print / save as PDF</button> <a href="/#longevity">Back</a></div></div>`;
-  h += `<h2>Questions for today</h2><ol>${R.questions.map(q=>`<li>${q}</li>`).join('')}</ol>`;
+    <div class="sub">${esc(p.sex||'male')}, ${esc(p.age)} y, ${esc(p.height_cm)} cm · data to ${sd(R.as_of)} · printed ${sd(R.generated)}</div></div>
+    <div class="noprint"><button id="print">Print / save as PDF</button> <a href="/#longevity">Back</a></div></div>`;
+  h += `<h2>Questions for today</h2><ol>${R.questions.map(q=>`<li>${esc(q)}</li>`).join('')}</ol>`;
   h += `<h2>Blood results</h2><div class="wrap"><table><tr><th>Test</th><th>Unit</th>${R.lab_dates.map(d=>`<th class="n">${sd(d)}</th>`).join('')}<th>Lab range</th></tr>` +
-    R.labs.map(r => `<tr><td>${r.name}</td><td>${r.unit}</td>${r.values.map((v,i)=>`<td class="n">${v==null?'':`${f(v)}${r.flags[i]?` <span class="flag">${r.flags[i]}</span>`:''}`}</td>`).join('')}<td>${r.ref||''}</td></tr>`).join('') + `</table></div>
+    R.labs.map(r => `<tr><td>${esc(r.name)}</td><td>${esc(r.unit)}</td>${r.values.map((v,i)=>`<td class="n">${v==null?'':`${f(v)}${r.flags[i]?` <span class="flag">${esc(r.flags[i])}</span>`:''}`}</td>`).join('')}<td>${esc(r.ref||'')}</td></tr>`).join('') + `</table></div>
     <p class="sub">${R.lab_names.length ? esc(R.lab_names.join(', ')) + '. ' : ''}H/L = flagged by the lab.</p>`;
-  h += `<h2>Not yet tested</h2><p>${R.untested.map(u=>u.name).join(', ')}.</p>`;
+  h += `<h2>Not yet tested</h2><p>${esc(R.untested.map(u=>u.name).join(', '))}.</p>`;
   const b = R.bp;
-  h += `<h2>Blood pressure</h2><p>Average of ${b.n} recent reading${b.n!==1?'s':''}: <b>${b.avg_sys}/${b.avg_dia} mmHg</b> (${b.category}, ACC/AHA 2017). Home cuff.</p>
-    <table><tr><th>Date</th><th>Time</th><th class="n">Systolic</th><th class="n">Diastolic</th><th class="n">Pulse</th></tr>${b.readings.slice().reverse().map(x=>`<tr><td>${sd(x.date)}</td><td>${x.time||''}</td><td class="n">${x.sys}</td><td class="n">${x.dia}</td><td class="n">${x.pulse??''}</td></tr>`).join('')}</table>`;
-  h += `<h2>Body composition (InBody 770)</h2><table><tr><th>Date</th><th class="n">Weight kg</th><th class="n">Muscle kg</th><th class="n">Fat kg</th><th class="n">Body fat %</th><th class="n">Visceral</th><th class="n">Phase angle</th></tr>${R.inbody.slice().reverse().map(x=>`<tr><td>${sd(x.date)}</td><td class="n">${f(x.weight_kg,1)}</td><td class="n">${f(x.smm_kg,1)}</td><td class="n">${f(x.fat_kg,1)}</td><td class="n">${f(x.pbf_pct,1)}</td><td class="n">${x.visceral_level??''}</td><td class="n">${x.phase_angle??''}</td></tr>`).join('')}</table>
+  h += `<h2>Blood pressure</h2><p>Average of ${b.n} recent reading${b.n!==1?'s':''}: <b>${esc(b.avg_sys)}/${esc(b.avg_dia)} mmHg</b> (${esc(b.category)}, ACC/AHA 2017). Home cuff.</p>
+    <table><tr><th>Date</th><th>Time</th><th class="n">Systolic</th><th class="n">Diastolic</th><th class="n">Pulse</th></tr>${b.readings.slice().reverse().map(x=>`<tr><td>${sd(x.date)}</td><td>${esc(x.time||'')}</td><td class="n">${esc(x.sys)}</td><td class="n">${esc(x.dia)}</td><td class="n">${esc(x.pulse??'')}</td></tr>`).join('')}</table>`;
+  h += `<h2>Body composition (InBody 770)</h2><table><tr><th>Date</th><th class="n">Weight kg</th><th class="n">Muscle kg</th><th class="n">Fat kg</th><th class="n">Body fat %</th><th class="n">Visceral</th><th class="n">Phase angle</th></tr>${R.inbody.slice().reverse().map(x=>`<tr><td>${sd(x.date)}</td><td class="n">${f(x.weight_kg,1)}</td><td class="n">${f(x.smm_kg,1)}</td><td class="n">${f(x.fat_kg,1)}</td><td class="n">${f(x.pbf_pct,1)}</td><td class="n">${esc(x.visceral_level??'')}</td><td class="n">${esc(x.phase_angle??'')}</td></tr>`).join('')}</table>
     ${w.first&&w.last?`<p class="sub">Home scale: ${f(w.first[1],1)} kg on ${sd(w.first[0])} → ${f(w.last[1],1)} kg on ${sd(w.last[0])}.</p>`:''}`;
-  h += `<h2>Last 30 days (watch and food log)</h2><div class="grid">${t.map(x=>`<div>${x.name}: <b>${x.value==null?'–':f(x.value, x.unit==='h/night'||x.unit==='bpm'||x.unit==='ms'?1:0)} ${x.unit}</b> <span class="sub">(${x.n} days)</span></div>`).join('')}
-    <div>Training: <b>${R.training.gym_30d} gym, ${R.training.cardio_30d} cardio sessions</b></div></div>`;
+  h += `<h2>Last 30 days (watch and food log)</h2><div class="grid">${t.map(x=>`<div>${esc(x.name)}: <b>${x.value==null?'–':f(x.value, x.unit==='h/night'||x.unit==='bpm'||x.unit==='ms'?1:0)} ${esc(x.unit)}</b> <span class="sub">(${esc(x.n)} days)</span></div>`).join('')}
+    <div>Training: <b>${esc(R.training.gym_30d)} gym, ${esc(R.training.cardio_30d)} cardio sessions</b></div></div>`;
   h += `<p class="foot">Self-tracked with a Garmin watch, home BP cuff and food log. Lab values are as reported by the lab; nothing has been converted.</p>`;
   $('#r').innerHTML = h;
+  $('#print').addEventListener('click', () => window.print());
 }).catch(() => { $('#r').innerHTML = '<p>Couldn’t load the report. Is the dashboard running?</p>'; });
 </script></body></html>

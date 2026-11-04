@@ -55,7 +55,7 @@ def build(days=7, end=None, date=None, idx=None):
     p_ex = data.ROOT / "exercises.yaml"
     acts = {**ACTIVITIES, **((data._load(p_ex).get("activities") if p_ex.exists() else None) or {})}
     if date:
-        p = data.ROOT / "days" / date[:4] / f"{date}.yaml"
+        p = data.day_file(date)
         d = data._jsonable(data._load(p)) if p.exists() else {}
         ex = d.get("exercise") or []
         i = int(idx or 0)

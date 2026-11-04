@@ -3,7 +3,7 @@
 
 run:  python3 app/server.py            -> http://127.0.0.1:8765
 """
-import datetime as dt, hmac, importlib, json, os, pathlib, secrets, sys, time, traceback, urllib.parse
+import datetime as dt, hmac, importlib, json, os, pathlib, re, secrets, sys, time, traceback, urllib.parse
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -43,6 +43,23 @@ ALLOWED_ORIGINS = {f"http://{h}" for h in ALLOWED_HOSTS}
 # is served); every request that changes anything must send it back in the X-BK-Token header.
 SESSION_TOKEN = secrets.token_urlsafe(32)
 MAX_BODY = 10_000
+CSP = ("default-src 'self'; script-src 'self'{nonce}; style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
+       "font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'")
+# Query parameters the API takes, and what each must look like. Anything else is refused before it reaches the code
+# (a date is used to build a file path).
+PARAM_OK = {"date": r"\d{4}-\d{2}-\d{2}", "start": r"\d{4}-\d{2}-\d{2}", "end": r"\d{4}-\d{2}-\d{2}",
+            "days": r"\d{1,4}", "i": r"\d{1,3}", "now": r"\d{2}:\d{2}", "id": r"[A-Za-z0-9_.:-]{1,80}"}
+
+
+def params_ok(q):
+    import re
+    for k, vals in q.items():
+        pat = PARAM_OK.get(k)
+        if pat is None or any(not re.fullmatch(pat, v) for v in vals): return False
+        if k in ("date", "start", "end"):
+            try: [dt.date.fromisoformat(v) for v in vals]
+            except ValueError: return False
+    return True
 SETUP_MODE = data.bkenv.needs_data_setup()   # no data folder yet: serve only the first-run folder setup
 
 ROUTES = {
@@ -132,12 +149,20 @@ def save_setup(body):
     return None
 
 class Handler(BaseHTTPRequestHandler):
-    def _send(self, code, body, ctype):
+    def _send(self, code, body, ctype, nonce=None):
         b = body if isinstance(body, bytes) else body.encode()
         self.send_response(code)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(b)))
         self.send_header("Cache-Control", "no-store")
+        # Defence in depth against injected markup: only scripts from this server, and on pages only the ones carrying
+        # this response's nonce, may run. No inline handlers, no eval, no framing by other sites, no outside requests.
+        self.send_header("Content-Security-Policy", CSP.format(nonce=f" 'nonce-{nonce}'" if nonce else ""))
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("Cross-Origin-Opener-Policy", "same-origin")
+        self.send_header("Cross-Origin-Resource-Policy", "same-origin")
         self.end_headers()
         self.wfile.write(b)
 
@@ -157,7 +182,9 @@ class Handler(BaseHTTPRequestHandler):
             elif u.path.startswith("/api/"):
                 _maybe_reload()
             if u.path in ROUTES:
-                res = ROUTES[u.path](urllib.parse.parse_qs(u.query))
+                q = urllib.parse.parse_qs(u.query)
+                if not params_ok(q): return self._send(400, '{"error":"bad parameter"}', "application/json")
+                res = ROUTES[u.path](q)
                 if res is None: return self._send(404, '{"error":"not found"}', "application/json")
                 return self._send(200, json.dumps(res), "application/json")
             name = "index.html" if u.path in ("/", "") else u.path.lstrip("/")
@@ -166,8 +193,12 @@ class Handler(BaseHTTPRequestHandler):
                 ctype = {"html": "text/html; charset=utf-8", "js": "text/javascript; charset=utf-8", "css": "text/css; charset=utf-8",
                          "woff2": "font/woff2", "txt": "text/plain; charset=utf-8"}.get(os.path.splitext(f)[1][1:], "application/octet-stream")
                 with open(f, "rb") as fh: body = fh.read()
-                if name.endswith(".html"): body = body.replace(b'name="bk-token" content=""', f'name="bk-token" content="{SESSION_TOKEN}"'.encode(), 1)
-                return self._send(200, body, ctype)
+                nonce = None
+                if name.endswith(".html"):
+                    body = body.replace(b'name="bk-token" content=""', f'name="bk-token" content="{SESSION_TOKEN}"'.encode(), 1)
+                    nonce = secrets.token_urlsafe(16)
+                    body = re.sub(rb"<script\b", f'<script nonce="{nonce}"'.encode(), body, flags=re.IGNORECASE)
+                return self._send(200, body, ctype, nonce)
             self._send(404, "not found", "text/plain")
         except Exception:
             traceback.print_exc()   # details go to the server log only

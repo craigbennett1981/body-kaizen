@@ -37,7 +37,9 @@ let last = null, timer = null;
 const show = (c) => {
   last = c; const m = $('#msg');
   m.className = 'msg ' + (c.ok ? 'ok' : 'err');
-  m.innerHTML = c.ok ? c.message : (c.error || '') + (c.suggest ? ` <button class="linkish" id="usesub">Use ${c.suggest_short} instead</button>` : '');
+  m.textContent = c.ok ? c.message : (c.error || '');
+  if(!c.ok && c.suggest){ const btn = document.createElement('button'); btn.className = 'linkish'; btn.id = 'usesub';
+    btn.textContent = `Use ${c.suggest_short} instead`; m.append(' ', btn); }
   if(c.suggest) $('#usesub').onclick = () => { $('#path').value = c.suggest; check(); };
   $('#gitopt').hidden = !(c.ok && c.mode === 'new' && window.HAS_GIT);
   $('#go').disabled = !c.ok;

@@ -8,7 +8,16 @@
   browser-set `Origin` and `Sec-Fetch-Site` headers, that the body is JSON, and a random token created each time
   the server starts and handed only to the dashboard page (`X-BK-Token`). It never answers CORS preflights or sends
   `Access-Control-Allow-Origin`, so other websites can neither call it nor read its replies. `tests/test_security.py`
-  tries each of these attacks.
+  tries each of these attacks. This stops other websites; it doesn't stop other programs running on your computer,
+  which can read your data folder directly anyway.
+- **Text from your data can't run as code.** Everything the pages show from your files (food and meal names, notes,
+  exercises, lab markers, Claude's comments) is escaped, and a strict Content-Security-Policy lets only the
+  dashboard's own scripts run: each page's scripts carry a random nonce, inline event handlers and `eval` are
+  blocked, and nothing can be loaded from or sent to another site. So if a label photo or lab PDF carried a prompt
+  injection that got markup into a YAML file, it would show as text. The pages also can't be framed by another site
+  (`frame-ancestors 'none'`, `X-Frame-Options: DENY`).
+- **API parameters are checked.** Dates must be real dates and numbers numbers before anything reaches the code
+  (a date becomes part of a file path), and unknown parameters are refused.
 - **No accounts, cloud or telemetry.** Nothing is sent anywhere except to the services you choose to connect.
 - **Your data lives in your data folder** (`FT_DATA`), separate from the code. Keep it in a **private** git
   repository, or no repository at all.

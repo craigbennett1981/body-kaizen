@@ -119,26 +119,26 @@ async function renderDay(date){
   const t = d.targets || {}, tot = d.totals || {}, ev = d.eval || {};
   const cls = k => ev[k] ? (ev[k].ok===true?'good':ev[k].ok===false?'bad':'') : '';
   let h = `<div class="day-head"><div><h1>${fmtDate(date)}</h1>
-    <div><span class="chip">${d.day_type||'rest'} day</span><span class="chip ${d.status}">${d.status}</span>${d.note?`<span class="sub">${esc(d.note)}</span>`:''}</div></div>
+    <div><span class="chip">${esc(d.day_type||'rest')} day</span><span class="chip ${esc(d.status)}">${esc(d.status)}</span>${d.note?`<span class="sub">${esc(d.note)}</span>`:''}</div></div>
     <a id="hs-tile" class="hs-tile" href="#longevity" title="Health score: open the breakdown"></a></div><div id="nextmove"></div>`;
   if(d.totals){
     const live = PC && !PC.complete;   // in progress: colour by pace through the day, not by the full-day total
     const stat = (k,tk) => live && PC.macros[k] ? PC.macros[k].status : liveStatus(tk,tot[k],t);
     const ttl = (k,tk,dp,u) => { const m = live && PC.macros[k]; if(!m) return LIVE_TITLE[liveStatus(tk,tot[k],t)];
       const w = m.kind==='max' ? 'allowed' : 'expected';
-      return `${m.status==='good'?'On pace':m.status==='warn'?'Behind pace':'Well off pace'}: ${fmt(m.eaten,dp)}${u} vs ${fmt(m.expected,dp)}${u} ${w} by ${PC.now}`; };
+      return `${m.status==='good'?'On pace':m.status==='warn'?'Behind pace':'Well off pace'}: ${fmt(m.eaten,dp)}${u} vs ${fmt(m.expected,dp)}${u} ${w} by ${esc(PC.now)}`; };
     const pw = (k,dp) => { const m = PC && PC.macros[k]; if(!m) return '';
       return `<div class="pw">${m.windows.map((w,i) => { const W = PC.windows[i];
         const st = w.state==='now' ? 'now lv-'+m.status : w.state==='later' ? 'later' : 'lv-'+w.state;
         const body = w.state==='later' ? `<b>${fmt(w.plan,dp)}</b>` : `<b>${fmt(w.eaten,dp)}</b><small>/${fmt(w.plan,dp)}</small>`;
-        return `<span class="pw-s ${st}" title="${W.name} (${W.from}–${W.until}): ${w.state==='later'?'plan '+fmt(w.plan,dp):fmt(w.eaten,dp)+' eaten, plan '+fmt(w.plan,dp)}${m.kind==='max'?' (limit)':''}">${body}</span>`; }).join('')}</div>`; };
+        return `<span class="pw-s ${st}" title="${esc(W.name)} (${esc(W.from)}–${esc(W.until)}): ${w.state==='later'?'plan '+fmt(w.plan,dp):fmt(w.eaten,dp)+' eaten, plan '+fmt(w.plan,dp)}${m.kind==='max'?' (limit)':''}">${body}</span>`; }).join('')}</div>`; };
     h += `<div class="macros">` + METRICS.map(([k,lab,u,dp,tk]) =>
       `<div class="m"><div class="lab">${lab}</div>
         <div class="val lv-${stat(k,tk)}" title="${ttl(k,tk,dp,u)}">${fmt(tot[k],dp)}<small>${u}</small>${ARROW(ev[k])}</div>
         <div class="tgt">${tgtText(tk,t)}</div>
         <div class="bar"><i class="lv-${stat(k,tk)}" style="width:${barPct(tk,tot[k],t)}%"></i></div>${pw(k,k==='satfat_g'?1:0)}</div>`).join('') + `</div>
-      ${PC ? `<p class="sub pw-key">Under each macro: ${PC.windows.map(w=>`<span>${w.name} <small>${w.from}–${w.until}</small></span>`).join(' · ')}. Eaten / plan; what's left is re-spread over the windows still to come.${live?` Colours show pace at ${PC.now}.`:''}</p>`:''}
-      <p class="sub daysub">${t.label?'Targets: '+t.label+'.':''}${d.status!=='complete'?' Not judged until the day is complete.':''}${tot.low_confidence_kcal_pct?` ${tot.low_confidence_kcal_pct}% of calories from guessed portions.`:''} Sodium ${fmt(tot.sodium_mg)} mg, caffeine ${fmt(tot.caffeine_mg)} mg.</p>`;
+      ${PC ? `<p class="sub pw-key">Under each macro: ${PC.windows.map(w=>`<span>${esc(w.name)} <small>${esc(w.from)}–${esc(w.until)}</small></span>`).join(' · ')}. Eaten / plan; what's left is re-spread over the windows still to come.${live?` Colours show pace at ${esc(PC.now)}.`:''}</p>`:''}
+      <p class="sub daysub">${t.label?'Targets: '+esc(t.label)+'.':''}${d.status!=='complete'?' Not judged until the day is complete.':''}${tot.low_confidence_kcal_pct?` ${esc(tot.low_confidence_kcal_pct)}% of calories from guessed portions.`:''} Sodium ${fmt(tot.sodium_mg)} mg, caffeine ${fmt(tot.caffeine_mg)} mg.</p>`;
   } else h += `<p class="empty">No food logged.</p>`;
 
   // each number coloured by its share of the day's target: protein and fibre green (a big share helps),
@@ -151,12 +151,12 @@ async function renderDay(date){
   let meals = '';
   for(const [meal, items] of Object.entries(d.meals||{})){
     if(!items || !items.length) continue;
-    meals += `<div class="meal"><h3>${meal[0].toUpperCase()+meal.slice(1)}</h3><table><tr><th>Item</th><th>kcal</th><th>Protein</th><th>Carbs</th><th>Fat</th><th>Sat</th><th>Fibre</th></tr>`;
+    meals += `<div class="meal"><h3>${esc(meal[0].toUpperCase()+meal.slice(1))}</h3><table><tr><th>Item</th><th>kcal</th><th>Protein</th><th>Carbs</th><th>Fat</th><th>Sat</th><th>Fibre</th></tr>`;
     for(const it of items){
       const ps = it.parsed||[]; const sum = {k:0,p:0,c:0,f:0,sf:0,fib:0}; let low=false;
       ps.forEach(c => { for(const k in sum) sum[k]+= (c.macros||{})[k]||0; if(c.conf==='low') low=true; });
       const what = ps.filter(c=>c.item!=='creatine').map(c => `${esc(c.name)}${c.g!=null?` ${c.g}g`:c.ml!=null?` ${c.ml}ml`:c.n!=null?` ×${c.n}`:c.kcal!=null?` (${c.kcal} kcal)`:''}`).join(' + ');
-      meals += `<tr><td>${it.time?`<span class="it-time">${String(it.time).slice(0,5)}</span>`:''}${what||'<em>unresolved</em>'}<span class="raw">${esc(it.raw)}${it.after?` · after ${esc(it.after)}`:''}</span></td>
+      meals += `<tr><td>${it.time?`<span class="it-time">${esc(String(it.time).slice(0,5))}</span>`:''}${what||'<em>unresolved</em>'}<span class="raw">${esc(it.raw)}${it.after?` · after ${esc(it.after)}`:''}</span></td>
         ${shareTd(sum.k,'kcal',0,low?'low':'')}${shareTd(sum.p,'protein_min',1)}${shareTd(sum.c,'carbs',0)}${shareTd(sum.f,'fat',1)}${shareTd(sum.sf,'satfat_max',1)}${shareTd(sum.fib,'fibre_min',1)}</tr>`;
     }
     meals += `</table></div>`;
@@ -166,22 +166,22 @@ async function renderDay(date){
   side += ex.length ? ex.map(e => {
     const bits = [];
     if(e.mode) bits.push(e.mode);
-    if(e.distance_km) bits.push(`${e.distance_km} km`);
-    if(e.distance_m) bits.push(`${e.distance_m} m`);
+    if(e.distance_km) bits.push(`${esc(e.distance_km)} km`);
+    if(e.distance_m) bits.push(`${esc(e.distance_m)} m`);
     if(e.time) bits.push(e.time);
     if(e.distance_km && e.time) bits.push(pace(toSecs(e.time)/e.distance_km)+'/km');
-    if(e.duration_min) bits.push(`${e.duration_min} min`);
-    if(e.hr&&e.hr.avg) bits.push(`HR ${e.hr.avg}${e.hr.max?'/'+e.hr.max:''}`);
-    if(e.kcal&&e.kcal.total) bits.push(`${e.kcal.total} kcal`);
-    if(e.load_kg) bits.push(`${e.load_kg} kg pack`);
+    if(e.duration_min) bits.push(`${esc(e.duration_min)} min`);
+    if(e.hr&&e.hr.avg) bits.push(`HR ${esc(e.hr.avg)}${e.hr.max?'/'+e.hr.max:''}`);
+    if(e.kcal&&e.kcal.total) bits.push(`${esc(e.kcal.total)} kcal`);
+    if(e.load_kg) bits.push(`${esc(e.load_kg)} kg pack`);
     const lifts = (e.lifts||[]).map(l => { const pr = (d.prs||{})[l.ex];
-      return `<tr${pr?' class="pr"':''}><td>${l.ex.replace(/-/g,' ')}${pr?` <span class="pr-star" title="Personal best: ${pr.kg} kg${pr.reps?' × '+pr.reps:pr.metres?' for '+pr.metres+' m':''}" aria-label="personal best">★</span>`:''}${l.note?`<div class="lift-note">💬 ${esc(l.note)}</div>`:''}</td><td>${(l.sets||[]).map(x=>String(x).replace(/^0x/,'bw×')).join(', ')}</td></tr>`; }).join('');
+      return `<tr${pr?' class="pr"':''}><td>${esc(l.ex.replace(/-/g,' '))}${pr?` <span class="pr-star" title="Personal best: ${esc(pr.kg)} kg${pr.reps?' × '+pr.reps:pr.metres?' for '+pr.metres+' m':''}" aria-label="personal best">★</span>`:''}${l.note?`<div class="lift-note">💬 ${esc(l.note)}</div>`:''}</td><td>${(l.sets||[]).map(x=>String(x).replace(/^0x/,'bw×')).join(', ')}</td></tr>`; }).join('');
     const nPr = (e.lifts||[]).filter(l => (d.prs||{})[l.ex]).length;
-    return `<div class="session"><b>${e.type}${e.effort?', '+e.effort:''}</b> <span class="sub">${bits.join(' · ')}${nPr?` · <span class="pr-star">★</span> ${nPr} personal best${nPr>1?'s':''}`:''}</span>${e.note?`<div class="sub">${esc(e.note)}</div>`:''}${coachList(e.coach)}${lifts?`<table>${lifts}</table>`:''}</div>`;
+    return `<div class="session"><b>${esc(e.type)}${e.effort?', '+esc(e.effort):''}</b> <span class="sub">${bits.join(' · ')}${nPr?` · <span class="pr-star">★</span> ${nPr} personal best${nPr>1?'s':''}`:''}</span>${e.note?`<div class="sub">${esc(e.note)}</div>`:''}${coachList(e.coach)}${lifts?`<table>${lifts}</table>`:''}</div>`;
   }).join('') : `<p class="empty">No training recorded.</p>`;
   const kv = [];
-  if(d.weight) kv.push(['Weight', `${d.weight.kg} kg${d.weight.fasted===false?' (not fasted)':''}${d.weight.bf_pct?`, ${d.weight.bf_pct}% fat`:''}`]);
-  ((d.vitals||{}).bp||[]).forEach(b => kv.push([`BP ${b.time||''}`, `${b.sys}/${b.dia}${b.pulse?`, pulse ${b.pulse}`:''}`]));
+  if(d.weight) kv.push(['Weight', `${esc(d.weight.kg)} kg${d.weight.fasted===false?' (not fasted)':''}${d.weight.bf_pct?`, ${esc(d.weight.bf_pct)}% fat`:''}`]);
+  ((d.vitals||{}).bp||[]).forEach(b => kv.push([`BP ${b.time||''}`, `${esc(b.sys)}/${esc(b.dia)}${b.pulse?`, pulse ${esc(b.pulse)}`:''}`]));
   if(d.steps) kv.push(['Steps', fmt(d.steps)]);
   side += `<h2>Body</h2>` + (kv.length ? `<dl class="kv">${kv.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>` : `<p class="empty">Nothing recorded.</p>`);
   h += `<div id="ready"></div><div id="daytl"></div><div id="glucose"></div><div class="notes-tasks"><div id="notes"></div><div id="tasks"></div></div>`;
@@ -194,7 +194,7 @@ async function renderGlance(date){
   const G = await api('/api/glance?date='+date).catch(()=>null);
   if(date !== currentDate || !G) return;
   const nm = $('#nextmove'), rd = $('#ready');
-  if(nm) nm.innerHTML = G.move ? `<div class="nextmove nm-${G.move.kind}"><span class="nm-k">${G.move.text.startsWith('Day done')?'Verdict':'Next move'}</span>${esc(G.move.text)}</div>` : '';
+  if(nm) nm.innerHTML = G.move ? `<div class="nextmove nm-${esc(G.move.kind)}"><span class="nm-k">${G.move.text.startsWith('Day done')?'Verdict':'Next move'}</span>${esc(G.move.text)}</div>` : '';
   const R = G.ready;
   if(!rd) return;
   if(!R || !R.has_data){ rd.innerHTML = ''; return; }
@@ -203,12 +203,12 @@ async function renderGlance(date){
     const diff = v - b, good = higherGood ? diff >= 0 : diff <= 0, big = Math.abs(diff) >= (unit==='ms'?5:3);
     return `<span class="rv">${v}<small>${unit}</small></span><span class="rb ${big?(good?'good':'bad'):''}">${diff>0?'▲':diff<0?'▼':'▬'} vs ${b} normal</span>`; };
   const cells = [
-    ['Sleep', R.sleep ? `<span class="rv">${R.sleep.replace('h','h ')}</span>${R.sleep_score?`<span class="rb ${R.sleep_score>=80?'good':R.sleep_score<60?'bad':''}">score ${R.sleep_score}</span>`:''}` : '<span class="rv">–</span><span class="rb">no sleep data</span>'],
+    ['Sleep', R.sleep ? `<span class="rv">${R.sleep.replace('h','h ')}</span>${R.sleep_score?`<span class="rb ${R.sleep_score>=80?'good':R.sleep_score<60?'bad':''}">score ${esc(R.sleep_score)}</span>`:''}` : '<span class="rv">–</span><span class="rb">no sleep data</span>'],
     ['HRV', vs(R.hrv, R.hrv_base, 'ms', true)],
     ['Resting HR', vs(R.rhr, R.rhr_base, 'bpm', false)],
-    ['Body battery', R.bb_now!=null ? `<span class="rv">${R.bb_now}</span><span class="rb">${R.bb_charge?`+${R.bb_charge} overnight`:R.bb_charge===0?'no overnight charge':'latest'}</span>` : R.bb_charge!=null ? `<span class="rv">+${R.bb_charge}</span><span class="rb">overnight</span>` : '<span class="rv">–</span>'],
+    ['Body battery', R.bb_now!=null ? `<span class="rv">${esc(R.bb_now)}</span><span class="rb">${R.bb_charge?`+${esc(R.bb_charge)} overnight`:R.bb_charge===0?'no overnight charge':'latest'}</span>` : R.bb_charge!=null ? `<span class="rv">+${esc(R.bb_charge)}</span><span class="rb">overnight</span>` : '<span class="rv">–</span>'],
   ];
-  const sc = R.score!=null ? `<div class="rcell rscore r-${R.band}"><span class="rl">Readiness</span><span class="rv">${R.score}</span><span class="rb">${R.drivers&&R.drivers.length?'held back by '+R.drivers.map(k=>({rhr:'resting HR',hrv:'HRV',sleep_debt_h:'sleep debt',load:'training load',stress:'stress',bb:'body battery',feel:'how you feel'})[k]||k).join(', '):'nothing off'}</span></div>` : '';
+  const sc = R.score!=null ? `<div class="rcell rscore r-${esc(R.band)}"><span class="rl">Readiness</span><span class="rv">${esc(R.score)}</span><span class="rb">${R.drivers&&R.drivers.length?'held back by '+R.drivers.map(k=>({rhr:'resting HR',hrv:'HRV',sleep_debt_h:'sleep debt',load:'training load',stress:'stress',bb:'body battery',feel:'how you feel'})[k]||k).join(', '):'nothing off'}</span></div>` : '';
   rd.innerHTML = `<div class="ready">${sc}${cells.map(([l,v])=>`<div class="rcell"><span class="rl">${l}</span>${v}</div>`).join('')}</div>`;
 }
 /* ---------- day timeline ---------- */
@@ -228,7 +228,7 @@ async function renderDayTimeline(date){
   if(date !== currentDate) return;
   const hasWatch = T && ((T.body_battery||[]).length || (T.steps||[]).length);
   if(!T || (!T.events.length && !hasWatch)){
-    el.innerHTML = T && T.untimed ? `<div class="notes-h"><h2>Timeline</h2><span class="sub">${T.untimed} item${T.untimed!==1?'s':''} logged without a time</span></div>` : ''; return; }
+    el.innerHTML = T && T.untimed ? `<div class="notes-h"><h2>Timeline</h2><span class="sub">${esc(T.untimed)} item${T.untimed!==1?'s':''} logged without a time</span></div>` : ''; return; }
   const c = theme(), P = T.protein, isToday = date === new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
   const nowMin = isToday ? (()=>{ const n = new Date(Date.now()+8*3600e3); return n.getUTCHours()*60+n.getUTCMinutes(); })() : null;
   const lanes = TL_LANES.filter(l => T.events.some(e => e.lane === l));
@@ -331,8 +331,8 @@ async function renderDayTimeline(date){
     top += h + (last ? 0 : gap);
   });
   const H = top + 44;
-  const notes = [T.untimed ? `${T.untimed} food item${T.untimed!==1?'s':''} without a time` : '', T.bp_untimed ? `${T.bp_untimed} BP reading${T.bp_untimed!==1?'s':''} without a time` : ''].filter(Boolean);
-  const key = [P ? `<span class="k"><i style="background:${c.good}"></i>protein so far</span><span class="k"><i class="dash"></i>pace to ${P.target} g by 21:00</span>` : '',
+  const notes = [T.untimed ? `${esc(T.untimed)} food item${T.untimed!==1?'s':''} without a time` : '', T.bp_untimed ? `${esc(T.bp_untimed)} BP reading${T.bp_untimed!==1?'s':''} without a time` : ''].filter(Boolean);
+  const key = [P ? `<span class="k"><i style="background:${c.good}"></i>protein so far</span><span class="k"><i class="dash"></i>pace to ${esc(P.target)} g by 21:00</span>` : '',
     lanes.includes('Food') ? `<span class="k"><i class="dot" style="background:${c.bad}"></i>food with ${SF_HIGH} g+ saturated fat</span>` : '',
     C ? `<span class="k"><i style="background:${TL_COL.food}"></i>eaten ${fmt(C.eaten_now)}</span><span class="k"><i style="background:#eb6834"></i>burnt ${fmt(C.burnt_now)}${C.source!=='garmin'?' (estimated, no watch data)':C.estimated_after!=null?` (Garmin to ${mmhm(C.sync)}, estimated after)`:' (Garmin)'}</span><span class="k"><b style="color:${C.eaten_now-C.burnt_now>=0?c.good:c.warn}">${C.eaten_now-C.burnt_now>=0?'+':''}${fmt(C.eaten_now-C.burnt_now)} kcal</b>&nbsp;${isToday?'so far':'for the day'}</span>` : '',
     hasWatch ? `<span class="k"><i style="background:#1baf7a"></i>body battery</span><span class="k"><i style="background:${c.accent};opacity:.4"></i>steps</span>` : '',
@@ -357,8 +357,8 @@ async function renderDayTimeline(date){
       }
       if(p.seriesName==='Glucose') return `${mmhm(p.value[0])} · glucose <b>${fmt(p.value[1],1)}</b> mmol/L`;
       if(p.seriesName==='Meal on glucose'){ const m = p.data.eat, r = (G.meals||[]).find(x => !x.pending && x.time===mmhm(m.start));
-        return `<b>${mmhm(m.start)}</b>${m.approx?' (about)':''} · ${m.meal} · <b>${fmt(m.carbs,0)} g</b> carbs<br>${m.items.map(x => `${esc(x.label)} <span style="color:${c.muted}">${fmt(x.carbs||0,0)} g carbs</span>`).join('<br>')}`
-          + (r ? `<br>Glucose ${fmt(r.base,1)} → ${fmt(r.peak,1)} <b>(${r.rise>=0?'+':''}${fmt(r.rise,1)})</b> <span style="color:${c.muted}">peak at ${r.peak_min} min${r.back_min!=null?`, back down at ${r.back_min} min`:''}</span>` : ''); }
+        return `<b>${mmhm(m.start)}</b>${m.approx?' (about)':''} · ${esc(m.meal)} · <b>${fmt(m.carbs,0)} g</b> carbs<br>${m.items.map(x => `${esc(x.label)} <span style="color:${c.muted}">${fmt(x.carbs||0,0)} g carbs</span>`).join('<br>')}`
+          + (r ? `<br>Glucose ${fmt(r.base,1)} → ${fmt(r.peak,1)} <b>(${r.rise>=0?'+':''}${fmt(r.rise,1)})</b> <span style="color:${c.muted}">peak at ${esc(r.peak_min)} min${r.back_min!=null?`, back down at ${esc(r.back_min)} min`:''}</span>` : ''); }
       if(p.seriesName==='Protein so far') return `${mmhm(p.value[0])} · <b>${fmt(p.value[1],0)} g</b> protein so far`;
       if(p.seriesName==='Eaten') return `${mmhm(p.value[0])} · <b>${fmt(p.value[1])}</b> kcal eaten so far`;
       if(p.seriesName.startsWith('Burnt')) return `${mmhm(p.value[0])} · <b>${fmt(p.value[1])}</b> kcal burnt so far${p.seriesName.includes('est')||C.source!=='garmin'?' (estimated)':''}`;
@@ -366,7 +366,7 @@ async function renderDayTimeline(date){
       if(p.seriesName==='Steps') return `${mmhm(p.value[0]-7.5)}–${mmhm(p.value[0]+7.5)} · <b>${fmt(p.value[1])}</b> steps`;
       const e = p.data && p.data.ev; if(!e) return '';
       const same = e.kind==='food' ? T.events.filter(x => x.kind==='food' && x.start===e.start) : [e];
-      if(e.kind==='food') return `<b>${mmhm(e.start)}</b>${e.approx?' (about)':''} · ${e.meal}<br>${same.map(x => `${esc(x.label)} <span style="color:${c.muted}">${x.kcal} kcal, ${x.protein} g protein, ${x.satfat||0} g sat fat</span>`).join('<br>')}`;
+      if(e.kind==='food') return `<b>${mmhm(e.start)}</b>${e.approx?' (about)':''} · ${esc(e.meal)}<br>${same.map(x => `${esc(x.label)} <span style="color:${c.muted}">${esc(x.kcal)} kcal, ${esc(x.protein)} g protein, ${x.satfat||0} g sat fat</span>`).join('<br>')}`;
       return `<b>${mmhm(e.start)}${e.end!=null?'–'+mmhm(e.end):''}</b> · ${esc(e.label)}${e.detail?`<br><span style="color:${c.muted}">${esc(e.detail)}</span>`:''}`; }}});
 }
 
@@ -382,9 +382,9 @@ async function renderGlucose(date){
     ${(()=>{ const L = G.readings[G.readings.length-1]; return `<div class="g-chips">${chip('latest', `${fmt(L[1],1)} <small>at ${L[0]}</small>`, L[1]>hi||L[1]<lo?'bad':'')}${s?'':chip('readings', `${G.readings.length} <small>· stats after ~2 h</small>`)}</div>`; })()}
     ${s?`<div class="g-chips">${chip('average', fmt(s.mean,1))}${chip('in range 3.9–7.8', fmt(s.tir,0)+'%', s.tir>=95?'good':s.tir<85?'bad':'')}${chip('variability (CV)', fmt(s.cv,0)+'%', s.cv<=18?'good':s.cv>25?'bad':'')}${chip('high / low', `${fmt(s.max,1)} / ${fmt(s.min,1)}`)}${s.overnight?chip('overnight 3–6am', fmt(s.overnight,1)):''}</div>`:''}
     ${G.meals.length?`<table class="g-meals"><tr><th>Meal</th><th class="num">Before</th><th class="num">Peak</th><th class="num">Rise</th><th class="num">Peak at</th><th class="num">Back down</th></tr>${G.meals.map(m => m.pending
-      ? `<tr><td>${m.time} ${m.meal}<br><span class="sub">${esc(m.label)}</span></td><td colspan="5" class="sub">${m.why||'waiting for 2 hours of readings'}</td></tr>`
-      : `<tr><td>${m.time} ${m.meal}<br><span class="sub">${esc(m.label)}</span></td><td class="num">${fmt(m.base,1)}</td><td class="num">${fmt(m.peak,1)}</td>
-         <td class="num ${m.rise>=3?'bad':m.rise<=1.5?'good':''}"><b>${m.rise>=0?'+':''}${fmt(m.rise,1)}</b></td><td class="num">${m.peak_min} min</td><td class="num">${m.back_min!=null?m.back_min+' min':'>2½ h'}</td></tr>`).join('')}</table>`
+      ? `<tr><td>${esc(m.time)} ${esc(m.meal)}<br><span class="sub">${esc(m.label)}</span></td><td colspan="5" class="sub">${esc(m.why||'waiting for 2 hours of readings')}</td></tr>`
+      : `<tr><td>${esc(m.time)} ${esc(m.meal)}<br><span class="sub">${esc(m.label)}</span></td><td class="num">${fmt(m.base,1)}</td><td class="num">${fmt(m.peak,1)}</td>
+         <td class="num ${m.rise>=3?'bad':m.rise<=1.5?'good':''}"><b>${m.rise>=0?'+':''}${fmt(m.rise,1)}</b></td><td class="num">${esc(m.peak_min)} min</td><td class="num">${m.back_min!=null?m.back_min+' min':'>2½ h'}</td></tr>`).join('')}</table>`
       : `<p class="sub">Add a time to meals when you log them (e.g. "L 13:10: rice 102, beef 125") to see each meal's spike here.</p>`}`;
 }
 
@@ -410,17 +410,17 @@ async function renderHsTile(){
 }
 function hsPanel(H){
   const c = theme();
-  const bar = d => `<div class="hs-dom" role="button" tabindex="0" data-dom="${d.key}" title="Show what makes up ${d.label}"><span class="nm">${d.label} <small>${d.weight}%</small></span>
+  const bar = d => `<div class="hs-dom" role="button" tabindex="0" data-dom="${esc(d.key)}" title="Show what makes up ${esc(d.label)}"><span class="nm">${esc(d.label)} <small>${esc(d.weight)}%</small></span>
     <span class="tr"><i style="width:${d.score??0}%;background:${d.score==null?c.rule:d.score>=80?c.good:d.score>=55?c.warn:c.bad}"></i></span>
     <span class="v">${d.score==null?'no data':fmt(d.score,0)}</span><span class="cv">${Math.round(d.coverage*100)}% measured</span></div>`;
   const a = H.ages, age = (v, lab, why) => `<div class="hs-age"><div class="lab">${lab}</div><div class="big">${v??'–'}</div><div class="sub">${why}</div></div>`;
   return `<div class="hs-panel"><div class="hs-left">
       <div class="lab">Health score · vs ${athleteWho(H)} athlete</div><div class="hs-big">${fmt(H.score,0)}<small>/100</small></div>
       <div class="hs-ds">${hsDelta(H.delta.week,'7 days')}${hsDelta(H.delta.month,'30 days')}${hsDelta(H.delta.year,'year')}</div>
-      <div class="sub">${Math.round(H.coverage*100)}% measured. Counted as average until measured: ${H.missing.slice(0,6).join(', ')}${H.missing.length>6?` and ${H.missing.length-6} more`:''}.</div>
-      <div class="hs-ages">${age(a.actual,'Your age','')}${age(a.fitness_age?fmt(a.fitness_age.age,1):null,'Fitness age', a.fitness_age?`Garmin, ${shortDate(a.fitness_age.date)}${a.fitness_age.achievable?` · could reach ${fmt(a.fitness_age.achievable,1)}`:''}`:'from Garmin at the next sync')}${age(a.phenoage.age!=null?fmt(a.phenoage.age,1):null,'PhenoAge', a.phenoage.age!=null?'from blood tests':`needs ${a.phenoage.missing} more blood markers`)}</div>
+      <div class="sub">${Math.round(H.coverage*100)}% measured. Counted as average until measured: ${esc(H.missing.slice(0,6).join(', '))}${H.missing.length>6?` and ${H.missing.length-6} more`:''}.</div>
+      <div class="hs-ages">${age(a.actual,'Your age','')}${age(a.fitness_age?fmt(a.fitness_age.age,1):null,'Fitness age', a.fitness_age?`Garmin, ${shortDate(a.fitness_age.date)}${a.fitness_age.achievable?` · could reach ${fmt(a.fitness_age.achievable,1)}`:''}`:'from Garmin at the next sync')}${age(a.phenoage.age!=null?fmt(a.phenoage.age,1):null,'PhenoAge', a.phenoage.age!=null?'from blood tests':`needs ${esc(a.phenoage.missing)} more blood markers`)}</div>
     </div><div class="hs-right"><div id="hschart" class="chart" style="height:170px"></div>${H.domains.map(bar).join('')}
-      <p class="sub"><b>Biggest drags:</b> ${H.drags.map(d=>`${d.name} (−${fmt(d.cost,1)})`).join(', ')}.</p></div></div>
+      <p class="sub"><b>Biggest drags:</b> ${H.drags.map(d=>`${esc(d.name)} (−${fmt(d.cost,1)})`).join(', ')}.</p></div></div>
     <p class="disclaimer">100 = a fit, athletic ${athleteWho(H, true)}; 50 = a typical one. Unmeasured markers count as 50. Weighted toward fitness and strength because they predict long-term health most strongly. The reference points (athlete.yaml) and weights are a judgement from published norms, not a validated model: use it to track your own change over time.</p>`;
 }
 function hsChart(id, H, events){
@@ -444,15 +444,15 @@ function openDomain(key){
   const rows = [...d.markers].sort((a,b) => (a.score==null) - (b.score==null) || b.weight - a.weight).map(p => {
     const m = by[p.id] || {}, share = Math.round(p.weight / sw * 100);
     const pts = p.used * p.weight / sw, r = p.ref, f = v => v==null ? '–' : fmt(v, dp(v));
-    return `<tr class="${p.score==null?'miss':''}" data-mk="${p.id}" tabindex="0" title="Open ${esc(p.name)} history">
+    return `<tr class="${p.score==null?'miss':''}" data-mk="${esc(p.id)}" tabindex="0" title="Open ${esc(p.name)} history">
       <td><b>${esc(p.name)}</b>${m.source?`<br><span class="sub">from ${how[m.source]||m.source}</span>`:''}</td>
       <td class="num">${p.value==null?'<span class="sub">not measured</span>':`${fmt(p.value, dp(p.value))} <span class="sub">${m.unit||''}</span>`}${p.date?`<br><span class="sub">${shortDate(p.date)}</span>`:''}</td>
       <td class="num">${r?f(r.top):'–'}</td><td class="num">${r?f(r.avg):'–'}</td>
-      <td class="sc">${p.assumed?`<span class="sub">50 assumed</span>`:`<span class="hs-mini"><i style="width:${p.score}%;background:${col(p.score)}"></i></span> ${fmt(p.score,0)}`}</td>
+      <td class="sc">${p.assumed?`<span class="sub">50 assumed</span>`:`<span class="hs-mini"><i style="width:${esc(p.score)}%;background:${col(p.score)}"></i></span> ${fmt(p.score,0)}`}</td>
       <td class="num">${share}%</td><td class="num">${fmt(pts,1)}</td></tr>`;
   }).join('');
   $('#mk-body').innerHTML = `<div class="mk-h"><div><h2 id="mk-title">${esc(d.label)}</h2>
-      <div class="sub">${d.weight}% of your health score · ${Math.round(d.coverage*100)}% measured</div></div><button class="mk-x" aria-label="Close">✕</button></div>
+      <div class="sub">${esc(d.weight)}% of your health score · ${Math.round(d.coverage*100)}% measured</div></div><button class="mk-x" aria-label="Close">✕</button></div>
     <div class="mk-now">${d.score==null?'<span class="empty-v">No data yet</span>':`<b style="font-size:34px">${fmt(d.score,0)}</b><span class="sub">/100</span>`}</div>
     <table class="hs-tbl"><tr><th>Marker</th><th class="num">Latest</th><th class="num">Athlete</th><th class="num">Average</th><th>Score</th><th class="num">Weight</th><th class="num">Points</th></tr>${rows}</table>
     <p class="sub">Scored against a fit, athletic ${athleteWho(HS, true)}: 100 at athlete level, 50 at a typical ${athleteWho(HS)}, 0 at poor, straight-line in between. Markers you haven't measured count as 50 (average) until you do. Points add up to the area's score. Lab results count for 400 days, watch and log data for 21. Click a marker for its history.</p>`;
@@ -466,7 +466,7 @@ function openDomain(key){
 let SHOW_DONE = false;
 const TASK_OPEN = new Set(), JUST_DONE = {};   // expanded items; items ticked in the last few seconds (undo window)
 const UNDO_MS = 8000;
-const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 const PRI = {high:0, normal:1, low:2};
 async function toggleTask(id){
   const r = await post('/api/todo/toggle?id='+encodeURIComponent(id)).catch(()=>null);
@@ -481,7 +481,7 @@ async function renderTasks(){
   const open = all.filter(t => !t.done || recent(t)).sort((a,b) => (PRI[a.priority]??1)-(PRI[b.priority]??1));
   const done = all.filter(t => t.done && !recent(t));
   const row = t => { const ex = TASK_OPEN.has(t.id), jd = recent(t);
-    return `<li class="${t.done?'done':''} p-${t.priority||'normal'} ${ex?'open':''}" data-id="${esc(t.id)}">
+    return `<li class="${t.done?'done':''} p-${['high','normal','low'].includes(t.priority)?t.priority:'normal'} ${ex?'open':''}" data-id="${esc(t.id)}">
       <input type="checkbox" aria-label="Mark ${esc(t.title)} done" ${t.done?'checked':''}>
       <div class="tk"><button class="tt" aria-expanded="${ex}"><b>${esc(t.title)}</b>${t.priority==='high'&&!t.done?'<span class="tag">Priority</span>':''}${t.area?`<span class="area">${esc(t.area)}</span>`:''}<span class="chev">${ex?'▾':'▸'}</span></button>
         ${ex&&t.detail?`<span class="td">${esc(t.detail)}</span>`:''}${t.done_on&&!jd?`<span class="td">Done ${shortDate(t.done_on)}</span>`:''}</div>
@@ -515,7 +515,8 @@ async function renderNotes(date){
   if(!notes.length){ el.innerHTML = ''; return; }
   const n = k => notes.filter(x => x.kind===k).length;
   el.innerHTML = `<div class="notes-h"><h2>Notes</h2><span class="sub">${n('bad')} warning${n('bad')!==1?'s':''} · ${n('good')} win${n('good')!==1?'s':''} · ${n('info')} observation${n('info')!==1?'s':''}</span></div>
-    <ul class="notes${notes.length>3?' capped':''}">${notes.map(x => `<li class="n-${x.kind}"><span class="ic" role="img" aria-label="${NOTE_LABEL[x.kind]}">${NOTE_IC[x.kind]}</span><span>${x.text.replace(/&/g,'&amp;').replace(/</g,'&lt;')}${x.coach?'<span class="who">from Claude</span>':''}</span></li>`).join('')}</ul>${notes.length>3?`<button class="linkbtn" onclick="this.previousElementSibling.classList.toggle('capped');this.textContent=this.previousElementSibling.classList.contains('capped')?'Show ${notes.length-3} more':'Show fewer'">Show ${notes.length-3} more</button>`:''}`;
+    <ul class="notes${notes.length>3?' capped':''}">${notes.map(x => `<li class="n-${esc(x.kind)}"><span class="ic" role="img" aria-label="${NOTE_LABEL[x.kind]}">${NOTE_IC[x.kind]}</span><span>${esc(x.text)}${x.coach?'<span class="who">from Claude</span>':''}</span></li>`).join('')}</ul>${notes.length>3?`<button class="linkbtn" id="notes-more">Show ${notes.length-3} more</button>`:''}`;
+  const more = $('#notes-more'); if(more) more.addEventListener('click', () => { const ul = more.previousElementSibling; ul.classList.toggle('capped'); more.textContent = ul.classList.contains('capped') ? `Show ${notes.length-3} more` : 'Show fewer'; });
 }
 function step(n){ const ds = SUMMARY.map(d=>d.date); const i = ds.indexOf(currentDate)+n; if(i>=0&&i<ds.length) renderDay(ds[i]); }
 $('#prev').onclick = () => step(-1); $('#next').onclick = () => step(1);
@@ -572,11 +573,11 @@ function targetLine(m){
 function tile(m, lever){
   const val = m.value==null ? `<div class="empty-v">${m.source==='lab'?'Needs a blood test':m.source==='manual'?'Not tested yet':m.source==='inbody'?'No scan yet':'No data yet'}</div>`
     : `<div class="val">${fmt(m.value, Math.abs(m.value)<10&&!Number.isInteger(m.value)?2:Math.abs(m.value)<100&&!Number.isInteger(m.value)?1:0)}<small>${m.unit||''}</small></div>`;
-  const due = m.due ? (m.due.never ? 'never tested' : m.due.days < 0 ? `<b class="bad">overdue ${-m.due.days} d</b>` : m.due.days <= 30 ? `due in ${m.due.days} d` : `due ${shortDate(m.due.date)}`) : '';
-  return `<div class="tile ${lever?'lever':''}" data-mk="${m.id}" tabindex="0" role="button" aria-label="${m.name}: open history" title="${(m.note||'').replace(/"/g,'&quot;')}">
-    <div class="top"><span class="nm">${m.name}</span><span class="st ${m.status}" role="img" aria-label="${ST_LABEL[m.status]}">${ST_IC[m.status]}</span></div>
+  const due = m.due ? (m.due.never ? 'never tested' : m.due.days < 0 ? `<b class="bad">overdue ${-m.due.days} d</b>` : m.due.days <= 30 ? `due in ${esc(m.due.days)} d` : `due ${shortDate(m.due.date)}`) : '';
+  return `<div class="tile ${lever?'lever':''}" data-mk="${esc(m.id)}" tabindex="0" role="button" aria-label="${esc(m.name)}: open history" title="${esc(m.note||'')}">
+    <div class="top"><span class="nm">${esc(m.name)}</span><span class="st ${esc(m.status)}" role="img" aria-label="${ST_LABEL[m.status]}">${ST_IC[m.status]}</span></div>
     ${val}${targetLine(m)}${zoneBar(m)}${sparkline(m.history)}
-    <div class="meta">${m.date?shortDate(m.date):''}${m.value!=null&&trend(m)?' · '+trend(m):''}${m.z!=null?` · ${m.z>0?'+':''}${m.z} SD vs 60-day baseline`:''}${due?' · '+due:''}</div>
+    <div class="meta">${m.date?shortDate(m.date):''}${m.value!=null&&trend(m)?' · '+trend(m):''}${m.z!=null?` · ${m.z>0?'+':''}${esc(m.z)} SD vs 60-day baseline`:''}${due?' · '+due:''}</div>
     <div>${m.verify?'<span class="tag">provisional target</span> ':''}${m.contested?'<span class="tag">dashed = contested optimum</span> ':''}${m.once?'<span class="tag">test once</span>':''}</div>
   </div>`;
 }
@@ -590,12 +591,12 @@ async function renderLongevity(refetch = true){
   let h = `<div class="lv-title"><h1>Longevity</h1><a class="btn-link" href="/doctor.html" target="_blank" rel="noopener">For my doctor (print view)</a></div><div class="lv-head">
       <div><div class="lab">Markers ${LV_FILTER?`· showing ${ST_LABEL[LV_FILTER].toLowerCase()} only`:'· click to filter'}</div><div class="lv-counts">${['green','amber','red','grey'].map(s => `<button class="lv-count" data-f="${s}" aria-pressed="${LV_FILTER===s}"><span class="st ${s}">${ST_IC[s]}</span><b>${cnt[s]}</b> ${ST_LABEL[s].toLowerCase()}</button>`).join('')}${LV_FILTER?'<button class="lv-count" data-f="">Show all</button>':''}</div></div>
     </div>
-    <p class="sub">Next tests due: ${L.next_due.map(d => `<b>${d.name}</b> (${d.never?'never tested':d.days<0?'overdue':shortDate(d.date)})`).join(', ') || 'nothing due'}.</p>
+    <p class="sub">Next tests due: ${L.next_due.map(d => `<b>${esc(d.name)}</b> (${d.never?'never tested':d.days<0?'overdue':shortDate(d.date)})`).join(', ') || 'nothing due'}.</p>
 `;
   const HSD = await hsGet();
   if(HSD && HSD.score!=null && !LV_FILTER) h += hsPanel(HSD);
   const LA = L.lab_alerts || [];
-  if(LA.length && !LV_FILTER) h += `<h2>Blood results to act on</h2><ul class="notes">${LA.map(a => `<li class="n-bad"><span class="ic" role="img" aria-label="Warning">!</span><span><b>${a.title}.</b> ${a.text} ${a.todo}</span></li>`).join('')}</ul>`;
+  if(LA.length && !LV_FILTER) h += `<h2>Blood results to act on</h2><ul class="notes">${LA.map(a => `<li class="n-bad"><span class="ic" role="img" aria-label="Warning">!</span><span><b>${esc(a.title)}.</b> ${esc(a.text)} ${esc(a.todo)}</span></li>`).join('')}</ul>`;
   const keep = m => !LV_FILTER || m.status === LV_FILTER;
   const lev = L.levers.map(id => by[id]).filter(m => m && keep(m));
   if(lev.length) h += `<h2>Top levers</h2><div class="tiles-g">${lev.map(m => tile(m, true)).join('')}</div>`;
@@ -607,12 +608,12 @@ async function renderLongevity(refetch = true){
   }
   const bc = L.blood_checklist || [];
   if(bc.length && !LV_FILTER) h += `<details class="cat" open><summary>Next blood test: what to ask for <span class="sub">${bc.length} items · ◆ = PhenoAge input</span></summary>
-    <ul class="tasks bc">${bc.map(b => `<li class="${b.reason==='never tested'?'':'p-high'}"><span><b>${b.name}</b>${b.pheno?' <span title="PhenoAge input">◆</span>':''}<span class="area">${b.reason}</span>${b.why?`<span class="td">${b.why}</span>`:''}</span></li>`).join('')}</ul>
-    <p class="sub">Fast for 10–12 hours (glucose, insulin, lipids). PhenoAge needs all nine inputs within ${L.phenoage.window_days} days of each other.</p></details>`;
+    <ul class="tasks bc">${bc.map(b => `<li class="${b.reason==='never tested'?'':'p-high'}"><span><b>${esc(b.name)}</b>${b.pheno?' <span title="PhenoAge input">◆</span>':''}<span class="area">${esc(b.reason)}</span>${b.why?`<span class="td">${esc(b.why)}</span>`:''}</span></li>`).join('')}</ul>
+    <p class="sub">Fast for 10–12 hours (glucose, insulin, lipids). PhenoAge needs all nine inputs within ${esc(L.phenoage.window_days)} days of each other.</p></details>`;
   const sched = L.markers.filter(m => m.due).sort((a,b) => (a.due.days??-9999) - (b.due.days??-9999));
   h += `<h2>Test schedule</h2><table><tr><th>Test</th><th>Last done</th><th>Every</th><th>Due</th></tr>` +
     sched.map(m => { const d = m.due; const cls = d.never ? '' : d.days < 0 ? 'bad' : d.days <= 30 ? '' : 'good';
-      return `<tr><td>${m.name}</td><td>${m.date?shortDate(m.date):'–'}</td><td>${m.once?'once':m.interval_days>=365?'yearly':m.interval_days>=180?'6 months':m.interval_days>=85?'3 months':m.interval_days>=28?'monthly':'weekly'}</td><td class="${cls}">${d.never?'not yet tested':d.days<0?`overdue ${-d.days} days`:d.days<=30?`in ${d.days} days`:shortDate(d.date)}</td></tr>`; }).join('') + `</table>`;
+      return `<tr><td>${esc(m.name)}</td><td>${m.date?shortDate(m.date):'–'}</td><td>${m.once?'once':m.interval_days>=365?'yearly':m.interval_days>=180?'6 months':m.interval_days>=85?'3 months':m.interval_days>=28?'monthly':'weekly'}</td><td class="${cls}">${d.never?'not yet tested':d.days<0?`overdue ${-d.days} days`:d.days<=30?`in ${esc(d.days)} days`:shortDate(d.date)}</td></tr>`; }).join('') + `</table>`;
   h += `<p class="disclaimer">Informational only, not medical advice. Targets marked provisional come from your longevity brief and are being checked against sources; contested optimal ranges never turn a value red. Discuss lab results with your doctor.</p>`;
   $('#longevity').innerHTML = h;
   if(HSD && HSD.score!=null && !LV_FILTER){
@@ -640,13 +641,13 @@ function openMarker(id){
   const dp = v => Math.abs(v)<10 && !Number.isInteger(v) ? 2 : Math.abs(v)<100 && !Number.isInteger(v) ? 1 : 0;
   const every = m.once ? 'once' : !m.interval_days ? 'continuous' : m.interval_days>=365 ? 'yearly' : m.interval_days>=180 ? 'every 6 months' : m.interval_days>=85 ? 'every 3 months' : 'monthly';
   const rows = [...H].reverse().slice(0, 40);
-  $('#mk-body').innerHTML = `<div class="mk-h"><div><h2 id="mk-title">${m.name}</h2>
-      <div class="sub">${SRC[m.source]||m.source||''}${m.unit?` · ${m.unit}`:''} · ${every}</div></div>
+  $('#mk-body').innerHTML = `<div class="mk-h"><div><h2 id="mk-title">${esc(m.name)}</h2>
+      <div class="sub">${SRC[m.source]||m.source||''}${m.unit?` · ${esc(m.unit)}`:''} · ${every}</div></div>
       <button class="mk-x" aria-label="Close">✕</button></div>
-    <div class="mk-now">${m.value==null?'<span class="empty-v">No result yet</span>':`<span class="st ${m.status}" role="img" aria-label="${ST_LABEL[m.status]}">${ST_IC[m.status]}</span> <b>${fmt(m.value, dp(m.value))}</b> ${m.unit||''} <span class="sub">${ST_LABEL[m.status].toLowerCase()} · ${shortDate(m.date)}</span>`}</div>
+    <div class="mk-now">${m.value==null?'<span class="empty-v">No result yet</span>':`<span class="st ${esc(m.status)}" role="img" aria-label="${ST_LABEL[m.status]}">${ST_IC[m.status]}</span> <b>${fmt(m.value, dp(m.value))}</b> ${m.unit||''} <span class="sub">${ST_LABEL[m.status].toLowerCase()} · ${shortDate(m.date)}</span>`}</div>
     ${targetLine(m)}
     ${H.length ? `<div id="mkchart" class="chart" style="height:260px"></div>` : ''}
-    ${m.note?`<p class="mk-note">${m.note}</p>`:''}
+    ${m.note?`<p class="mk-note">${esc(m.note)}</p>`:''}
     <p class="sub">${m.verify?'<span class="tag">provisional target</span> Being checked against sources. ':''}${m.contested?'Dashed lines mark a contested “optimal” range; it never turns a value red. ':''}${m.lab_ref?`Lab reference range: ${m.lab_ref[0]!=null&&m.lab_ref[1]!=null?`${m.lab_ref[0]} to ${m.lab_ref[1]}`:m.lab_ref[1]!=null?`below ${m.lab_ref[1]}`:`above ${m.lab_ref[0]}`}. `:''}</p>
     ${rows.length ? `<table><tr><th>Date</th><th class="num">Value</th></tr>${rows.map(([d,v]) => `<tr><td>${shortDate(d)} ${String(d).slice(0,4)}</td><td class="num">${fmt(v, dp(v))}</td></tr>`).join('')}</table>${H.length>40?`<p class="sub">Showing the latest 40 of ${H.length}.</p>`:''}` : ''}`;
   if(!dlg.open) dlg.showModal();
@@ -683,8 +684,8 @@ async function renderWellbeing(){
   const delta = s => s.now==null ? '–' : `${fmt(s.now,1)}${s.before!=null?` <span class="sub">${s.now>s.before?'↑':s.now<s.before?'↓':'→'} vs ${fmt(s.before,1)} before</span>`:''}`;
   $('#wb-head').innerHTML = `<p class="sub">Your mood scores and health issues as you report them, with off episodes shaded and sleep for context.</p>
     <div class="tiles-g wb-tiles">${['overall','mood','energy','gut','stress'].map(k => `<div class="t"><div class="lab">${WB[k][0].split(' (')[0]} · 7-day avg</div><div class="v">${delta(W.summary[k])}</div></div>`).join('')}
-      <div class="t"><div class="lab">Logged</div><div class="v">${W.logged_14d}<small> of 14 days</small></div></div>
-      <div class="t"><div class="lab">Days with symptoms</div><div class="v">${W.symptom_days_30d}<small> in 30 days</small></div></div></div>
+      <div class="t"><div class="lab">Logged</div><div class="v">${esc(W.logged_14d)}<small> of 14 days</small></div></div>
+      <div class="t"><div class="lab">Days with symptoms</div><div class="v">${esc(W.symptom_days_30d)}<small> in 30 days</small></div></div></div>
     ${any ? '' : how}`;
   // chart: scores over time, episodes shaded, sleep as faint bars
   const first = W.days.findIndex(d => Object.keys(d.feel).length || d.symptoms.length);
@@ -703,7 +704,7 @@ async function renderWellbeing(){
     xAxis:{type:'category',data:x,...ax,axisTick:{show:false},axisLabel:{...ax.axisLabel,formatter:v=>shortDate(v)}},
     yAxis:[{type:'value',min:1,max:6,interval:1,...ax,axisLabel:{...ax.axisLabel,formatter:v=>v<=5?v:''}},{type:'value',min:0,max:12,show:false}],
     tooltip:{trigger:'axis',...tip(c),formatter:ps=>{ const d = D[ps[0].dataIndex]; const ep = W.episodes.find(e => d.date>=e.start && d.date<=e.end);
-      return `<b>${fmtDate(d.date)}</b>${Object.entries(d.feel).map(([k,v])=>`<br>${WB[k][0].split(' (')[0]} ${v}`).join('')}${d.sleep_h?`<br>Sleep ${hm(d.sleep_h)}`:''}${d.symptoms.map(s=>`<br><span style="color:${c.bad}">▲</span> ${s.what} (${SEV_TXT[s.severity]})`).join('')}${d.note?`<br><i>${esc(d.note)}</i>`:''}${ep?`<br><b>Off episode:</b> ${ep.what}`:''}`; }},
+      return `<b>${fmtDate(d.date)}</b>${Object.entries(d.feel).map(([k,v])=>`<br>${WB[k][0].split(' (')[0]} ${v}`).join('')}${d.sleep_h?`<br>Sleep ${hm(d.sleep_h)}`:''}${d.symptoms.map(s=>`<br><span style="color:${c.bad}">▲</span> ${esc(s.what)} (${SEV_TXT[s.severity]})`).join('')}${d.note?`<br><i>${esc(d.note)}</i>`:''}${ep?`<br><b>Off episode:</b> ${esc(ep.what)}`:''}`; }},
     series});
   // symptom grid (last 60 days) + recent reports
   const last = D.slice(-60);
@@ -711,8 +712,8 @@ async function renderWellbeing(){
   if(W.symptoms.length){
     h += `<h2>Symptoms, last 60 days</h2><div class="wrap"><table class="wb-grid"><tr><th></th>${last.map((d,i)=>`<th title="${shortDate(d.date)}"><span>${i%7===0?shortDate(d.date):''}</span></th>`).join('')}<th class="num">Total</th></tr>` +
       W.symptoms.map(s => `<tr><td class="nm">${esc(s.what)}</td>${last.map(d => { const m = d.symptoms.filter(z=>z.what===s.what); const v = m.length ? Math.max(...m.map(z=>z.severity)) : 0;
-        return `<td class="c s${v}" title="${shortDate(d.date)}${v?': '+SEV_TXT[v]:''}"></td>`; }).join('')}<td class="num">${s.count}</td></tr>`).join('') + `</table></div>
-      <p class="sub">Darker = more severe.${W.symptoms.filter(s=>s.context).map(s=>` <b>${esc(s.what)}</b>: ${s.context}`).join('')}</p>`;
+        return `<td class="c s${v}" title="${shortDate(d.date)}${v?': '+SEV_TXT[v]:''}"></td>`; }).join('')}<td class="num">${esc(s.count)}</td></tr>`).join('') + `</table></div>
+      <p class="sub">Darker = more severe.${W.symptoms.filter(s=>s.context).map(s=>` <b>${esc(s.what)}</b>: ${esc(s.context)}`).join('')}</p>`;
   }
   if(W.reports.length) h += `<h2>Recent reports</h2><table class="wb-rep"><tr><th>Date</th><th>Scores</th><th>Symptoms</th><th>Note</th></tr>${W.reports.map(r => `<tr><td>${shortDate(r.date)}</td>
       <td>${Object.entries(r.feel).map(([k,v])=>`${WB[k][0].split(' (')[0].toLowerCase()} ${v}`).join(' · ')||'–'}</td>
@@ -727,12 +728,12 @@ const ADV_LABEL = {act:'Act on this', keep:'Keep doing', info:'Worth knowing'};
 async function renderAdvice(){
   const A = await api('/api/advice').catch(()=>null);
   if(!A){ $('#advice').innerHTML = '<p class="empty">Couldn’t load advice. The dashboard service may need a restart.</p>'; return; }
-  const card = (i, sec) => `<div class="adv ${i.level}"><div class="adv-top"><span class="adv-lv">${ADV_LABEL[i.level]}</span>${sec?`<span class="area">${sec}</span>`:''}</div>
+  const card = (i, sec) => `<div class="adv ${esc(i.level)}"><div class="adv-top"><span class="adv-lv">${ADV_LABEL[i.level]}</span>${sec?`<span class="area">${sec}</span>`:''}</div>
     <h3>${esc(i.title)}</h3><p class="why">${esc(i.why)}</p><ul>${i.do.map(d=>`<li>${esc(d)}</li>`).join('')}</ul></div>`;
   let h = `<h1>Advice</h1><p class="sub">Worked out from your own last 2–4 weeks of logs, watch data and blood tests (data to ${shortDate(A.as_of)}). It updates as you log. Not medical advice.</p>`;
   if(A.top.length) h += `<h2>Top ${A.top.length} for this week</h2><div class="adv-g top">${A.top.map(i => card(i, i.section)).join('')}</div>`;
   h += `<nav class="adv-jump">${A.sections.map(s => `<a href="#" data-j="${esc(s.name)}">${esc(s.name)} <b>${s.items.filter(i=>i.level==='act').length}</b></a>`).join('')}</nav>`;
-  for(const s of A.sections) h += `<h2 id="adv-${s.name.replace(/\W+/g,'-')}">${esc(s.name)}</h2><div class="adv-g">${s.items.map(i => card(i)).join('')}</div>`;
+  for(const s of A.sections) h += `<h2 id="adv-${esc(s.name.replace(/\W+/g,'-'))}">${esc(s.name)}</h2><div class="adv-g">${s.items.map(i => card(i)).join('')}</div>`;
   $('#advice').innerHTML = h;
   document.querySelectorAll('.adv-jump a').forEach(a => a.onclick = e => { e.preventDefault(); document.getElementById('adv-'+a.dataset.j.replace(/\W+/g,'-')).scrollIntoView({behavior:'smooth'}); });
 }
@@ -755,7 +756,7 @@ async function renderTimeline(){
     tooltip:{trigger:'axis',...tip(c),formatter:ps=>{ const p = ps.find(x=>x.seriesName==='7-day average')||ps[0]; const d = String(p.value[0]).slice(0,10);
       const here = ev.filter(e => e.date===d || (e.end && e.date<=d && d<=e.end));
       const day = (w.find(x => String(x[0]).slice(0,10)===d)||[])[1];
-      return `<b>${fmtDate(d)}</b>${day!=null?`<br>Weigh-in ${fmt(day,2)} kg`:''}<br>7-day average ${fmt(p.value[1],1)} kg${here.map(e=>`<br><span style="color:${col(e.kind)}">●</span> ${esc(e.what)}${e.kind==='episode'?': '+e.detail:''}`).join('')}`; }},
+      return `<b>${fmtDate(d)}</b>${day!=null?`<br>Weigh-in ${fmt(day,2)} kg`:''}<br>7-day average ${fmt(p.value[1],1)} kg${here.map(e=>`<br><span style="color:${col(e.kind)}">●</span> ${esc(e.what)}${e.kind==='episode'?': '+esc(e.detail):''}`).join('')}`; }},
     series:[{type:'scatter',name:'Daily',data:w,symbolSize:6,itemStyle:{color:c.accent,opacity:.85,borderColor:c.surface,borderWidth:1},silent:true},
       {type:'line',name:'7-day average',data:avg,showSymbol:false,lineStyle:{color:c.ink,width:2},
       markLine:{symbol:'none',label:{show:false},data:marks.map(e=>({xAxis:e.date,name:e.what,lineStyle:{color:col(e.kind),type:e.kind==='target'?'dashed':'solid',width:1.5}})),
@@ -777,37 +778,37 @@ async function renderWeek(start){
   const dm = s => new Date(s+'T00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});
   const hitTile = (k, label) => { const h = w.hits[k], a = w.averages[k];
     const cls = !h.of ? '' : h.hit/h.of >= .7 ? 'good' : h.hit/h.of >= .4 ? '' : 'bad';
-    return `<div class="t"><div class="lab">${label}</div><div class="v ${cls}">${h.of ? `${h.hit}/${h.of}` : '–'}</div><div class="s">${h.of ? 'days on target' : 'no target that week'} · avg ${a==null?'–':fmt(a, k==='satfat_g'?1:0)}${k==='kcal'?'':'g'}</div></div>`; };
+    return `<div class="t"><div class="lab">${label}</div><div class="v ${cls}">${h.of ? `${esc(h.hit)}/${esc(h.of)}` : '–'}</div><div class="s">${h.of ? 'days on target' : 'no target that week'} · avg ${a==null?'–':fmt(a, k==='satfat_g'?1:0)}${k==='kcal'?'':'g'}</div></div>`; };
   const tr = w.training, r = w.recovery, wt = w.weight;
   const dW = wt.avg!=null && wt.prev_avg!=null ? (wt.avg - wt.prev_avg) : null;
   let h = `<h1>Week of ${dm(w.start)} – ${dm(w.end)}</h1>
-    <div><span class="chip">${w.status.complete} complete</span>${w.status.partial?`<span class="chip partial">${w.status.partial} partial</span>`:''}${w.status.unlogged?`<span class="chip unlogged">${w.status.unlogged} unlogged</span>`:''}</div>
-    ${w.focus ? `<h2>Focus for next week</h2><div class="focus">${w.focus}</div>` : ''}
+    <div><span class="chip">${esc(w.status.complete)} complete</span>${w.status.partial?`<span class="chip partial">${esc(w.status.partial)} partial</span>`:''}${w.status.unlogged?`<span class="chip unlogged">${esc(w.status.unlogged)} unlogged</span>`:''}</div>
+    ${w.focus ? `<h2>Focus for next week</h2><div class="focus">${esc(w.focus)}</div>` : ''}
     <div class="wk-grid">${hitTile('kcal','Calories')}${hitTile('protein_g','Protein')}${hitTile('satfat_g','Saturated fat')}${hitTile('fibre_g','Fibre')}</div>
     <div class="wk-grid">
       <div class="t"><div class="lab">Weight, week average</div><div class="v">${wt.avg??'–'}</div><div class="s">${dW!=null?`${dW>0?'+':''}${dW.toFixed(1)} kg vs previous week`:'no comparison'}</div></div>
-      <div class="t"><div class="lab">Sessions</div><div class="v">${Object.values(tr.sessions).reduce((a,b)=>a+b,0)}</div><div class="s">${Object.entries(tr.sessions).map(([k,v])=>`${v} ${k}`).join(', ')||'none'}${tr.run_km?` · ${tr.run_km} km run`:''}</div></div>
-      <div class="t"><div class="lab">Sleep average</div><div class="v ${r.sleep_avg_h==null?'':r.sleep_avg_h>=7.5?'good':'bad'}">${r.sleep_avg_h!=null?hm(r.sleep_avg_h):'–'}</div><div class="s">${r.nights?`${r.nights_ok}/${r.nights} nights ≥ 7h30`:'no watch data'}</div></div>
+      <div class="t"><div class="lab">Sessions</div><div class="v">${Object.values(tr.sessions).reduce((a,b)=>a+b,0)}</div><div class="s">${Object.entries(tr.sessions).map(([k,v])=>`${v} ${k}`).join(', ')||'none'}${tr.run_km?` · ${esc(tr.run_km)} km run`:''}</div></div>
+      <div class="t"><div class="lab">Sleep average</div><div class="v ${r.sleep_avg_h==null?'':r.sleep_avg_h>=7.5?'good':'bad'}">${r.sleep_avg_h!=null?hm(r.sleep_avg_h):'–'}</div><div class="s">${r.nights?`${esc(r.nights_ok)}/${esc(r.nights)} nights ≥ 7h30`:'no watch data'}</div></div>
       <div class="t"><div class="lab">HRV · resting HR</div><div class="v">${r.hrv_avg??'–'} · ${r.rhr_avg??'–'}</div><div class="s">steps ${r.steps_avg!=null?fmt(r.steps_avg):'–'} a day</div></div>
     </div>`;
   if(w.habits){
     const H = w.habits;
     h += `<h2>Habits</h2><table><tr><th>Habit</th><th>This week</th><th>Target</th><th></th></tr>` + H.weekly.map(r => {
       const tgt = r.green ? (r.green[0]!=null && r.green[1]!=null ? `${r.green[0]}–${r.green[1]}` : r.green[0]!=null ? `≥ ${r.green[0]}` : `< ${r.green[1]}`) : '–';
-      return `<tr><td>${r.label}</td><td><b>${r.value==null?'–':fmt(r.value, r.value<10&&!Number.isInteger(r.value)?2:0)}</b></td><td class="sub">${tgt} ${r.unit||''}</td><td><span class="st ${r.status}" role="img" aria-label="${ST_LABEL[r.status]}">${ST_IC[r.status]}</span></td></tr>`; }).join('') + `</table>`;
+      return `<tr><td>${esc(r.label)}</td><td><b>${r.value==null?'–':fmt(r.value, r.value<10&&!Number.isInteger(r.value)?2:0)}</b></td><td class="sub">${tgt} ${r.unit||''}</td><td><span class="st ${esc(r.status)}" role="img" aria-label="${ST_LABEL[r.status]}">${ST_IC[r.status]}</span></td></tr>`; }).join('') + `</table>`;
     const G = H.grid;
     const cells = (k) => G.map((d, i) => `<i class="${d[k]===true?'y':d[k]===false?'n':''}${i%7===0&&i?' wk':''}" title="${shortDate(d.date)}: ${d[k]===true?'yes':d[k]===false?'no':'no data'}"></i>`).join('');
     const pct = (k) => { const v = G.filter(d => d[k]!=null); return v.length ? Math.round(100*v.filter(d=>d[k]).length/v.length) : null; };
     h += `<h2>Last 12 weeks</h2><p class="sub">Each square is a day: green met, hatched red missed, pale no data. ${shortDate(G[0].date)} to ${shortDate(G[G.length-1].date)}.</p>
       <div class="hm">${H.names.map(([k, lab]) => `<span class="lab">${lab} <span class="pct">${pct(k)!=null?pct(k)+'%':''}</span></span>${cells(k)}`).join('')}</div>`;
   }
-  if(tr.prs.length) h += `<h2>New bests</h2><ul class="notes">${tr.prs.map(p => `<li class="n-good"><span class="ic">✓</span><span>${p.lift.replace(/-/g,' ')}: ${p.kg} kg${p.reps?' × '+p.reps:p.metres?' for '+p.metres+' m':''} <span class="who">${shortDate(p.date)}</span></span></li>`).join('')}</ul>`;
+  if(tr.prs.length) h += `<h2>New bests</h2><ul class="notes">${tr.prs.map(p => `<li class="n-good"><span class="ic">✓</span><span>${p.lift.replace(/-/g,' ')}: ${esc(p.kg)} kg${p.reps?' × '+p.reps:p.metres?' for '+p.metres+' m':''} <span class="who">${shortDate(p.date)}</span></span></li>`).join('')}</ul>`;
   const cols = [['kcal','Calories',0],['protein_g','Protein',0],['satfat_g','Sat fat',1],['fibre_g','Fibre',0]];
   h += `<h2>Days</h2><table class="wk"><tr><th>Day</th><th>Type</th>${cols.map(c=>`<th>${c[1]}</th>`).join('')}<th>Weight</th><th>Sleep</th><th>Steps</th><th>Training</th></tr>` +
     w.days.map(d => { const t = d.totals||{}, ev = d.eval||{};
-      return `<tr><td><a href="#day" data-date="${d.date}">${new Date(d.date+'T00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric'})}</a>${d.date===(w.best||{}).date?' <span class="who">best</span>':''}${d.date===(w.worst||{}).date?' <span class="who">worst</span>':''}</td><td>${d.day_type}${d.status!=='complete'?`, <span class="sub">${d.status}</span>`:''}</td>` +
+      return `<tr><td><a href="#day" data-date="${esc(d.date)}">${new Date(d.date+'T00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric'})}</a>${d.date===(w.best||{}).date?' <span class="who">best</span>':''}${d.date===(w.worst||{}).date?' <span class="who">worst</span>':''}</td><td>${esc(d.day_type)}${d.status!=='complete'?`, <span class="sub">${esc(d.status)}</span>`:''}</td>` +
         cols.map(([k,,dp]) => { const e = ev[k]; const cl = e&&e.ok===true?'good':e&&e.ok===false?'bad':''; return `<td class="${cl}">${d.totals?fmt(t[k],dp):'–'}${ARROW(e)}</td>`; }).join('') +
-        `<td>${d.weight?d.weight.kg:'–'}</td><td>${d.sleep||'–'}</td><td>${d.steps?fmt(d.steps):'–'}</td><td>${d.exercise.join(', ')||'–'}</td></tr>`; }).join('') + `</table>`;
+        `<td>${d.weight?d.weight.kg:'–'}</td><td>${d.sleep||'–'}</td><td>${d.steps?fmt(d.steps):'–'}</td><td>${esc(d.exercise.join(', ')||'–')}</td></tr>`; }).join('') + `</table>`;
   $('#week').innerHTML = h;
   document.querySelectorAll('#week a[data-date]').forEach(a => a.onclick = e => { e.preventDefault(); showTab('day'); renderDay(a.dataset.date); });
 }
@@ -911,13 +912,13 @@ function renderTrends(){
     axisPointer:{link:[{xAxisIndex:'all'}],lineStyle:{color:c.muted}},
     tooltip:{trigger:'axis',...tip(c),
       formatter: ps => { const d = days[ps[0].dataIndex]; const t = d.totals||{}, g = d.targets||{};
-        return `<b>${fmtDate(d.date)}</b><br>${d.day_type} day, ${d.status}<br>` +
+        return `<b>${fmtDate(d.date)}</b><br>${esc(d.day_type)} day, ${esc(d.status)}<br>` +
           (d.totals?(()=>{ const E = d.eval||{}, a = k => ARROW(E[k]);
             const today = new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
             const burn = d.burn!=null ? `<br><span style="color:#eb6834">●</span> burnt ${fmt(d.burn)} kcal (Garmin${d.date===today?', so far':''})${d.date!==today?` · balance <b>${t.kcal-d.burn>=0?'+':''}${fmt(t.kcal-d.burn)}</b>`:''}` : '';
             return `${fmt(t.kcal)}${a('kcal')} kcal eaten (target ${bandTxt(g.kcal)||'–'})${burn}<br>protein ${fmt(t.protein_g)}${a('protein_g')} (≥ ${g.protein_min??'–'}) · carbs ${fmt(t.carbs_g)}${a('carbs_g')} · fat ${fmt(t.fat_g)}${a('fat_g')} · sat ${fmt(t.satfat_g,1)}${a('satfat_g')}${g.satfat_max?' (≤ '+g.satfat_max+')':''} · fibre ${fmt(t.fibre_g)}${a('fibre_g')}`; })():'No food logged') +
-          (d.weight?`<br>${d.weight.kg} kg${d.weight.fasted===false?' (not fasted)':''} · target ${g.weight_kg}`:'') +
-          (d.exercise.length?`<br>${d.exercise.map(e=>e.type+(e.distance_km?' '+e.distance_km+' km':'')).join(', ')}`:''); }}});
+          (d.weight?`<br>${esc(d.weight.kg)} kg${d.weight.fasted===false?' (not fasted)':''} · target ${esc(g.weight_kg)}`:'') +
+          (d.exercise.length?`<br>${esc(d.exercise.map(e=>e.type+(e.distance_km?' '+e.distance_km+' km':'')).join(', '))}`:''); }}});
   ch.getZr().on('click', ev => {
     const idx = ch.convertFromPixel({xAxisIndex:0}, [ev.offsetX, ev.offsetY]);
     const i = Array.isArray(idx) ? idx[0] : idx;
@@ -933,9 +934,9 @@ function renderDayTable(days){
     <tr class="tgtrow"><td>Current target</td><td class="sub">training day</td>${cols.map(c=>`<td>${tcell(c[3])}</td>`).join('')}<td>${cur.weight_kg??'–'}</td><td></td></tr>`;
   for(const d of [...days].reverse()){
     const t = d.totals||{}, ev = d.eval||{};
-    h += `<tr><td><a href="#day" data-date="${d.date}">${shortDate(d.date)}</a></td><td>${d.day_type}${d.status!=='complete'?`, <span class="sub">${d.status}</span>`:''}</td>` +
+    h += `<tr><td><a href="#day" data-date="${esc(d.date)}">${shortDate(d.date)}</a></td><td>${esc(d.day_type)}${d.status!=='complete'?`, <span class="sub">${esc(d.status)}</span>`:''}</td>` +
       cols.map(([k,,dp]) => { const e = ev[k]; const cl = e&&e.ok===true?'good':e&&e.ok===false?'bad':''; return `<td class="${cl}">${d.totals?fmt(t[k],dp):'–'}${ARROW(e)}</td>`; }).join('') +
-      `<td>${d.weight?d.weight.kg+(d.weight.fasted===false?'*':''):'–'}</td><td>${d.exercise.map(e=>e.type).join(', ')||'–'}</td></tr>`;
+      `<td>${d.weight?d.weight.kg+(d.weight.fasted===false?'*':''):'–'}</td><td>${esc(d.exercise.map(e=>e.type).join(', ')||'–')}</td></tr>`;
   }
   $('#weektable').innerHTML = h + `</table><p class="sub">* not fasted. Green is on target, red is missed, judged against the target that applied that day. Partial days aren't judged.</p>`;
   document.querySelectorAll('#weektable a').forEach(a => a.onclick = e => { e.preventDefault(); showTab('day'); renderDay(a.dataset.date); });
@@ -969,8 +970,8 @@ async function renderWorkouts(){
   if(!WO.length){ el.innerHTML = '<p class="empty">No workouts logged yet.</p>'; return; }
   const list = WO.slice(0, 24);
   if(!WO_SEL) WO_SEL = `${list[0].date}|${list[0].idx}`;
-  el.innerHTML = list.map(w => { const k = `${w.date}|${w.idx}`, d = new Date(w.date+'T00:00');
-    const stat = w.type==='gym' ? `${w.sets} sets` : w.distance_km ? `${w.distance_km} km` : w.duration_min ? `${w.duration_min} min` : '';
+  el.innerHTML = list.map(w => { const k = `${esc(w.date)}|${esc(w.idx)}`, d = new Date(w.date+'T00:00');
+    const stat = w.type==='gym' ? `${esc(w.sets)} sets` : w.distance_km ? `${esc(w.distance_km)} km` : w.duration_min ? `${esc(w.duration_min)} min` : '';
     return `<button role="tab" aria-selected="${k===WO_SEL}" data-k="${k}"><span class="wd">${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}</span>
       <span class="wn">${WO_IC[w.type]||'•'} ${esc(w.name)}</span><span class="ws">${stat}${w.garmin?' · <span title="Garmin data">⌚</span>':''}</span></button>`; }).join('');
   el.querySelectorAll('button').forEach(b => b.onclick = () => { WO_SEL = b.dataset.k; renderWorkouts().then(() => { if(MMODE==='session') renderMuscles(); }); });
@@ -981,20 +982,20 @@ async function renderWorkouts(){
   const tile = (lab, v, sub='') => `<div class="t"><div class="lab">${lab}</div><div class="v">${v}</div>${sub?`<div class="s">${sub}</div>`:''}</div>`;
   const delta = (cur, prev, unit='', dp=0) => prev==null||cur==null ? '' : `<span class="${cur>prev?'good':cur<prev?'bad':''}">${cur>prev?'▲':cur<prev?'▼':'▬'} ${cur-prev>0?'+':''}${fmt(cur-prev,dp)}${unit}</span> vs ${shortDate(P.date)}`;
   const tiles = [];
-  if(S.type==='gym') tiles.push(tile('Sets · volume', `${S.sets} · ${fmt(S.volume)}<small> kg</small>`, P ? delta(S.volume, P.volume, ' kg') : ''));
-  if(D.time || S.distance_km) tiles.push(tile('Distance · time', `${S.distance_km??'–'}<small> km</small> · ${D.time||'–'}`, D.time && S.distance_km ? `${pace(toSecs(D.time)/S.distance_km)} /km${D.cadence?` · cadence ${D.cadence}`:''}` : ''));
-  tiles.push(tile('Duration', S.duration_min!=null?`${S.duration_min}<small> min</small>`:'–', D.trace?'':(S.garmin?'':'no watch data')));
+  if(S.type==='gym') tiles.push(tile('Sets · volume', `${esc(S.sets)} · ${fmt(S.volume)}<small> kg</small>`, P ? delta(S.volume, P.volume, ' kg') : ''));
+  if(D.time || S.distance_km) tiles.push(tile('Distance · time', `${S.distance_km??'–'}<small> km</small> · ${D.time||'–'}`, D.time && S.distance_km ? `${pace(toSecs(D.time)/S.distance_km)} /km${D.cadence?` · cadence ${esc(D.cadence)}`:''}` : ''));
+  tiles.push(tile('Duration', S.duration_min!=null?`${esc(S.duration_min)}<small> min</small>`:'–', D.trace?'':(S.garmin?'':'no watch data')));
   tiles.push(tile('Calories', D.kcal&&D.kcal.total?`${fmt(D.kcal.total)}`:'–', D.kcal&&D.kcal.active?`${fmt(D.kcal.active)} active`:''));
-  tiles.push(tile('Heart rate', D.hr&&D.hr.avg?`${D.hr.avg}<small> avg</small> · ${D.hr.max||'–'}<small> max</small>`:'–'));
-  if(D.hrr!=null) tiles.push(tile('Recovery HR', `${D.hrr}<small> bpm drop</small>`, `in 2 min after stopping · ${D.hrr>=40?'excellent':D.hrr>=30?'good':D.hrr>=20?'fair':'low'}${S.type==='gym'?' (noisier after lifting)':''}`));
-  if(D.training_load!=null) tiles.push(tile('Training load', `${D.training_load}`, 'Garmin, this session'));
+  tiles.push(tile('Heart rate', D.hr&&D.hr.avg?`${esc(D.hr.avg)}<small> avg</small> · ${D.hr.max||'–'}<small> max</small>`:'–'));
+  if(D.hrr!=null) tiles.push(tile('Recovery HR', `${esc(D.hrr)}<small> bpm drop</small>`, `in 2 min after stopping · ${D.hrr>=40?'excellent':D.hrr>=30?'good':D.hrr>=20?'fair':'low'}${S.type==='gym'?' (noisier after lifting)':''}`));
+  if(D.training_load!=null) tiles.push(tile('Training load', `${esc(D.training_load)}`, 'Garmin, this session'));
   const T = D.trace;
   if(T && (T.aerobic_te!=null)) tiles.push(tile('Training effect', `${fmt(T.aerobic_te,1)} <small>/</small> ${fmt(T.anaerobic_te,1)}`,
-    `aerobic / anaerobic${T.te_label?' · '+T.te_label.toLowerCase().replace(/_/g,' '):''}`)); if(T && T.body_battery_change!=null) tiles.push(tile('Body battery', `${T.body_battery_change}`, 'cost of the session'));
+    `aerobic / anaerobic${T.te_label?' · '+T.te_label.toLowerCase().replace(/_/g,' '):''}`)); if(T && T.body_battery_change!=null) tiles.push(tile('Body battery', `${esc(T.body_battery_change)}`, 'cost of the session'));
   const Z = D.zones_min;
   const zbar = Z ? (() => { const tot = Object.values(Z).reduce((a,b)=>a+b,0)||1, ZC = ['#7a8597','#2a78d6','#1baf7a','#eda100','#eb6834','#C8372D'];
     return `<div class="zbar">${[1,2,3,4,5].map(k => Z['z'+k] ? `<i style="flex:${Z['z'+k]};background:${ZC[k]}" title="Zone ${k}: ${Z['z'+k]} min"><span>Z${k} ${Z['z'+k]}m</span></i>` : '').join('')}</div>`; })() : '';
-  let h = `<div class="wo-head"><div><h3>${WO_IC[S.type]||''} ${esc(S.name)}</h3><span class="sub">${fmtDate(S.date)}${S.start?' · '+S.start:''}${D.hevy?` · <a href="${esc(D.hevy)}" target="_blank" rel="noopener">Hevy</a>`:''}${D.prs?` · <span class="pr-star">★</span> ${D.prs} personal best${D.prs>1?'s':''}`:''}</span>
+  let h = `<div class="wo-head"><div><h3>${WO_IC[S.type]||''} ${esc(S.name)}</h3><span class="sub">${fmtDate(S.date)}${S.start?' · '+esc(S.start):''}${/^https:\/\//.test(D.hevy||'')?` · <a href="${esc(D.hevy)}" target="_blank" rel="noopener">Hevy</a>`:''}${D.prs?` · <span class="pr-star">★</span> ${esc(D.prs)} personal best${D.prs>1?'s':''}`:''}</span>
     ${D.note?`<div class="sub">${esc(D.note)}</div>`:''}</div></div>${coachList(D.coach)}<div class="tiles-g wo-tiles">${tiles.join('')}</div>${zbar}`;
   const L = D.laps;
   if(L && L.laps.length){
@@ -1008,7 +1009,7 @@ async function renderWorkouts(){
         <td>${l.hr_avg??'–'}</td><td>${l.hr_max??'–'}</td></tr>`).join('') + `</table>`;
   }
   const FIT = T && T.effort_fit, CIRC = FIT && FIT.circuits;
-  if(T) h += `<div class="notes-h"><h2 class="h3">Heart rate</h2><span class="sub">${T.efforts.length} effort${T.efforts.length!==1?'s':''} picked out from heart-rate peaks${T.effort_gap_min?`, about ${fmt(T.effort_gap_min,1)} min apart`:''}${S.type==='gym'&&S.sets?` (you logged ${S.sets} sets)`:''}${CIRC?` · ${FIT.matched} of ${FIT.sets} sets matched to peaks from your circuit order${FIT.exact?'':' (approximate)'}, hover a dot`:''} · zones are estimates from your highest recorded HR (${D.max_hr})</span></div><div id="wohr" class="chart" style="height:220px"></div>`;
+  if(T) h += `<div class="notes-h"><h2 class="h3">Heart rate</h2><span class="sub">${T.efforts.length} effort${T.efforts.length!==1?'s':''} picked out from heart-rate peaks${T.effort_gap_min?`, about ${fmt(T.effort_gap_min,1)} min apart`:''}${S.type==='gym'&&S.sets?` (you logged ${esc(S.sets)} sets)`:''}${CIRC?` · ${esc(FIT.matched)} of ${esc(FIT.sets)} sets matched to peaks from your circuit order${FIT.exact?'':' (approximate)'}, hover a dot`:''} · zones are estimates from your highest recorded HR (${esc(D.max_hr)})</span></div><div id="wohr" class="chart" style="height:220px"></div>`;
   else if(S.garmin===false && S.type==='gym') h += `<p class="sub">No watch data for this session, so no heart-rate trace.</p>`;
   else if(S.garmin) h += `<p class="sub">No heart-rate trace saved for this session yet (recent sessions fetch it on the next Garmin sync).</p>`;
   if(D.lifts.length){
@@ -1016,7 +1017,7 @@ async function renderWorkouts(){
       const ch = l.vol_change, e1 = l.e1rm_change;
       const chTxt = l.prev ? `${ch!=null?`<span class="${ch>0?'good':ch<0?'bad':''}">${ch>0?'▲ +':ch<0?'▼ ':'▬ '}${fmt(ch)} kg</span>`:''}${e1?` <span class="sub">· best set ${e1>0?'+':''}${fmt(e1,1)} kg e1RM</span>`:''}` : '<span class="sub">first time</span>';
       return `<tr${l.pr?' class="pr"':''}><td>${esc(l.name)}${l.pr?' <span class="pr-star" aria-label="personal best">★</span>':''}${l.note?`<div class="lift-note">💬 ${esc(l.note)}</div>`:''}</td><td class="sets">${(l.sets_raw||[]).map(x=>String(x).replace(/^0x/,'bw×')).join(', ')}</td>
-        <td>${l.metres?`${l.metres} m`:l.volume?fmt(l.volume):`${(l.sets_raw||[]).reduce((a,x)=>a+(+(String(x).split('x')[1])||0),0)} reps`}</td><td>${chTxt}</td><td class="sub">${l.prev?`${shortDate(l.prev.date)}: ${(l.prev.sets_raw||[]).join(', ')}`:'–'}</td></tr>`; }).join('') + `</table>
+        <td>${l.metres?`${esc(l.metres)} m`:l.volume?fmt(l.volume):`${(l.sets_raw||[]).reduce((a,x)=>a+(+(String(x).split('x')[1])||0),0)} reps`}</td><td>${chTxt}</td><td class="sub">${l.prev?`${shortDate(l.prev.date)}: ${(l.prev.sets_raw||[]).join(', ')}`:'–'}</td></tr>`; }).join('') + `</table>
       <p class="sub">Volume is weight × reps over all logged sets. ${CIRC?'Sets are matched to heart-rate peaks using the circuit order logged with this session.':"Hevy doesn't record when each set happened, so sets aren't matched to the heart-rate trace. Tell your assistant your circuit order (which lifts you loop together) and it will match them."}</p>`;
   }
   box.innerHTML = h;
@@ -1031,7 +1032,7 @@ async function renderWorkouts(){
         const EL = T.effort_labels||[]; let ei = -1, best = .5;
         T.efforts.forEach((q,k) => { const dd = Math.abs(q[0]-m); if(dd < best && EL[k]){ best = dd; ei = k; } });
         const L = ei>=0 ? EL[ei] : null;
-        return `${fmt(m,1)} min · <b>${p.value[1]}</b> bpm${z>=0?` <span style="color:${c.muted}">zone ${z+1}</span>`:''}${L?`<br><b>${esc(L.name)}</b> · set ${L.set} of ${L.of} · ${esc(L.raw.replace(/^0x/,'bw×'))}`:''}`; }},
+        return `${fmt(m,1)} min · <b>${p.value[1]}</b> bpm${z>=0?` <span style="color:${c.muted}">zone ${z+1}</span>`:''}${L?`<br><b>${esc(L.name)}</b> · set ${esc(L.set)} of ${esc(L.of)} · ${esc(L.raw.replace(/^0x/,'bw×'))}`:''}`; }},
       series:[{type:'line',name:'HR',data:T.points,showSymbol:false,lineStyle:{color:'#C8372D',width:1.8},
         markArea:{silent:true,label:{show:true,position:'insideRight',color:c.muted,fontSize:10},data:[0,1,2,3,4].map(k=>[{yAxis:B[k],name:'Z'+(k+1),itemStyle:{color:ZC[k],opacity:.08}},{yAxis:B[k+1]}])}},
         {type:'scatter',name:'Efforts',data:T.efforts.map((q,k) => ({value:q, itemStyle:{color:(T.effort_labels||[])[k]||!CIRC?c.ink:c.muted, opacity:(T.effort_labels||[])[k]||!CIRC?1:.45}})),symbolSize:7,tooltip:{show:false}}]});
@@ -1067,7 +1068,7 @@ function renderCalendar(){
     if(b){
       cls = b.est ? 'lx' : 'l'+level(b.kcal);
       tip = `${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}: ${b.est?'~':''}${fmt(b.kcal)} kcal${b.est?' (estimated)':''}\n` +
-        b.items.map(w => `${WO_IC[w.type]||'•'} ${w.name} · ${w.kcal?fmt(w.kcal)+' kcal':`~${fmt(w.kcal_est)} kcal estimated, no watch data`}${w.duration_min?` · ${w.duration_min} min`:''}`).join('\n'); }
+        b.items.map(w => `${WO_IC[w.type]||'•'} ${esc(w.name)} · ${w.kcal?fmt(w.kcal)+' kcal':`~${fmt(w.kcal_est)} kcal estimated, no watch data`}${w.duration_min?` · ${esc(w.duration_min)} min`:''}`).join('\n'); }
     cells += `<i class="${cls}" style="grid-column:${col+1};grid-row:${dow+2}" title="${esc(tip)}"${b?` data-k="${b.items[0].date}|${b.items[0].idx}" tabindex="0" role="button"`:''}></i>`;
   }
   const days = ['Mon','','Wed','','Fri','',''].map((t,i) => `<b style="grid-row:${i+2}">${t}</b>`).join('');
@@ -1111,7 +1112,7 @@ async function renderMuscles(){
   const info = r => { const x = R[r];
     if(!x.lifts.length) return `<h4>${esc(x.label)}</h4><p class="sub">Not trained in ${what}.</p>`;
     return `<h4>${esc(x.label)} · ${fmt(x.sets,1)} sets</h4><ul>${x.lifts.map(l => `<li><span>${esc(l.name)}${l.role==='secondary'?' <span class="r">(secondary, counts half)</span>':''}</span>
-      <span class="r">${l.minutes!=null?`${l.minutes} min ≈ ${fmt(l.sets,1)} set${l.sets!==1?'s':''}`:`${l.sets} set${l.sets!==1?'s':''}`}${days?` · ${[...new Set(l.dates)].map(shortDate).join(', ')}`:''}</span></li>`).join('')}</ul>`; };
+      <span class="r">${l.minutes!=null?`${esc(l.minutes)} min ≈ ${fmt(l.sets,1)} set${l.sets!==1?'s':''}`:`${esc(l.sets)} set${l.sets!==1?'s':''}`}${days?` · ${[...new Set(l.dates)].map(shortDate).join(', ')}`:''}</span></li>`).join('')}</ul>`; };
   const top = Object.keys(R).filter(r => R[r].sets).sort((a, b) => R[b].sets - R[a].sets)[0];
   box.innerHTML = fig('front', 'Front') + fig('back', 'Back') + `<div class="mside"><div class="mlegend">${leg.map((t, k) => `<span><i style="background:var(--m${k})"></i>${t}${k===0?' sets':''}</span>`).join('')}</div>
     <div class="mtip" id="mtip">${top ? info(top) : `<p class="sub">${MMODE==='session' ? 'Nothing to show for this workout.' : 'No lifts logged in this period.'}</p>`}</div></div>`;
@@ -1187,7 +1188,7 @@ function renderLift(name){
     legend:{top:0,left:56,textStyle:{color:c.muted},data:carry?[]:['Top set kg','Est. 1RM']},
     grid:{left:56,right:40,top:40,bottom:34},
     tooltip:{trigger:'axis',...tip(c),formatter: ps => { const p = pts[ps[0].dataIndex];
-      return `<b>${fmtDate(p.date)}</b><br>${p.kg} kg${p.reps?' × '+p.reps:''}${p.metres?' for '+p.metres+' m':''}${p.reps?'<br>est. 1RM '+p.e1rm+' kg':''}${p.pr?'<br><b>New best</b>':''}${p.epoch?'<br>'+(p.epoch==='v2'?'new':'old')+' machines':''}`; }},
+      return `<b>${fmtDate(p.date)}</b><br>${esc(p.kg)} kg${p.reps?' × '+p.reps:''}${p.metres?' for '+p.metres+' m':''}${p.reps?'<br>est. 1RM '+p.e1rm+' kg':''}${p.pr?'<br><b>New best</b>':''}${p.epoch?'<br>'+(p.epoch==='v2'?'new':'old')+' machines':''}`; }},
     xAxis:{type:'category',data:pts.map(p=>shortDate(p.date)),...ax,axisTick:{show:false}},
     yAxis:{type:'value',...ax,...niceRange(Math.min(...vals)-2, Math.max(...vals)+2, 4),name:'kg',nameTextStyle:{color:c.muted}},
     series:[
@@ -1202,9 +1203,9 @@ async function renderPlan(){
   const p = await api('/api/plan').catch(()=>null); if(!p) return;
   const i = p.info, [vlo, vhi] = i.weekly_sets_guide;
   const banner = i.deload_now
-    ? `<div class="focus"><b>Deload week</b> (week ${i.week} of the block): same weights, 2 sets instead of 3, stop 2–3 reps short of failure.</div>`
-    : `<p class="sub">Week ${i.week} of the block that started ${shortDate(i.block_start)}. Next deload: week of ${shortDate(i.next_deload_week_of)}. Double progression, ${i.rep_range[0]}–${i.rep_range[1]} reps, ${i.working_sets} working sets.</p>`;
-  const rows = p.lifts.map(r => `<tr data-lift="${r.lift}" tabindex="0"><td>${r.lift.replace(/-/g,' ')}</td><td><span class="sub">${shortDate(r.last_date)}</span> ${r.last}</td><td><b>${r.target}</b></td><td class="sub" style="white-space:normal">${r.rule}</td></tr>`).join('');
+    ? `<div class="focus"><b>Deload week</b> (week ${esc(i.week)} of the block): same weights, 2 sets instead of 3, stop 2–3 reps short of failure.</div>`
+    : `<p class="sub">Week ${esc(i.week)} of the block that started ${shortDate(i.block_start)}. Next deload: week of ${shortDate(i.next_deload_week_of)}. Double progression, ${i.rep_range[0]}–${i.rep_range[1]} reps, ${esc(i.working_sets)} working sets.</p>`;
+  const rows = p.lifts.map(r => `<tr data-lift="${esc(r.lift)}" tabindex="0"><td>${r.lift.replace(/-/g,' ')}</td><td><span class="sub">${shortDate(r.last_date)}</span> ${esc(r.last)}</td><td><b>${esc(r.target)}</b></td><td class="sub" style="white-space:normal">${esc(r.rule)}</td></tr>`).join('');
   const muscles = [...new Set(p.volume.flatMap(w => Object.keys(w.sets)))].sort();
   const vol = muscles.length ? `<h3 style="font-size:14px;margin:18px 0 6px">Working sets per muscle, per week <span class="sub">(general guide ${vlo}–${vhi} for growth; warm-ups excluded; secondary muscles count half)</span></h3>
     <table><tr><th>Muscle</th>${p.volume.map(w=>`<th>${shortDate(w.week_of)}</th>`).join('')}</tr>` +
@@ -1222,7 +1223,7 @@ async function renderPlan(){
 function renderLiftTable(){
   const names = liftNames();
   const rows = names.map(n => { const ps = TRAIN.lifts[n]; const best = ps.reduce((a,b)=>b.e1rm>a.e1rm?b:a); const last = ps[ps.length-1];
-    const s = p => `${p.kg}${p.reps?' × '+p.reps:''}${p.metres?' kg, '+p.metres+' m':''}`;
+    const s = p => `${esc(p.kg)}${p.reps?' × '+p.reps:''}${p.metres?' kg, '+p.metres+' m':''}`;
     return `<tr data-lift="${n}" aria-selected="${TVIEW===n}" tabindex="0"><td>${n.replace(/-/g,' ')}</td><td>${s(last)}</td><td>${shortDate(last.date)}</td><td>${s(best)}</td><td>${shortDate(best.date)}</td><td>${ps.length}</td></tr>`; });
   $('#lifttable').innerHTML = `<table><tr><th>Lift</th><th>Latest</th><th>When</th><th>Best</th><th>When</th><th>Sessions</th></tr>${rows.join('')}</table>`;
   document.querySelectorAll('#lifttable tr[data-lift]').forEach(r => {
@@ -1246,7 +1247,7 @@ function renderRuns(){
            {type:'value',gridIndex:2,...rax,...niceRange(Math.min(R.easy_run_avg_hr_max, ...hrs_)-5, Math.max(R.easy_run_avg_hr_max, ...hrs_)+5, 2)}],
     axisPointer:{link:[{xAxisIndex:'all'}],lineStyle:{color:c.muted}},
     tooltip:{trigger:'axis',...tip(c),formatter: ps => { const r = runs[ps[0].dataIndex];
-      return `<b>${fmtDate(r.date)}</b><br>${[r.effort,r.mode].filter(Boolean).join(', ')||'run'}<br>${r.km} km in ${pace(r.secs)} · ${pace(r.pace)}/km${r.avg_hr?`<br>avg HR ${r.avg_hr}${r.max_hr?' / max '+r.max_hr:''}`:''}${r.hrr!=null?`<br>recovery HR: dropped ${r.hrr} bpm in 2 min`:''}${r.temp_c?`<br>${r.temp_c}°C`:''}`; }},
+      return `<b>${fmtDate(r.date)}</b><br>${[r.effort,r.mode].filter(Boolean).join(', ')||'run'}<br>${esc(r.km)} km in ${pace(r.secs)} · ${pace(r.pace)}/km${r.avg_hr?`<br>avg HR ${esc(r.avg_hr)}${r.max_hr?' / max '+r.max_hr:''}`:''}${r.hrr!=null?`<br>recovery HR: dropped ${esc(r.hrr)} bpm in 2 min`:''}${r.temp_c?`<br>${esc(r.temp_c)}°C`:''}`; }},
     series:[
       {type:'bar',name:'Distance',xAxisIndex:0,yAxisIndex:0,data:runs.map(r=>r.km),barMaxWidth:22,itemStyle:{color:'#eb6834',borderRadius:[4,4,0,0]},
         label:{show:runs.length<=30,position:'top',color:c.ink,fontSize:10,formatter:p=>p.value!=null?fmt(p.value,1):''}},
@@ -1267,8 +1268,8 @@ async function renderReadiness(){
   const c = theme(), S = READY.series.filter(s => s.score != null), bt = READY.backtest;
   const names = {rhr:'resting HR up', hrv:'HRV down', sleep_debt_h:'short sleep', load:'training load spike', stress:'stress up', bb:'low body battery', feel:'feeling off'};
   $('#readynote').innerHTML = `Today's state compared with your own last 4 weeks: 100 means nothing is off. Green 70+, amber 50–69, red under 50. ` +
-    `<b>It is not a forecast.</b> Tested against your ${bt.of} recorded off-episodes (shaded), it warned ahead of ${bt.flagged}; ` +
-    `${bt.ordinary_days_below_pct}% of ordinary days dip into red. Log a daily feel score and new episodes so it can be re-tested.`;
+    `<b>It is not a forecast.</b> Tested against your ${esc(bt.of)} recorded off-episodes (shaded), it warned ahead of ${esc(bt.flagged)}; ` +
+    `${esc(bt.ordinary_days_below_pct)}% of ordinary days dip into red. Log a daily feel score and new episodes so it can be re-tested.`;
   const ax = {axisLine:{lineStyle:{color:c.rule}},axisLabel:{color:c.muted,fontSize:11},splitLine:{lineStyle:{color:c.rule}}};
   const x = S.map(s => s.date);
   const areas = READY.episodes.map(e => [{xAxis: x.find(d => d >= e.start) || e.start, itemStyle:{color:'rgba(200,55,45,.10)'}, name: e.what}, {xAxis: [...x].reverse().find(d => d <= e.end) || e.end}]);
@@ -1277,7 +1278,7 @@ async function renderReadiness(){
     yAxis:{type:'value',min:0,max:100,interval:25,...ax},
     tooltip:{trigger:'axis',...tip(c),formatter: ps => { const s = S[ps[0].dataIndex];
       const ep = READY.episodes.find(e => s.date >= e.start && s.date <= e.end);
-      return `<b>${fmtDate(s.date)}</b><br>Readiness ${s.score} (${s.band})${s.drivers.length?'<br>'+s.drivers.map(k=>names[k]).join(', '):''}${s.sleep_debt_h?`<br>3-night sleep shortfall ${s.sleep_debt_h} h`:''}${ep?`<br><b>Off episode:</b> ${ep.what}`:''}`; }},
+      return `<b>${fmtDate(s.date)}</b><br>Readiness ${esc(s.score)} (${esc(s.band)})${s.drivers.length?'<br>'+s.drivers.map(k=>names[k]).join(', '):''}${s.sleep_debt_h?`<br>3-night sleep shortfall ${esc(s.sleep_debt_h)} h`:''}${ep?`<br><b>Off episode:</b> ${esc(ep.what)}`:''}`; }},
     series:[{type:'line',name:'Readiness',smooth:.3,symbol:'circle',symbolSize:7,lineStyle:{color:c.ink,width:2},
       data:S.map(s => ({value:s.score,itemStyle:{color:s.band==='green'?c.good:s.band==='amber'?c.warn:c.bad,...ring(c)}})),
       markArea:{silent:true,label:{show:false},data:areas},
@@ -1303,7 +1304,7 @@ async function renderRecovery(){
            {type:'value',gridIndex:1,...ax,...niceRange(Math.min(REF.hrv_baseline_ms, ...nn(hrv)) - 3, Math.max(REF.hrv_baseline_ms, ...nn(hrv)) + 3, 3)},
            {type:'value',gridIndex:2,...ax,...niceRange(Math.min(REF.rhr_walk_only, ...nn(rhr)) - 2, Math.max(REF.rhr_walk_only, ...nn(rhr)) + 2, 3)}],
     tooltip:{trigger:'axis',...tip(c),formatter: ps => { const i = ps[0].dataIndex, d = days[i];
-      return `<b>${fmtDate(d.date)}</b><br>Sleep ${hm(sleep[i])}${d.recovery.sleep_score?` · score ${d.recovery.sleep_score}`:''}<br>HRV ${hrv[i]??'–'} ms${d.recovery.hrv_status?' · '+d.recovery.hrv_status:''}<br>Resting HR ${rhr[i]??'–'}${d.recovery.body_battery?`<br>Body battery +${d.recovery.body_battery}`:''}${d.recovery.note?`<br><span style="color:${c.muted}">${d.recovery.note}</span>`:''}`; }},
+      return `<b>${fmtDate(d.date)}</b><br>Sleep ${hm(sleep[i])}${d.recovery.sleep_score?` · score ${esc(d.recovery.sleep_score)}`:''}<br>HRV ${hrv[i]??'–'} ms${d.recovery.hrv_status?' · '+d.recovery.hrv_status:''}<br>Resting HR ${rhr[i]??'–'}${d.recovery.body_battery?`<br>Body battery +${esc(d.recovery.body_battery)}`:''}${d.recovery.note?`<br><span style="color:${c.muted}">${esc(d.recovery.note)}</span>`:''}`; }},
     axisPointer:{link:[{xAxisIndex:'all'}],lineStyle:{color:c.muted}},
     series:[
       {type:'bar',name:'Sleep',xAxisIndex:0,yAxisIndex:0,barMaxWidth:24,
@@ -1311,9 +1312,9 @@ async function renderRecovery(){
         markLine:ref(REF.sleep_hours_min, c.good, 'target 7h30')},
       {type:'line',name:'HRV',xAxisIndex:1,yAxisIndex:1,data:hrv,connectNulls:true,smooth:.3,symbol:'circle',symbolSize:7,lineStyle:{color:c.accent,width:2},itemStyle:{color:c.accent,...ring(c)},symbolSize:9,
         areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:c.soft},{offset:1,color:'rgba(0,0,0,0)'}])},
-        markLine:ref(REF.hrv_baseline_ms, c.accent, `baseline ${REF.hrv_baseline_ms} ms`)},
+        markLine:ref(REF.hrv_baseline_ms, c.accent, `baseline ${esc(REF.hrv_baseline_ms)} ms`)},
       {type:'line',name:'Resting HR',xAxisIndex:2,yAxisIndex:2,data:rhr,connectNulls:true,smooth:.3,symbol:'circle',symbolSize:7,lineStyle:{color:c.ink,width:2},itemStyle:{color:c.ink,...ring(c)},symbolSize:9,
-        markLine:ref(REF.rhr_walk_only, c.bad, `${REF.rhr_walk_only}+ = walk only`)},
+        markLine:ref(REF.rhr_walk_only, c.bad, `${esc(REF.rhr_walk_only)}+ = walk only`)},
     ]});
 }
 
@@ -1334,7 +1335,7 @@ async function renderGlucoseOverview(){
     (ov ? ` Average <b>${fmt(ov.mean,1)}</b> mmol/L · time in range 3.9–7.8 <b>${fmt(ov.tir,0)}%</b> · variability <b>${fmt(ov.cv,0)}%</b> · estimated HbA1c (GMI) <b>${fmt(ov.gmi,1)}%</b>.` : '') +
     ` ${O.days.length < 7 ? 'The 24-hour profile below gets reliable after about a week.' : ''}`;
   $('#gdays').innerHTML = `<table class="g-days"><tr><th>Day</th><th class="num">Readings</th><th class="num">Average</th><th class="num">In range</th><th class="num">Variability</th><th class="num">High / low</th><th class="num">Overnight</th></tr>${[...O.days].reverse().map(d => `<tr>
-    <td>${shortDate(d.date)}${d.settling?' <span class="tag">settling in</span>':''}</td><td class="num">${d.n}</td>
+    <td>${shortDate(d.date)}${d.settling?' <span class="tag">settling in</span>':''}</td><td class="num">${esc(d.n)}</td>
     <td class="num">${d.mean!=null?fmt(d.mean,1):'–'}</td><td class="num ${d.tir==null?'':d.tir>=95?'good':d.tir<85?'bad':''}">${d.tir!=null?fmt(d.tir,0)+'%':'–'}</td>
     <td class="num">${d.cv!=null?fmt(d.cv,0)+'%':'–'}</td><td class="num">${d.max!=null?`${fmt(d.max,1)} / ${fmt(d.min,1)}`:'–'}</td><td class="num">${d.overnight!=null?fmt(d.overnight,1):'–'}</td></tr>`).join('')}</table>`;
   const P = O.profile, x = P.map(p => p.t);
@@ -1345,14 +1346,14 @@ async function renderGlucoseOverview(){
     title:{text:'24-hour profile: median line, middle half and 90% of readings shaded',left:36,top:0,textStyle:{fontSize:12,fontWeight:600,color:c.ink,fontFamily:'Archivo'}},
     xAxis:{type:'category',data:x,boundaryGap:false,...ax,axisTick:{show:false}},
     yAxis:{type:'value',min:2,max:v=>Math.max(10,Math.ceil(v.max+0.5)),interval:2,...ax},
-    tooltip:{trigger:'axis',...tip(c),formatter:ps=>{ const p = P[ps[0].dataIndex]; return `<b>${p.t}</b> · ${p.n} readings<br>Median <b>${fmt(p.p50,1)}</b><br>Middle half ${fmt(p.p25,1)}–${fmt(p.p75,1)}<br>90% ${fmt(p.p5,1)}–${fmt(p.p95,1)}`; }},
+    tooltip:{trigger:'axis',...tip(c),formatter:ps=>{ const p = P[ps[0].dataIndex]; return `<b>${esc(p.t)}</b> · ${esc(p.n)} readings<br>Median <b>${fmt(p.p50,1)}</b><br>Middle half ${fmt(p.p25,1)}–${fmt(p.p75,1)}<br>90% ${fmt(p.p5,1)}–${fmt(p.p95,1)}`; }},
     series:[...band('p5','p95',.12), ...band('p25','p75',.22),
       {type:'line',name:'Median',data:P.map(p=>p.p50),symbol:'none',smooth:.3,lineStyle:{color:c.ink,width:2},
         markArea:{silent:true,label:{show:false},data:[[{yAxis:lo,itemStyle:{color:c.good,opacity:.08}},{yAxis:hi}]]}}]});
   const M = O.meals;
-  $('#gmeals').innerHTML = M.length ? `<h3 class="g-h3">Meals ranked by spike (last ${O.window} days)</h3><table class="g-meals"><tr><th>Meal</th><th class="num">Rise</th><th class="num">Peak</th><th class="num">Peak at</th><th class="num">Back down</th></tr>${M.slice(0,15).map(m => `<tr>
-      <td>${shortDate(m.date)} ${m.time} ${m.meal}<br><span class="sub">${esc(m.label)}</span></td><td class="num ${m.rise>=3?'bad':m.rise<=1.5?'good':''}"><b>${m.rise>=0?'+':''}${fmt(m.rise,1)}</b></td>
-      <td class="num">${fmt(m.peak,1)}</td><td class="num">${m.peak_min} min</td><td class="num">${m.back_min!=null?m.back_min+' min':'>2½ h'}</td></tr>`).join('')}</table>`
+  $('#gmeals').innerHTML = M.length ? `<h3 class="g-h3">Meals ranked by spike (last ${esc(O.window)} days)</h3><table class="g-meals"><tr><th>Meal</th><th class="num">Rise</th><th class="num">Peak</th><th class="num">Peak at</th><th class="num">Back down</th></tr>${M.slice(0,15).map(m => `<tr>
+      <td>${shortDate(m.date)} ${esc(m.time)} ${esc(m.meal)}<br><span class="sub">${esc(m.label)}</span></td><td class="num ${m.rise>=3?'bad':m.rise<=1.5?'good':''}"><b>${m.rise>=0?'+':''}${fmt(m.rise,1)}</b></td>
+      <td class="num">${fmt(m.peak,1)}</td><td class="num">${esc(m.peak_min)} min</td><td class="num">${m.back_min!=null?m.back_min+' min':'>2½ h'}</td></tr>`).join('')}</table>`
     : `<p class="sub">Meals logged with a time will be ranked here by how much they raise your glucose.</p>`;
 }
 async function renderBody(){
@@ -1386,7 +1387,7 @@ async function renderBody(){
       {type:'line',name:'Body fat %',xAxisIndex:1,yAxisIndex:1,data:bf,smooth:.3,symbol:'circle',symbolSize:8,lineStyle:{color:c.ink,width:2},itemStyle:{color:c.ink,...ring(c)}},
     ]});
   $('#inbodytable').innerHTML = `<table><tr><th>Date</th><th>Weight</th><th>Muscle (SMM)</th><th>Fat mass</th><th>Body fat</th><th>Fat-free</th><th>Visceral</th><th>Phase angle</th><th>Score</th></tr>` +
-    BODY.inbody.map(b=>`<tr><td>${shortDate(b.date)} ${b.date.slice(0,4)}</td><td>${b.weight_kg}${b.clothed?'*':''}</td><td>${b.smm_kg??'–'}</td><td>${b.fat_kg??'–'}</td><td>${b.pbf_pct!=null?b.pbf_pct+'%':'–'}</td><td>${b.ffm_kg??'–'}</td><td>${b.visceral_level??'–'}</td><td>${b.phase_angle??'–'}</td><td>${b.score??'–'}</td></tr>`).join('') +
+    BODY.inbody.map(b=>`<tr><td>${shortDate(b.date)} ${b.date.slice(0,4)}</td><td>${esc(b.weight_kg)}${b.clothed?'*':''}</td><td>${b.smm_kg??'–'}</td><td>${b.fat_kg??'–'}</td><td>${b.pbf_pct!=null?b.pbf_pct+'%':'–'}</td><td>${b.ffm_kg??'–'}</td><td>${b.visceral_level??'–'}</td><td>${b.phase_angle??'–'}</td><td>${b.score??'–'}</td></tr>`).join('') +
     `</table><p class="sub">* clothed. InBody reads about 1.7 points higher body fat and 0.8 kg lower fat-free mass than the home scale. Home-scale body fat moves ±0.3% day to day with hydration, so read the trend, not single days.</p>`;
   renderBP();
 }
@@ -1435,8 +1436,8 @@ function renderBP(){
     yAxis:{type:'value',name:'mmHg',nameTextStyle:{color:c.muted},...ax,...niceRange(Math.min(60, ...all), Math.max(145, ...all), 4)},
     tooltip:{trigger:'item',...tip(c),formatter: p => { const b = p.data.b;
       const pp = b.sys-b.dia;
-      return `<b>${fmtDate(b.date)}</b> ${b.time||''} · ${b.context}<br>${b.sys}/${b.dia}${b.pulse?` · pulse ${b.pulse}`:''}<br><span class="bpcat ${BPCLS[b.category]}">${BPLABEL[b.category]}</span>
-        <br>Pulse pressure <b>${pp}</b> <span class="bpcat ${PP_CLS[ppCat(pp)]}">${PP_LABEL[ppCat(pp)]}</span>${b.note?'<br>'+b.note:''}`; }},
+      return `<b>${fmtDate(b.date)}</b> ${b.time||''} · ${esc(b.context)}<br>${esc(b.sys)}/${esc(b.dia)}${b.pulse?` · pulse ${esc(b.pulse)}`:''}<br><span class="bpcat ${BPCLS[b.category]}">${BPLABEL[b.category]}</span>
+        <br>Pulse pressure <b>${pp}</b> <span class="bpcat ${PP_CLS[ppCat(pp)]}">${PP_LABEL[ppCat(pp)]}</span>${b.note?'<br>'+esc(b.note):''}`; }},
     series:[
       {type:'line',name:'Systolic',data:pts('sys'),symbolSize:9,lineStyle:{color:c.ink,width:2},itemStyle:{color:c.ink,...ring(c)},
         markLine:{symbol:'none',silent:true,lineStyle:{type:'dashed',color:c.muted},label:{color:c.ink,position:'end',fontSize:11},
@@ -1449,7 +1450,7 @@ function renderBP(){
           data:[{yAxis:60,label:{formatter:'60 wide pulse'}}]}},
     ]});
   $('#bptable').innerHTML = `<table><tr><th>Date</th><th>Time</th><th>When</th><th>Reading</th><th>Pulse</th><th title="Top number minus bottom number">Pulse pressure</th><th>Category</th></tr>` +
-    [...bp].reverse().map(b => `<tr><td>${shortDate(b.date)}</td><td>${b.time||'–'}</td><td>${b.context}</td><td><b>${b.sys}/${b.dia}</b></td><td>${b.pulse??'–'}</td><td>${b.sys-b.dia}</td><td><span class="bpcat ${BPCLS[b.category]}">${BPLABEL[b.category]}</span></td></tr>`).join('') + `</table>
+    [...bp].reverse().map(b => `<tr><td>${shortDate(b.date)}</td><td>${b.time||'–'}</td><td>${esc(b.context)}</td><td><b>${esc(b.sys)}/${esc(b.dia)}</b></td><td>${b.pulse??'–'}</td><td>${b.sys-b.dia}</td><td><span class="bpcat ${BPCLS[b.category]}">${BPLABEL[b.category]}</span></td></tr>`).join('') + `</table>
     <p class="sub">Circles are morning readings, triangles are other or unknown times. Pulse pressure is the top number minus the bottom one (dotted pink line).</p>`;
 }
 
@@ -1485,8 +1486,8 @@ function toast(key, kind, title, why, actions=[]){
   if(dismissed[key] || document.querySelector(`.toast[data-key="${CSS.escape(key)}"]`)) return;
   const el = document.createElement('div');
   el.className = 'toast ' + kind; el.dataset.key = key; el.setAttribute('role', kind==='err' ? 'alert' : 'status');
-  el.innerHTML = `<span class="ic" aria-hidden="true">${kind==='err' ? '⛔' : '⚠️'}</span><b>${title}</b><span class="why"></span><div class="acts"></div>`;
-  el.querySelector('.why').textContent = why;
+  el.innerHTML = `<span class="ic" aria-hidden="true">${kind==='err' ? '⛔' : '⚠️'}</span><b></b><span class="why"></span><div class="acts"></div>`;
+  el.querySelector('b').textContent = title; el.querySelector('.why').textContent = why;
   const acts = el.querySelector('.acts');
   for(const [label, fn, primary] of [...actions, ['Dismiss', null]]){
     const b = document.createElement('button'); b.textContent = label; if(primary) b.className = 'primary';
@@ -1513,12 +1514,12 @@ function garminToasts(s){
       `Syncs are working, but Garmin has nothing new for ${days} days. Is the watch charged, worn and synced to the Garmin app?`, [syncAgain]);
   }
   for(const w of (s.last_warnings||[]))
-    toast(`part:${w.date}:${w.part}:${s.last_success}`, 'warn', `Garmin ${w.part} missing for ${shortDate(w.date)}`, w.error, [syncAgain]);
+    toast(`part:${esc(w.date)}:${esc(w.part)}:${esc(s.last_success)}`, 'warn', `Garmin ${esc(w.part)} missing for ${shortDate(w.date)}`, w.error, [syncAgain]);
 }
 
 async function alertToasts(){
   const al = await api('/api/alerts').catch(()=>[]);
-  for(const a of al) if(!a.id.startsWith('lab-')) toast(`alert:${a.id}:${a.since}`, 'warn', a.title, `${a.text} ${a.todo}`);
+  for(const a of al) if(!a.id.startsWith('lab-')) toast(`alert:${esc(a.id)}:${esc(a.since)}`, 'warn', a.title, `${esc(a.text)} ${esc(a.todo)}`);
 }
 async function reloadData(){
   SUMMARY = await api('/api/summary'); HS = null; TRAIN = null;  WO = null; BODY = null; REF = null; READY = null; renderAll();
@@ -1543,7 +1544,7 @@ let PROFILE = null;
 function showWho(){   // a small profile icon, not the name: the name made the header wrap and pushed the sync status down
   const b = $('#who'); if(!b || !PROFILE) return;
   b.hidden = !PROFILE.name;
-  const label = PROFILE.name ? `${PROFILE.name}: profile, start date and timezone` : 'Profile';
+  const label = PROFILE.name ? `${esc(PROFILE.name)}: profile, start date and timezone` : 'Profile';
   b.title = label; b.setAttribute('aria-label', label);
   b.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 }

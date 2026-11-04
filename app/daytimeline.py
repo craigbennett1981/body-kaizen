@@ -37,7 +37,7 @@ def _iso_to_hm(iso, day):
     return int((t - dt.datetime.combine(dt.date.fromisoformat(day), dt.time())).total_seconds() // 60)
 
 def build(day):
-    p = data.ROOT / "days" / day[:4] / f"{day}.yaml"
+    p = data.day_file(day)
     if not p.exists(): return {"date": day, "events": [], "untimed": 0}
     d = data._jsonable(data._load(p))
     det = data.day_detail(day) or {}
@@ -53,7 +53,7 @@ def build(day):
         ev.append({"lane": "Sleep", "kind": "sleep", "start": max(0, _iso_to_hm(r["sleep_start"], day)), "end": _iso_to_hm(r["sleep_end"], day),
                    "label": f"Sleep {r.get('sleep', '')}".strip(), "detail": f"score {r['sleep_score']}" if r.get("sleep_score") else ""})
     nxt = (dt.date.fromisoformat(day) + dt.timedelta(days=1)).isoformat()
-    pn = data.ROOT / "days" / nxt[:4] / f"{nxt}.yaml"
+    pn = data.day_file(nxt)
     if pn.exists() and not any(e["start"] > 720 for e in stages):
         rn = (data._load(pn) or {}).get("recovery") or {}
         if rn.get("sleep_start"):
