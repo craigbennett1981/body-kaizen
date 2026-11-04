@@ -3,6 +3,12 @@
 ## How Body Kaizen handles your data
 
 - **Local only.** The dashboard server listens on `127.0.0.1` and serves nothing to your network or the internet.
+- **Only the dashboard's own page can change anything.** Every request that saves or triggers something must
+  come from the dashboard itself: the server checks the address it was reached on (against DNS rebinding), the
+  browser-set `Origin` and `Sec-Fetch-Site` headers, that the body is JSON, and a random token created each time
+  the server starts and handed only to the dashboard page (`X-BK-Token`). It never answers CORS preflights or sends
+  `Access-Control-Allow-Origin`, so other websites can neither call it nor read its replies. `tests/test_security.py`
+  tries each of these attacks.
 - **No accounts, cloud or telemetry.** Nothing is sent anywhere except to the services you choose to connect.
 - **Your data lives in your data folder** (`FT_DATA`), separate from the code. Keep it in a **private** git
   repository, or no repository at all.
