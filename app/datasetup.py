@@ -59,8 +59,8 @@ def check(path):
     # Normalise before touching the disk, and only ever look inside your home folder.
     home = os.path.realpath(os.path.expanduser("~"))
     full = os.path.realpath(raw)
-    if full != home and not full.startswith(home + os.sep):
-        return {"ok": False, "path": full, "short": full, "error": "Choose a folder inside your home folder (~)."}
+    if not full.startswith(home + os.sep):
+        return {"ok": False, "error": "Choose a folder inside your home folder (~)."}
     p = pathlib.Path(full)
     out = {"path": str(p), "short": _home(p)}
     if p == bkenv.CODE or p.is_relative_to(bkenv.CODE):
