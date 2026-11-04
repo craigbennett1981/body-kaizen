@@ -6,7 +6,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 os.environ.setdefault("FT_DATA", str(ROOT / "demo"))
 sys.path[:0] = [str(ROOT / "scripts"), str(ROOT / "app")]
 import nutrition as N   # noqa: E402
-import pace, planner, muscles, workouts   # noqa: E402
+import pace, planner, muscles, workouts, thresholds   # noqa: E402
 import bkenv, garmin_pull, scheduler   # noqa: E402
 
 
@@ -158,3 +158,11 @@ class DemoNeverSyncs(unittest.TestCase):
         self.assertEqual(child_data({**os.environ, "FT_DATA": "demo"}), str(bkenv.DATA / "demo"))   # the old bug
         self.assertTrue(pathlib.Path(bkenv.child_env()["FT_DATA"]).is_absolute())
         self.assertEqual(child_data(bkenv.child_env()), str(bkenv.DATA))
+
+
+class ThresholdsPage(unittest.TestCase):
+    def test_builds_from_the_demo_folder(self):
+        T = thresholds.build()
+        self.assertTrue(T["rules"] and T["markers"] and T["athlete"]["domains"])
+        self.assertTrue(all(len(r) == 5 for _, rows in thresholds.RULES for r in rows))
+

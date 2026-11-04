@@ -478,3 +478,4 @@ dialog#setup::backdrop{background:rgba(0,0,0,.55)}
 .hs-tip table{table-layout:fixed}
 .hs-tip td{white-space:normal;overflow-wrap:break-word}
 .hs-tip td:first-child{width:64px;white-space:nowrap}
+.thr-link{font-size:13px;color:var(--muted);text-decoration:none;border:1px solid var(--rule);border-radius:6px;padding:4px 10px;margin-left:auto;margin-right:10px} .thr-link:hover{color:var(--ink)}

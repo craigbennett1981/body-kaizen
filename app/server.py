@@ -25,6 +25,7 @@ import glucose  # noqa: E402
 import daytimeline  # noqa: E402
 import glance  # noqa: E402
 import workouts  # noqa: E402
+import thresholds  # noqa: E402
 import muscles  # noqa: E402
 import pace  # noqa: E402
 
@@ -63,11 +64,12 @@ ROUTES = {
     "/api/daytimeline": lambda q: daytimeline.build(q.get("date", [data.bkenv.today().isoformat()])[0]),
     "/api/glucose_overview": lambda q: glucose.overview(int(q.get("days", ["14"])[0])),
     "/api/glucose": lambda q: glucose.day(q.get("date", [data.bkenv.today().isoformat()])[0]),
+    "/api/thresholds": lambda q: thresholds.build(),
     "/api/readiness": lambda q: {"series": readiness.series(), "backtest": readiness.backtest(), "episodes": readiness.episodes()},
 }
 
 # Reload app code when it changes on disk, so edits never leave a stale server running.
-MODULES = ["insights", "weekly", "readiness", "planner", "longevity", "habits", "todo", "alerts", "timeline", "doctor", "advice", "wellbeing", "healthscore", "glucose", "daytimeline", "glance", "workouts", "muscles", "pace"]
+MODULES = ["insights", "weekly", "readiness", "planner", "longevity", "habits", "todo", "alerts", "timeline", "doctor", "advice", "wellbeing", "healthscore", "glucose", "daytimeline", "glance", "workouts", "muscles", "pace", "thresholds"]
 _HERE = pathlib.Path(data.__file__).parent
 _CODE = [_HERE / "data.py", _HERE.parent / "scripts" / "nutrition.py"] + [_HERE / f"{n}.py" for n in MODULES]
 _code_mtime = tuple(f.stat().st_mtime for f in _CODE if f.exists())   # baseline at startup, not first request: an edit made
