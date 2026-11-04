@@ -15,6 +15,12 @@
 - **Credentials stay out of both folders.** Garmin tokens are stored in `~/.garminconnect`; the LibreLinkUp
   login email in `~/.body-kaizen/libre.json` and its password in the operating system's keychain (via `keyring`).
   None of them is written to the code or data folder.
+- **Logging in from the dashboard.** The Connections page sends your Garmin or LibreLinkUp password once, in a request
+  only the dashboard's own page can make (the write protection above), straight to the login library and, for
+  LibreLinkUp, the keychain. It is never written to a file or log, never sent back, and error messages never include
+  it. A half-finished Garmin two-step login is held in the dashboard's memory only, for at most 10 minutes and 5 codes.
+  Disconnect deletes the Garmin token or the LibreLinkUp password and login file. `tests/test_connections.py` checks
+  that the password reaches neither a reply nor the server log.
 - **Synced raw files are trimmed.** The Garmin sync drops personal and location fields (names, email, profile details, location and
   GPS tracks) before saving its raw responses.
 

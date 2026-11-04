@@ -197,6 +197,8 @@ name, start date and timezone.
 computer's own folder picker. It creates the folder from the starter files (as a git repository if you tick the box),
 remembers the choice in `~/.body-kaizen/config.json` and opens the dashboard on it. `FT_DATA` still wins when set.
 
+<img src="docs/img/setup.png" width="540" alt="First run: choose where your data lives, with the computer's own folder picker">
+
 Or by hand, in its own private repository:
 
 ```bash
@@ -218,6 +220,20 @@ your phone) or another assistant, see [Setting up your AI assistant](#setting-up
 **4. Run it for real:** `FT_DATA=~/body-kaizen-data .venv/bin/python app/server.py`. On a Mac,
 `scripts/setup_mac.sh` installs a background service that starts the dashboard at login and runs the scheduled
 syncs; undo it with `scripts/setup_mac.sh --uninstall`.
+
+**5. Connect your watch and glucose sensor (optional).** Open **Connections** at the foot of the dashboard:
+
+- **Garmin Connect:** your Garmin email and password, then the code Garmin emails or texts you if your account has
+  two-step verification. The watch data back-fills on the first pull, then syncs four times a day.
+- **FreeStyle Libre:** the dashboard reads your sensor through **LibreLinkUp**, Abbott's app for followers, so you
+  need a LibreLinkUp account that your own sensor shares with. Set it up once: install the LibreLinkUp app and
+  create an account (a second email address works best); in the LibreLink app, go to Menu › Connected Apps ›
+  LibreLinkUp › Add connection and invite that email; accept the invite in LibreLinkUp. Then enter the LibreLinkUp
+  email and password on the Connections page. Readings arrive every 30 minutes.
+
+Both need their libraries: `scripts/setup_mac.sh` installs them, or `pip install 'body-kaizen[all]'`.
+
+<img src="docs/img/connections.png" width="480" alt="Connections: log in to LibreLinkUp and Garmin Connect from the dashboard">
 
 **Or install it from PyPI** instead of cloning (you won't get `setup_mac.sh` or the docs, but nothing else is missing):
 
@@ -416,7 +432,8 @@ never overwrites what you or your assistant logged (sets, notes, effort, a tread
 | **InBody and lab reports** | Body-composition scans and blood results, with target bands on the Longevity tab | Photo or PDF, read by your assistant into `measurements/` |
 
 Setup for Garmin and LibreLinkUp is a one-time login: use **Connections** at the foot of the dashboard (Garmin
-asks for its two-step code there too), or the console:
+asks for its two-step code there too; LibreLinkUp needs a follower account first, see
+[step 5 of the quick start](#quick-start-five-minutes)), or the console:
 
 ```bash
 .venv/bin/python scripts/garmin_login.py     # password + MFA; token kept in ~/.garminconnect
