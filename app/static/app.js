@@ -1383,6 +1383,17 @@ async function renderBody(){
 /* ---------- blood pressure ---------- */
 const BPCLS = {normal:'normal', elevated:'elevated', 'stage 1':'s1', 'stage 2':'s2', crisis:'crisis'};
 const BPLABEL = {normal:'Normal', elevated:'Elevated', 'stage 1':'Stage 1 high', 'stage 2':'Stage 2 high', crisis:'Crisis: seek care'};
+// Pulse pressure = systolic - diastolic: how much the pressure swings with each beat. A rough guide, not a diagnosis.
+const ppCat = v => v < 30 ? 'narrow' : v <= 50 ? 'healthy' : v <= 60 ? 'upper' : 'wide';
+const PP_CLS = {narrow:'elevated', healthy:'normal', upper:'elevated', wide:'s1'};
+const PP_LABEL = {narrow:'Narrow', healthy:'Healthy', upper:'Upper normal', wide:'Wide: worth watching'};
+const PP_HELP = `<b>Pulse pressure</b> is your top number minus your bottom number: how much the pressure swings with each heartbeat.
+  Flexible arteries stretch to absorb each beat and spring back, which keeps the two numbers close. Stiffer arteries let the gap widen.
+  <table><tr><td>under 30</td><td>Narrow. Can follow a weak or fast heartbeat; check if it stays there.</td></tr>
+  <tr><td><b>30–50</b></td><td><b>Healthy.</b> Around 40 is typical for adults.</td></tr>
+  <tr><td>50–60</td><td>Upper normal. Fit people with a slow resting heart rate often read here.</td></tr>
+  <tr><td>over 60</td><td>Wide. Worth watching if it stays there, especially with a rising top number.</td></tr></table>
+  <br><span>It's a clue about artery stiffness that adds to your blood pressure, not a diagnosis. Judge the average, not one reading.</span>`;
 function renderBP(){
   const c = theme(), bp = BODY.bp || [];
   const ax = {axisLine:{lineStyle:{color:c.rule}},axisLabel:{color:c.muted,fontSize:11},splitLine:{lineStyle:{color:c.rule}}};
@@ -1396,21 +1407,25 @@ function renderBP(){
   const basis = morning.length ? morning : bp;   // until readings carry a time, average everything
   const last7 = basis.filter(b => (Date.now() - new Date(b.date)) < 30*864e5);
   const avg = a => a.length ? Math.round(a.reduce((x,y)=>x+y,0)/a.length) : null;
-  const ms = avg(last7.map(b=>b.sys)), md = avg(last7.map(b=>b.dia));
+  const ms = avg(last7.map(b=>b.sys)), md = avg(last7.map(b=>b.dia)), mp = avg(last7.map(b=>b.sys-b.dia));
   $('#bpnote').innerHTML = `<div class="tiles">
     <div><div class="lab">${morning.length?"Morning":"Average"}, last 30 days</div><div class="v">${ms!=null?`${ms}/${md}`:'–'}</div>${ms!=null?`<span class="bpcat ${BPCLS[cat(ms,md)]}">${BPLABEL[cat(ms,md)]}</span>`:''}</div>
+    <div><div class="lab">Pulse pressure, last 30 days</div><div class="v">${mp!=null?mp:'–'}<small> mmHg</small></div>${mp!=null?`<span class="hs-d" tabindex="0"><span class="bpcat ${PP_CLS[ppCat(mp)]}">${PP_LABEL[ppCat(mp)]}</span> <small>what's this?</small><span class="hs-tip left" role="tooltip">${PP_HELP}</span></span>`:''}</div>
     <div><div class="lab">Readings</div><div class="v">${bp.length}</div></div></div>
     <span class="sub">Categories follow the 2017 ACC/AHA guideline. Single readings vary a lot; judge the morning average.</span>`;
   function cat(s,d){ return s>=180||d>=120?'crisis':s>=140||d>=90?'stage 2':s>=130||d>=80?'stage 1':s>=120?'elevated':'normal'; }
-  const pts = k => bp.map(b => ({value:[`${b.date}T${b.time||'08:00'}`, b[k]], symbol: b.context==='morning' ? 'circle' : 'triangle', b}));
-  const all = bp.flatMap(b => [b.sys, b.dia]);
+  const pts = k => bp.map(b => ({value:[`${b.date}T${b.time||'08:00'}`, k==='pp' ? b.sys-b.dia : b[k]], symbol: b.context==='morning' ? 'circle' : 'triangle', b}));
+  const all = bp.flatMap(b => [b.sys, b.dia, b.sys-b.dia]);
   chart('bpchart').setOption({animation:MOTION,animationDuration:400,textStyle:{fontFamily:'Archivo'},
-    legend:{top:0,left:56,textStyle:{color:c.muted},data:['Systolic','Diastolic']},
+    legend:{top:0,left:56,textStyle:{color:c.muted},data:['Systolic','Diastolic','Pulse pressure'],
+      tooltip:{show:true,...tip(c),formatter: p => p.name==='Pulse pressure' ? `<div style="max-width:300px;white-space:normal">${PP_HELP}</div>` : p.name}},
     grid:{left:56,right:110,top:36,bottom:34},
     xAxis:{type:'time',...ax},
     yAxis:{type:'value',name:'mmHg',nameTextStyle:{color:c.muted},...ax,...niceRange(Math.min(60, ...all), Math.max(145, ...all), 4)},
     tooltip:{trigger:'item',...tip(c),formatter: p => { const b = p.data.b;
-      return `<b>${fmtDate(b.date)}</b> ${b.time||''} · ${b.context}<br>${b.sys}/${b.dia}${b.pulse?` · pulse ${b.pulse}`:''}<br><span class="bpcat ${BPCLS[b.category]}">${BPLABEL[b.category]}</span>${b.note?'<br>'+b.note:''}`; }},
+      const pp = b.sys-b.dia;
+      return `<b>${fmtDate(b.date)}</b> ${b.time||''} · ${b.context}<br>${b.sys}/${b.dia}${b.pulse?` · pulse ${b.pulse}`:''}<br><span class="bpcat ${BPCLS[b.category]}">${BPLABEL[b.category]}</span>
+        <br>Pulse pressure <b>${pp}</b> <span class="bpcat ${PP_CLS[ppCat(pp)]}">${PP_LABEL[ppCat(pp)]}</span>${b.note?'<br>'+b.note:''}`; }},
     series:[
       {type:'line',name:'Systolic',data:pts('sys'),symbolSize:9,lineStyle:{color:c.ink,width:2},itemStyle:{color:c.ink,...ring(c)},
         markLine:{symbol:'none',silent:true,lineStyle:{type:'dashed',color:c.muted},label:{color:c.ink,position:'end',fontSize:11},
@@ -1418,10 +1433,13 @@ function renderBP(){
       {type:'line',name:'Diastolic',data:pts('dia'),symbolSize:9,lineStyle:{color:c.accent,width:2},itemStyle:{color:c.accent,...ring(c)},
         markLine:{symbol:'none',silent:true,lineStyle:{type:'dashed',color:c.muted},label:{color:c.ink,position:'end',fontSize:11},
           data:[{yAxis:80,label:{formatter:'80 stage 1'}},{yAxis:90,label:{formatter:'90 stage 2'}}]}},
+      {type:'line',name:'Pulse pressure',data:pts('pp'),symbolSize:7,lineStyle:{color:'#e87ba4',width:1.6,type:'dotted'},itemStyle:{color:'#e87ba4',...ring(c)},
+        markLine:{symbol:'none',silent:true,lineStyle:{type:'dashed',color:'#e87ba4',opacity:.7},label:{color:c.ink,position:'end',fontSize:11},
+          data:[{yAxis:60,label:{formatter:'60 wide pulse'}}]}},
     ]});
-  $('#bptable').innerHTML = `<table><tr><th>Date</th><th>Time</th><th>When</th><th>Reading</th><th>Pulse</th><th>Category</th></tr>` +
-    [...bp].reverse().map(b => `<tr><td>${shortDate(b.date)}</td><td>${b.time||'–'}</td><td>${b.context}</td><td><b>${b.sys}/${b.dia}</b></td><td>${b.pulse??'–'}</td><td><span class="bpcat ${BPCLS[b.category]}">${BPLABEL[b.category]}</span></td></tr>`).join('') + `</table>
-    <p class="sub">Circles are morning readings, triangles are other or unknown times.</p>`;
+  $('#bptable').innerHTML = `<table><tr><th>Date</th><th>Time</th><th>When</th><th>Reading</th><th>Pulse</th><th title="Top number minus bottom number">Pulse pressure</th><th>Category</th></tr>` +
+    [...bp].reverse().map(b => `<tr><td>${shortDate(b.date)}</td><td>${b.time||'–'}</td><td>${b.context}</td><td><b>${b.sys}/${b.dia}</b></td><td>${b.pulse??'–'}</td><td>${b.sys-b.dia}</td><td><span class="bpcat ${BPCLS[b.category]}">${BPLABEL[b.category]}</span></td></tr>`).join('') + `</table>
+    <p class="sub">Circles are morning readings, triangles are other or unknown times. Pulse pressure is the top number minus the bottom one (dotted pink line).</p>`;
 }
 
 /* ---------- garmin sync status ---------- */
