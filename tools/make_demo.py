@@ -203,12 +203,12 @@ def prev_session(path, name):
     import yaml
     for q in sorted(path.parent.parent.rglob("*.yaml"), reverse=True):
         if q.stem >= path.stem: continue
-        for e in (yaml.safe_load(q.read_text()).get("exercise") or []):
+        for e in (yaml.safe_load(q.read_text(encoding="utf-8")).get("exercise") or []):
             if e.get("type") == "gym" and e.get("name") == name: return {l["ex"]: l["sets"] for l in e.get("lifts", [])}
     return None
 
 def write_json(p, obj):
-    p.parent.mkdir(parents=True, exist_ok=True); p.write_text(json.dumps(obj))
+    p.parent.mkdir(parents=True, exist_ok=True); p.write_text(json.dumps(obj), encoding="utf-8")
 
 # ---------------------------------------------------------------- glucose (FreeStyle Libre)
 CGM_DAYS = 15   # the sensor went on 15 days before the end; its first day reads as "settling in"
@@ -260,8 +260,8 @@ def main():
     for f in (HERE.parent / "demo-template").glob("*.yaml"): shutil.copy(f, OUT / f.name)
     # the demo person's profile, so the dashboard doesn't ask for one (foods come from foods/starter.yaml)
     st = OUT / "settings.yaml"
-    st.write_text(yaml_dump({"profile": {"name": "Sam (demo)", "start_date": START.isoformat()}, "timezone": TZ_NAME}) + "\n" + st.read_text())
-    (OUT / "overrides.yaml").write_text("# Fixes for log lines the food matcher gets wrong:  \"raw text\": [{item: id, g: 100}]\n{}\n")
+    st.write_text(yaml_dump({"profile": {"name": "Sam (demo)", "start_date": START.isoformat()}, "timezone": TZ_NAME}) + "\n" + st.read_text(encoding="utf-8"), encoding="utf-8")
+    (OUT / "overrides.yaml").write_text("# Fixes for log lines the food matcher gets wrong:  \"raw text\": [{item: id, g: 100}]\n{}\n", encoding="utf-8")
     vo2, fitage = {}, {}
     aid = 30000000000
     weights, tests, bp_all = [], [], []
@@ -359,7 +359,7 @@ def main():
         day["energy"] = {"total": bmr + active, "active": active, "bmr": bmr, "source": "garmin"}
         day["intensity_min"] = {"moderate": sum(x["duration_min"] for x in ex if x["type"] != "run"), "vigorous": sum(x["duration_min"] for x in ex if x["type"] == "run"), "source": "garmin"}
         (OUT / "days" / ds[:4]).mkdir(parents=True, exist_ok=True)
-        (OUT / "days" / ds[:4] / f"{ds}.yaml").write_text(yaml_dump(day))
+        (OUT / "days" / ds[:4] / f"{ds}.yaml").write_text(yaml_dump(day), encoding="utf-8")
         # raw Garmin day: summary, sleep stages, intraday steps (15 min, GMT ISO) and body battery (epoch ms)
         stp, left = [], steps
         weights15 = [0.0] * 96
@@ -383,7 +383,7 @@ def main():
         if d.weekday() == 5:
             vo2[ds] = {"vo2max": round(lerp(44.2, 47.1, f) + R.gauss(0, .3), 1)}
             day["fitness"] = {"vo2max": vo2[ds]["vo2max"], "source": "garmin"}
-            (OUT / "days" / ds[:4] / f"{ds}.yaml").write_text(yaml_dump(day))
+            (OUT / "days" / ds[:4] / f"{ds}.yaml").write_text(yaml_dump(day), encoding="utf-8")
         if d.weekday() == 0 and f > .5:
             fitage[ds] = {"chronologicalAge": 42, "fitnessAge": round(lerp(41, 37.5, f), 1), "achievableFitnessAge": 35.8,
                           "components": {"bmi": {"value": round(kg / 1.78 ** 2, 1), "targetValue": 23.0}, "rhr": {"value": rhr},
@@ -394,7 +394,7 @@ def main():
     # coach comments on the latest gym session and run
     for p in sorted((OUT / "days").rglob("*.yaml"), reverse=True)[:7]:
         import yaml
-        dd = yaml.safe_load(p.read_text())
+        dd = yaml.safe_load(p.read_text(encoding="utf-8"))
         for e in dd.get("exercise") or []:
             if e["type"] == "gym" and "coach" not in e:
                 prev = prev_session(p, e["name"])
@@ -412,7 +412,7 @@ def main():
                               {"kind": "info", "text": "About 2.5 minutes between efforts on the heart-rate trace. That's about right for the heavy lifts; keep accessories tighter."}]
             if e["type"] == "run" and "coach" not in e:
                 e["coach"] = [{"kind": "good", "text": "Same pace as last month at 4 bpm lower heart rate: the aerobic base is building."}]
-        p.write_text(yaml_dump(dd))
+        p.write_text(yaml_dump(dd), encoding="utf-8")
     # measurements
     M = OUT / "measurements"; M.mkdir(exist_ok=True)
     (M / "labs.yaml").write_text(yaml_dump([
@@ -424,18 +424,18 @@ def main():
             {"marker": "total_chol", "value": 5.2, "unit": "mmol/L", "ref_high": 5.2}, {"marker": "hdl", "value": 1.34, "unit": "mmol/L", "ref_low": 1.0},
             {"marker": "ldl", "value": 3.31, "unit": "mmol/L", "ref_high": 3.4}, {"marker": "tg", "value": 1.12, "unit": "mmol/L", "ref_high": 1.7},
             {"marker": "apob", "value": 0.96, "unit": "g/L", "ref_high": 1.3}, {"marker": "hba1c", "value": 5.4, "unit": "%", "ref_high": 5.6},
-            {"marker": "glucose", "value": 5.1, "unit": "mmol/L", "ref_high": 6.0}, {"marker": "hscrp", "value": 0.9, "unit": "mg/L", "ref_high": 5.0}]}]))
+            {"marker": "glucose", "value": 5.1, "unit": "mmol/L", "ref_high": 6.0}, {"marker": "hscrp", "value": 0.9, "unit": "mg/L", "ref_high": 5.0}]}]), encoding="utf-8")
     (M / "inbody.yaml").write_text(yaml_dump([
         {"date": "2026-07-28", "weight_kg": 82.1, "smm_kg": 35.1, "fat_kg": 19.2, "pbf_pct": 23.4, "ffm_kg": 62.9, "visceral_level": 9, "smi": 8.2, "bmr_kcal": 1730},
-        {"date": "2026-10-13", "weight_kg": 79.0, "smm_kg": 35.4, "fat_kg": 16.0, "pbf_pct": 20.3, "ffm_kg": 63.0, "visceral_level": 7, "smi": 8.3, "bmr_kcal": 1734}]))
+        {"date": "2026-10-13", "weight_kg": 79.0, "smm_kg": 35.4, "fat_kg": 16.0, "pbf_pct": 20.3, "ffm_kg": 63.0, "visceral_level": 7, "smi": 8.3, "bmr_kcal": 1734}]), encoding="utf-8")
     (M / "tests.yaml").write_text(yaml_dump([
         {"date": "2026-08-02", "test": "grip", "left_kg": 43.5, "right_kg": 45.8}, {"date": "2026-10-17", "test": "grip", "left_kg": 45.1, "right_kg": 47.2},
         {"date": "2026-08-02", "test": "one_leg_stand", "seconds": 38}, {"date": "2026-10-17", "test": "one_leg_stand", "seconds": 52},
         {"date": "2026-08-02", "test": "waist", "cm": 92.0}, {"date": "2026-10-17", "test": "waist", "cm": 88.5},
         {"date": "2026-09-05", "test": "hr_cap_run", "speed_kmh": 9.0, "cap_bpm": 145, "km": 3.9, "minutes": 26},
-        {"date": "2026-10-10", "test": "hr_cap_run", "speed_kmh": 9.0, "cap_bpm": 145, "km": 4.6, "minutes": 31}]))
-    (M / "episodes.yaml").write_text(yaml_dump([{"start": "2026-09-02", "end": "2026-09-04", "what": "cold: sore throat, low energy"}]))
-    (M / "supplements.yaml").write_text(yaml_dump([{"name": "Vitamin D3", "frequency": "daily", "started": "2026-10-05"}]))
+        {"date": "2026-10-10", "test": "hr_cap_run", "speed_kmh": 9.0, "cap_bpm": 145, "km": 4.6, "minutes": 31}]), encoding="utf-8")
+    (M / "episodes.yaml").write_text(yaml_dump([{"start": "2026-09-02", "end": "2026-09-04", "what": "cold: sore throat, low energy"}]), encoding="utf-8")
+    (M / "supplements.yaml").write_text(yaml_dump([{"name": "Vitamin D3", "frequency": "daily", "started": "2026-10-05"}]), encoding="utf-8")
     # totals for every day
     r = subprocess.run([sys.executable, str(CODE / "scripts" / "compute.py")], env={**os.environ, "FT_DATA": str(OUT)}, capture_output=True, text=True)
     bad = [l for l in r.stdout.splitlines() if "!!" in l]

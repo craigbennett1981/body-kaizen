@@ -8,7 +8,7 @@ def items():
     return data._jsonable(data._load(PATH) or [])
 
 def toggle(item_id):
-    text = PATH.read_text()
+    text = PATH.read_text(encoding="utf-8")
     rows = yaml.safe_load(text) or []
     hit = next((r for r in rows if r.get("id") == item_id), None)
     if not hit: return None
@@ -16,7 +16,7 @@ def toggle(item_id):
     if hit["done"]: hit["done_on"] = data.bkenv.today().isoformat()
     else: hit.pop("done_on", None)
     header = "".join(l + "\n" for l in text.splitlines() if l.startswith("#"))
-    PATH.write_text(header + yaml.safe_dump(rows, sort_keys=False, allow_unicode=True, default_flow_style=None, width=200))
+    PATH.write_text(header + yaml.safe_dump(rows, sort_keys=False, allow_unicode=True, default_flow_style=None, width=200), encoding="utf-8")
     msg = f"{'done' if hit['done'] else 'reopened'} {item_id}"
     threading.Thread(target=_commit, args=(msg,), daemon=True).start()  # push can be slow on a hotspot
     return data._jsonable(hit)

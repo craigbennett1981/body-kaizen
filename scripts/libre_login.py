@@ -65,7 +65,7 @@ def connect(email, password):
     except Exception as e:
         raise LoginError(f"Logged in, but couldn't save the password to this computer's keychain ({type(e).__name__}).")
     CFG.parent.mkdir(parents=True, exist_ok=True)
-    CFG.write_text(json.dumps({"email": email, "region": region.name, "patient_id": str(p.patient_id)}, indent=2))
+    CFG.write_text(json.dumps({"email": email, "region": region.name, "patient_id": str(p.patient_id)}, indent=2), encoding="utf-8")
     try: CFG.chmod(0o600)
     except OSError: pass
     latest = None
@@ -82,9 +82,9 @@ def connect(email, password):
 def status():
     """What the Connections page shows. No secrets."""
     cfg_path = bkenv.libre_cfg()
-    try: cfg = json.loads(cfg_path.read_text())
+    try: cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
     except (OSError, ValueError): cfg = None
-    try: st = json.loads((bkenv.DATA / "imports" / "libre" / "state.json").read_text())
+    try: st = json.loads((bkenv.DATA / "imports" / "libre" / "state.json").read_text(encoding="utf-8"))
     except (OSError, ValueError): st = {}
     keep = ("last_attempt", "last_success", "last_error", "last_error_at", "last_reading", "latest_mmol")
     return {"installed": installed(), "connected": bool(cfg and cfg.get("email")), "email": (cfg or {}).get("email"),
@@ -96,7 +96,7 @@ def disconnect():
     """Forget the login: the keychain password and libre.json (new and old locations). Readings already
     pulled stay in your data folder."""
     for path, service in ((bkenv.LIBRE_CFG_NEW, bkenv.LIBRE_SERVICE_NEW), (bkenv.LIBRE_CFG_OLD, bkenv.LIBRE_SERVICE_OLD)):
-        try: email = json.loads(path.read_text()).get("email")
+        try: email = json.loads(path.read_text(encoding="utf-8")).get("email")
         except (OSError, ValueError): continue
         try:
             import keyring

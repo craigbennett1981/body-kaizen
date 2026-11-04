@@ -9,7 +9,7 @@ SETTLE_H = 24                 # first day of a sensor reads less accurately
 def _load(day):
     p = RAW / day[:4] / f"{day}.json"
     if not p.exists(): return []
-    r = json.loads(p.read_text())["readings"]
+    r = json.loads(p.read_text(encoding="utf-8"))["readings"]
     return [(dt.datetime.fromisoformat(f"{day}T{t}"), v) for t, v in r.items()]
 
 def readings(day, pad_h=0):
@@ -96,7 +96,7 @@ def daily_series():
 
 def status():
     p = RAW / "state.json"
-    return json.loads(p.read_text()) if p.exists() else {}
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
 
 def _pct(v, q):
     v = sorted(v); k = (len(v) - 1) * q; f = int(k); c = min(f + 1, len(v) - 1)

@@ -3,7 +3,7 @@
 
 run:  python3 app/server.py            -> http://127.0.0.1:8765
 """
-import datetime as dt, hmac, importlib, json, os, pathlib, secrets, sys, traceback, urllib.parse
+import datetime as dt, hmac, importlib, json, os, pathlib, secrets, sys, time, traceback, urllib.parse
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -254,7 +254,12 @@ def main():
     if HOST not in LOOPBACK and os.environ.get("FT_ALLOW_REMOTE") != "1":
         sys.exit(f"Refusing to listen on {HOST}: the dashboard has no login, so it only runs on this computer "
                  "(127.0.0.1). Set FT_ALLOW_REMOTE=1 only if you've put your own authentication in front of it.")
-    srv = ThreadingHTTPServer((HOST, PORT), Handler)
+    tries = 40 if os.environ.pop("BK_RESTARTED", None) else 1   # restarted on Windows: wait for the old server to let go
+    for i in range(tries):
+        try: srv = ThreadingHTTPServer((HOST, PORT), Handler); break
+        except OSError:
+            if i == tries - 1: raise
+            time.sleep(0.25)
     if SETUP_MODE:
         print(f"No data folder yet: open http://{HOST}:{PORT} to choose one.", flush=True)
     elif not os.environ.get("FT_NO_SYNC"): scheduler.start()   # FT_NO_SYNC=1: no Garmin/Libre pulls (tests, demo);

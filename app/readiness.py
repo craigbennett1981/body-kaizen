@@ -59,7 +59,7 @@ def series():
     return out
 
 def episodes():
-    try: return [{**e, "start": str(e["start"]), "end": str(e["end"])} for e in yaml.safe_load((data.ROOT / "measurements" / "episodes.yaml").read_text())]
+    try: return [{**e, "start": str(e["start"]), "end": str(e["end"])} for e in yaml.safe_load((data.ROOT / "measurements" / "episodes.yaml").read_text(encoding="utf-8"))]
     except Exception: return []
 
 def backtest(threshold=None):

@@ -64,7 +64,7 @@ class Login(unittest.TestCase):
         self.assertEqual((r["email"], r["region"], r["patient"]), ("me@example.com", "EU", "Sam Demo"))
         self.assertAlmostEqual(r["latest"]["mmol"], 5.5, places=1)
         self.assertEqual(chain[(bkenv.LIBRE_SERVICE_NEW, "me@example.com")], SECRET)
-        saved = self.new.read_text()
+        saved = self.new.read_text(encoding="utf-8")
         self.assertNotIn(SECRET, saved); self.assertEqual(json.loads(saved)["region"], "EU")
         if os.name == "posix": self.assertEqual(self.new.stat().st_mode & 0o777, 0o600)
         st = libre_login.status()
@@ -130,7 +130,7 @@ class GarminLogin(unittest.TestCase):
         with mock.patch.dict(sys.modules, fake_garmin()):
             r = garmin_login.start("me@example.com", SECRET)
         self.assertEqual(r, {"connected": True, "name": "Sam Demo"})
-        self.assertTrue(self.file.exists()); self.assertNotIn(SECRET, self.file.read_text())
+        self.assertTrue(self.file.exists()); self.assertNotIn(SECRET, self.file.read_text(encoding="utf-8"))
 
     def test_two_step_login_with_a_wrong_code_then_the_right_one(self):
         with mock.patch.dict(sys.modules, fake_garmin(mfa=True)):

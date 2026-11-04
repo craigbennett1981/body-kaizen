@@ -13,7 +13,7 @@ STARTER_PATH = bkenv.CODE / "foods" / "starter.yaml"   # shipped with the code
 FOODS_PATH = ROOT / "foods.yaml"                         # your own foods, in your data folder: these win
 
 def _y(p):
-    return (yaml.safe_load(p.read_text()) or {}) if p.exists() else {}
+    return (yaml.safe_load(p.read_text(encoding="utf-8")) or {}) if p.exists() else {}
 
 FOODS = {**_y(STARTER_PATH), **(_y(FOODS_PATH) if FOODS_PATH.resolve() != STARTER_PATH.resolve() else {})}
 OVERRIDES_PATH = ROOT / "overrides.yaml"

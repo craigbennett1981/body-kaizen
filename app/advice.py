@@ -4,6 +4,10 @@ import datetime as dt, statistics as st
 from collections import defaultdict
 import data, longevity
 
+def _dm(iso):
+    """'4 Nov': strftime has no portable day-without-leading-zero code (Windows lacks it)."""
+    d = dt.date.fromisoformat(str(iso)); return f"{d.day} {d:%b}"
+
 def _hrs(s):
     try: h, m = str(s).replace("m", "").split("h"); return int(h) + int(m) / 60
     except Exception: return None
@@ -160,10 +164,10 @@ def compute():
     wtar = data.weight_target_for(S[-1]["date"])
     if wt:
         last = wt[-1]
-        add("Body", "info", "Weight and recomp", f"Last fasted weight {last[1]} kg ({dt.date.fromisoformat(last[0]).strftime('%-d %b')}); target {wtar} kg. On a recomp the scale moves slowly: judge it on the InBody rescan in early December.",
+        add("Body", "info", "Weight and recomp", f"Last fasted weight {last[1]} kg ({_dm(last[0])}); target {wtar} kg. On a recomp the scale moves slowly: judge it on the InBody rescan in early December.",
             ["Weigh 3+ mornings a week, fasted, after the toilet.", "Expect weight to hold roughly steady while fat drops and muscle rises."], 6)
         if (today - dt.date.fromisoformat(last[0])).days > 5:
-            add("Body", "act", "Weigh in again", f"No fasted weigh-in since {dt.date.fromisoformat(last[0]).strftime('%-d %b')}.", ["Step on the scale tomorrow morning."], 4)
+            add("Body", "act", "Weigh in again", f"No fasted weigh-in since {_dm(last[0])}.", ["Step on the scale tomorrow morning."], 4)
 
     # ================= Lifestyle =================
     feel = sum(1 for d in last30 if d.get("feel"))

@@ -17,7 +17,7 @@ CONFIG = pathlib.Path(os.environ.get("BK_CONFIG") or "~/.body-kaizen/config.json
 DATA_DIRS = ("days", "imports", "measurements")   # the dated part of a data folder; the rest is reference files
 
 def read_config():
-    try: c = json.loads(CONFIG.read_text())
+    try: c = json.loads(CONFIG.read_text(encoding="utf-8"))
     except (OSError, ValueError): return {}
     return c if isinstance(c, dict) else {}
 
@@ -36,7 +36,7 @@ def settings():
     try: m = SETTINGS.stat().st_mtime
     except FileNotFoundError: return {}
     if m != _cache["mtime"]:
-        _cache["data"] = yaml.safe_load(SETTINGS.read_text()) or {}; _cache["mtime"] = m
+        _cache["data"] = yaml.safe_load(SETTINGS.read_text(encoding="utf-8")) or {}; _cache["mtime"] = m
     return _cache["data"]
 
 def local_tz_name():
@@ -90,7 +90,7 @@ def is_demo(data=None):
     """The repo's demo/ folder, or any folder whose settings say it's the demo person."""
     data = pathlib.Path(data or DATA).resolve()
     if data == CODE / "demo": return True
-    try: s = settings() if data == DATA else yaml.safe_load((data / "settings.yaml").read_text()) or {}
+    try: s = settings() if data == DATA else yaml.safe_load((data / "settings.yaml").read_text(encoding="utf-8")) or {}
     except (OSError, yaml.YAMLError): s = {}
     return "(demo)" in str((s.get("profile") or {}).get("name") or "")
 
@@ -102,17 +102,18 @@ def sync_blocked():
 
 def child_env():
     """Environment for sync subprocesses: FT_DATA made absolute, so a relative FT_DATA can't resolve twice
-    against the child's working directory."""
-    return {**os.environ, "FT_DATA": str(DATA)}
+    against the child's working directory. Output in UTF-8 everywhere (Windows otherwise uses the local code page
+    for redirected output, and a '→' in a log line would crash the child)."""
+    return {**os.environ, "FT_DATA": str(DATA), "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
 
 def save_profile(name, start, timezone):
     """Write profile + timezone into settings.yaml, keeping the rest of the file (and its comments) as it is."""
-    txt = SETTINGS.read_text() if SETTINGS.exists() else ""
+    txt = SETTINGS.read_text(encoding="utf-8") if SETTINGS.exists() else ""
     txt = re.sub(r"(?m)^profile:.*\n(?:[ \t]+.*\n?)*", "", txt)          # drop an old profile block
     txt = re.sub(r"(?m)^timezone:.*\n?", "", txt)
     block = yaml.safe_dump({"profile": {"name": str(name).strip(), "start_date": str(start)}, "timezone": timezone},
                            sort_keys=False, allow_unicode=True)
-    SETTINGS.write_text(block + ("\n" + txt.lstrip("\n") if txt.strip() else ""))
+    SETTINGS.write_text(block + ("\n" + txt.lstrip("\n") if txt.strip() else ""), encoding="utf-8")
     _cache["mtime"] = None
 
 # Libre login: config file and keychain service. New installs use ~/.body-kaizen; an earlier
@@ -148,14 +149,14 @@ def init_data_folder(out, template=None):
     for d in DATA_DIRS: (out / d).mkdir(exist_ok=True)
     s = out / "settings.yaml"   # forget the demo person: the dashboard asks for your own name, start date and timezone
     if s.exists():
-        s.write_text(re.sub(r"(?m)^timezone:.*\n?", "", re.sub(r"(?m)^profile:.*\n(?:[ \t]+.*\n?)*", "", s.read_text())).lstrip("\n"))
+        s.write_text(re.sub(r"(?m)^timezone:.*\n?", "", re.sub(r"(?m)^profile:.*\n(?:[ \t]+.*\n?)*", "", s.read_text(encoding="utf-8"))).lstrip("\n"), encoding="utf-8")
     return out
 
 def save_config(**values):
     """Merge values into ~/.body-kaizen/config.json (private to you: 0600)."""
     c = {**read_config(), **values}
     CONFIG.parent.mkdir(parents=True, exist_ok=True)
-    CONFIG.write_text(json.dumps(c, indent=2) + "\n")
+    CONFIG.write_text(json.dumps(c, indent=2) + "\n", encoding="utf-8")
     try: CONFIG.chmod(0o600)
     except OSError: pass
     return c

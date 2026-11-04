@@ -25,12 +25,12 @@ TODAY = lambda: bkenv.now().date()
 def log(*a): print(bkenv.now().strftime("%H:%M:%S"), *a, flush=True)
 
 def load_state():
-    try: return json.loads(STATE.read_text())
+    try: return json.loads(STATE.read_text(encoding="utf-8"))
     except Exception: return {}
 
 def save_state(**kw):
     s = load_state(); s.update(kw); RAW.mkdir(parents=True, exist_ok=True)
-    STATE.write_text(json.dumps(s, indent=2, default=str))
+    STATE.write_text(json.dumps(s, indent=2, default=str), encoding="utf-8")
 
 def connect():
     from garminconnect import Garmin
@@ -68,7 +68,7 @@ def fetch_day(api, d):
     raw.update(fetch_intraday(api, ds))
     p = RAW / ds[:4] / f"{ds}.json"; p.parent.mkdir(parents=True, exist_ok=True)
     raw = scrub(raw)
-    p.write_text(json.dumps(raw, indent=1, default=str))
+    p.write_text(json.dumps(raw, indent=1, default=str), encoding="utf-8")
     return raw, p
 
 def fetch_intraday(api, ds):
@@ -121,12 +121,12 @@ def fetch_activity_detail(api, a):
     if not aid or not hasattr(api, "get_activity_details"): return None
     p = ACT / f"{aid}.json"
     if p.exists():
-        cur = json.loads(p.read_text()); changed = False
+        cur = json.loads(p.read_text(encoding="utf-8")); changed = False
         if "summary" not in cur:
             cur["summary"] = _activity_summary(api, aid); changed = True   # added later: fetch it once for older files
         if "laps" not in cur and _wants_laps(a):
             cur["laps"] = _activity_laps(api, aid); changed = True         # likewise for laps
-        if changed: p.write_text(json.dumps(cur, separators=(",", ":")))
+        if changed: p.write_text(json.dumps(cur, separators=(",", ":")), encoding="utf-8")
         return p
     det = _safe(api.get_activity_details, aid)
     if not isinstance(det, dict): return None
@@ -147,28 +147,28 @@ def fetch_activity_detail(api, a):
            "aerobic_te": a.get("aerobicTrainingEffect"), "anaerobic_te": a.get("anaerobicTrainingEffect"),
            "te_label": a.get("trainingEffectLabel"), "body_battery_change": a.get("differenceBodyBattery"),
            "summary": _activity_summary(api, aid), "laps": _activity_laps(api, aid) if _wants_laps(a) else []}
-    ACT.mkdir(parents=True, exist_ok=True); p.write_text(json.dumps(out, separators=(",", ":")))
+    ACT.mkdir(parents=True, exist_ok=True); p.write_text(json.dumps(out, separators=(",", ":")), encoding="utf-8")
     return p
 
 VO2 = RAW / "vo2max.json"
 
 def fetch_vo2(api, start, end):
     """VO2max/fitness age history for the range, merged into imports/garmin/vo2max.json {date: {...}}."""
-    have = json.loads(VO2.read_text()) if VO2.exists() else {}
+    have = json.loads(VO2.read_text(encoding="utf-8")) if VO2.exists() else {}
     res = _safe(api.get_max_metrics_range, start.isoformat(), end.isoformat()) or []
     for item in res if isinstance(res, list) else [res]:
         g = (item or {}).get("generic") or {}
         d = g.get("calendarDate")
         v = g.get("vo2MaxPreciseValue") or g.get("vo2MaxValue")
         if d and v: have[d] = {"vo2max": round(float(v), 1), **({"fitness_age": g["fitnessAge"]} if g.get("fitnessAge") else {})}
-    RAW.mkdir(parents=True, exist_ok=True); VO2.write_text(json.dumps(have, indent=1, sort_keys=True))
+    RAW.mkdir(parents=True, exist_ok=True); VO2.write_text(json.dumps(have, indent=1, sort_keys=True), encoding="utf-8")
     return have
 
 FAGE = RAW / "fitness_age.json"
 
 def fetch_fitness_age(api, d):
     """Garmin Fitness Age for a date, merged into imports/garmin/fitness_age.json {date: {...}}."""
-    have = json.loads(FAGE.read_text()) if FAGE.exists() else {}
+    have = json.loads(FAGE.read_text(encoding="utf-8")) if FAGE.exists() else {}
     res = _safe(api.get_fitnessage_data, d.isoformat()) if hasattr(api, "get_fitnessage_data") else None
     if not isinstance(res, dict) or not res: return have
     keep = {k: res[k] for k in ("chronologicalAge", "fitnessAge", "achievableFitnessAge", "previousFitnessAge", "lastUpdated") if res.get(k) is not None}
@@ -177,7 +177,7 @@ def fetch_fitness_age(api, d):
                                     for k, v in comps.items()}
     if keep.get("fitnessAge") is not None:
         have[d.isoformat()] = keep
-        RAW.mkdir(parents=True, exist_ok=True); FAGE.write_text(json.dumps(have, indent=1, sort_keys=True))
+        RAW.mkdir(parents=True, exist_ok=True); FAGE.write_text(json.dumps(have, indent=1, sort_keys=True), encoding="utf-8")
     return have
 
 def day_path(d):
@@ -186,20 +186,20 @@ def day_path(d):
 def apply(d, raw):
     """Merge one day's raw Garmin data into its day file (creating it if needed). Returns (path, changes)."""
     p = day_path(d); p.parent.mkdir(parents=True, exist_ok=True)
-    day = yaml.safe_load(p.read_text()) if p.exists() else {"date": d, "status": "unlogged",
+    day = yaml.safe_load(p.read_text(encoding="utf-8")) if p.exists() else {"date": d, "status": "unlogged",
                                                            "meals": {"breakfast": [], "lunch": [], "dinner": [], "snacks": []}}
     mapped = M.map_day(raw)
-    vo2 = (json.loads(VO2.read_text()) if VO2.exists() else {}).get(d.isoformat())
+    vo2 = (json.loads(VO2.read_text(encoding="utf-8")) if VO2.exists() else {}).get(d.isoformat())
     if vo2: mapped["fitness"] = vo2
     changes = M.merge_day(day, mapped)
     if changes or not p.exists():
-        p.write_text(yaml.safe_dump(day, sort_keys=False, allow_unicode=True, default_flow_style=None, width=200))
+        p.write_text(yaml.safe_dump(day, sort_keys=False, allow_unicode=True, default_flow_style=None, width=200), encoding="utf-8")
         compute.process(p)
     return p, changes
 
 def git(*args, check=True):
     for attempt in range(6):
-        r = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, timeout=90)
+        r = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=90)
         if r.returncode == 0 or "index.lock" not in (r.stderr or ""): break
         time.sleep(2)   # another commit (e.g. from chat) holds the lock
     if check and r.returncode != 0: raise RuntimeError(f"git {' '.join(args)}: {r.stderr.strip()}")
@@ -257,14 +257,14 @@ def main():
                 while d < dates[0]:
                     rp = RAW / str(d.year) / f"{d.isoformat()}.json"
                     if rp.exists():
-                        p_, ch = apply(d, json.loads(rp.read_text()))
+                        p_, ch = apply(d, json.loads(rp.read_text(encoding="utf-8")))
                         if ch: touched.append(p_); summary.append(f"{d.strftime('%d %b')} {', '.join(ch)}")
                     d += dt.timedelta(days=1)
         for d in dates:
             rp = RAW / str(d.year) / f"{d.isoformat()}.json"
             if a.remap:
                 if not rp.exists(): continue
-                raw = json.loads(rp.read_text())
+                raw = json.loads(rp.read_text(encoding="utf-8"))
             else:
                 raw, rp = fetch_day(api, d); time.sleep(1)   # be gentle with Garmin
                 touched.append(rp)

@@ -1,6 +1,6 @@
 """Smoke tests against the demo data folder: recompute every day, start the dashboard, and check every API
 route answers. Runs on a temporary copy so the demo folder is never modified. Standard library only."""
-import json, os, pathlib, shutil, socket, subprocess, sys, tempfile, time, unittest, urllib.request
+import json, os, pathlib, re, shutil, socket, subprocess, sys, tempfile, time, unittest, urllib.error, urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DEMO = ROOT / "demo"
@@ -32,8 +32,10 @@ class Smoke(unittest.TestCase):
         self.assertTrue(self.days, "demo folder has no day files")
 
     def test_api_routes(self):
-        srv = subprocess.Popen([sys.executable, str(ROOT / "app" / "server.py")], env=self.env,
-                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        # The server's output goes to a file, not a pipe: nobody reads the pipe, and once a traceback fills it
+        # (4 KB on Windows) the server blocks on every later request.
+        log = tempfile.TemporaryFile(mode="w+", encoding="utf-8")
+        srv = subprocess.Popen([sys.executable, str(ROOT / "app" / "server.py")], env=self.env, stdout=log, stderr=subprocess.STDOUT)
         base = f"http://127.0.0.1:{self.env['FT_PORT']}"
         try:
             for _ in range(50):
@@ -47,12 +49,22 @@ class Smoke(unittest.TestCase):
                       "/api/readiness"]
             for path in routes:
                 with self.subTest(path=path):
-                    with urllib.request.urlopen(base + path, timeout=20) as r:
-                        self.assertEqual(r.status, 200)
-                        body = r.read()
-                        if path.startswith("/api/"): json.loads(body)
+                    try:
+                        with urllib.request.urlopen(base + path, timeout=20) as r:
+                            self.assertEqual(r.status, 200)
+                            body = r.read()
+                            if path.startswith("/api/"): json.loads(body)
+                    except urllib.error.HTTPError as e:
+                        log.flush(); log.seek(0)
+                        self.fail(f"{path}: HTTP {e.code}. Server log:\n{log.read()[-3000:]}")
         finally:
-            srv.terminate(); srv.wait(timeout=10)
+            srv.terminate(); srv.wait(timeout=10); log.close()
+
+    def test_no_platform_specific_strftime(self):
+        """strftime's %-d, %-I and friends (no leading zero) exist on macOS and Linux only; Windows raises."""
+        bad = [f"{p.relative_to(ROOT)}:{i}" for d in ("app", "scripts", "body_kaizen") for p in (ROOT / d).rglob("*.py")
+               for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1) if re.search(r"%-[a-zA-Z]", line)]
+        self.assertEqual(bad, [], "use f'{d.day} {d:%b}' instead")
 
 
 if __name__ == "__main__":
