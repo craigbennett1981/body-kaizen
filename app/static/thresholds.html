@@ -23,29 +23,30 @@ const sd = s => new Date(String(s)+'T00:00').toLocaleDateString('en-GB',{day:'nu
 const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 fetch('/api/thresholds').then(r => r.json()).then(T => {
   const secs = [];
-  const sec = (title, html, mine) => { secs.push(title); return `<h2 id="${slug(title)}">${esc(title)}${mine?'<span class="mine">your data folder</span>':''}</h2>${html}`; };
+  const sec = (title, html, mine) => { secs.push(title); return `<h2 id="${slug(title)}">${esc(title)}${mine?'<span class="mine">your own settings</span>':''}</h2>${html}`; };
   const tbl = (head, rows) => `<div class="wrap"><table class="th"><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr>${rows.join('')}</table></div>`;
   let body = '';
   if(T.targets) body += sec('Your daily targets', tbl(['Target','Value'], T.targets.rows.map(r=>`<tr><td class="k">${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`)) +
-    `<p class="note">From targets.yaml, block "${esc(T.targets.label||'')}" in force since ${sd(T.targets.from)}.${T.weight?` Weight target ${T.weight.kg} kg${T.weight.source?` (${esc(T.weight.source)})`:''}.`:''} Day type (rest, training, big) picks the calorie range.</p>`, true);
+    `<p class="note">Set by you: "${esc(T.targets.label||'')}", in force since ${sd(T.targets.from)}.${T.weight?` Weight target ${T.weight.kg} kg${T.weight.source?`, from: ${esc(T.weight.source)}`:''}.`:''} The day type (rest, training, big) picks the calorie range.</p>`, true);
   const P = T.pace;
   if(P && P.windows) body += sec('Your pace windows', tbl(['Window','Until','Calories','Protein','Fibre','Sat fat'],
     P.windows.map((w,i)=>`<tr><td class="k">${esc(w.name)}</td><td>${esc(w.until)}</td>${['kcal','protein_g','fibre_g','satfat_g'].map(k=>`<td>${P.share&&P.share[k]?Math.round(P.share[k][i]*100)+'%':'–'}</td>`).join('')}</tr>`)) +
     `<p class="note">Share of the day's target expected by the end of each window. On pace: ${Math.round((P.on_pace??.85)*100)}%+ of where you should be is green, ${Math.round((P.behind??.65)*100)}–${Math.round((P.on_pace??.85)*100)}% amber, below that red.</p>`, true);
   if(T.personal.length) body += sec('Your training and recovery reference points', tbl(['Reference','Value'], T.personal.map(r=>`<tr><td class="k">${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`)) +
-    `<p class="note">From targets.yaml (reference) and exercises.yaml (training_plan).</p>`, true);
-  T.rules.forEach(S => body += sec(S.section, tbl(['Threshold','Rule','Basis','Shown on','Defined in'],
-    S.rows.map(r=>`<tr><td class="k">${esc(r.threshold)}</td><td>${esc(r.rule)}</td><td>${esc(r.basis)}</td><td class="w">${esc(r.shown)}</td><td class="w"><code>${esc(r.where)}</code></td></tr>`))));
+    `<p class="note">Set by you and your training plan.</p>`, true);
+  T.rules.forEach(S => body += sec(S.section, tbl(['Threshold','Values','Where it comes from','Shown on'],
+    S.rows.map(r=>`<tr><td class="k">${esc(r.threshold)}</td><td>${esc(r.rule)}</td><td>${esc(r.basis)}</td><td class="w">${esc(r.shown)}</td></tr>`))));
   const cats = [...new Set(T.markers.map(m=>m.cat))];
   body += sec('Longevity markers', `<p class="note">${esc(T.marker_rules)} <span class="tag">verify</span> = provisional target, not yet checked against a source.</p>` +
-    cats.map(c => `<h3>${esc(c)}</h3>` + tbl(['Marker','Unit','Green','Amber','Test every','Source and notes'],
+    cats.map(c => `<h3>${esc(c)}</h3>` + tbl(['Marker','Unit','Green','Amber','Test every','Where it comes from'],
       T.markers.filter(m=>m.cat===c).map(m=>`<tr><td class="k">${esc(m.name)}${m.verify?'<span class="tag">verify</span>':''}</td><td>${esc(m.unit)}</td><td class="g">${esc(m.green??'trend only')}</td><td class="a">${esc(m.amber??'')}</td><td>${esc(m.every)}</td><td class="note">${m.contested?`Contested optimum: ${esc(m.contested)}. `:''}${esc(m.note||'')}</td></tr>`))).join(''), true);
   const A = T.athlete;
   body += sec('Health score reference', `<p class="note">Each marker scores 100 at "top" (a fit, athletic ${A.age??''}-year-old ${esc(A.sex||'')}), 50 at "average" and 0 at "poor", straight lines between. Domain weights are a judgement informed by the evidence, not a validated model; use the score to track your own change.</p>` +
     tbl(['Domain','Weight','Marker','Top','Average','Poor','Unit','Weight in domain'],
       A.domains.flatMap(d => d.markers.map((m,i)=>`<tr>${i===0?`<td class="k" rowspan="${d.markers.length}">${esc(d.label)}</td><td rowspan="${d.markers.length}">${d.weight}</td>`:''}<td>${esc(m.key.replace(/_/g,' '))}${m.verify?'<span class="tag">verify</span>':''}</td><td>${m.top??'–'}</td><td>${m.avg??'–'}</td><td>${m.poor??'–'}</td><td>${esc(m.unit||'')}</td><td>${m.weight}</td></tr>`))), true);
-  document.getElementById('r').innerHTML = `<div class="top"><div><h1>Thresholds</h1><p class="sub">Every number the dashboard judges you against: what it is, where it comes from and where it lives. Sections marked "your data folder" are read live from your own files; the rest are fixed in the code.</p></div><a href="/">Back to the dashboard</a></div>
+  document.getElementById('r').innerHTML = `<div class="top"><div><h1>Thresholds</h1><p class="sub">Every number the dashboard judges you against, and where it comes from. Sections marked "your own settings" show the targets you have set; the rest are the dashboard's built-in rules.</p></div><a href="/">Back to the dashboard</a></div>
     <nav class="toc">${secs.map(s=>`<a href="#${slug(s)}">${esc(s)}</a>`).join('')}</nav>${body}
-    <p class="note" style="margin-top:24px">"Inferred" means a recognised guideline obviously underlies the number but the code doesn't cite it. "Heuristic" means a hand-set judgement. These are self-tracking aids, not medical advice. The same list is in docs/thresholds.md.</p>`;
+    <p class="note" style="margin-top:24px">"Inferred" means a recognised guideline clearly underlies the number but isn't formally cited. "Heuristic" means a hand-set judgement. These are self-tracking aids, not medical advice.</p>
+    <p class="note"><b>We make a best effort to get these right</b> and to say where each one comes from, but guidelines change and we can get them wrong. If you spot a problem, please <a href="https://github.com/craigbennett1981/body-kaizen/issues" target="_blank" rel="noopener">raise a GitHub issue</a>.</p>`;
 }).catch(e => { document.getElementById('r').innerHTML = '<p>Could not load the thresholds.</p>'; });
 </script></body></html>

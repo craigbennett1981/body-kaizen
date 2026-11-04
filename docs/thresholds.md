@@ -18,11 +18,14 @@ Basis: a named guideline when the code relies on one; *(inferred)* when a guidel
 but the code doesn't cite it; *heuristic* for a hand-set judgement; *no source* when nothing better can honestly
 be said. These are self-tracking aids, not medical advice.
 
+We make a best effort to get these right, but guidelines change and we can get them wrong. If you spot a
+problem, please [raise a GitHub issue](https://github.com/craigbennett1981/body-kaizen/issues).
+
 ## Food and the day's macros
 
 | Threshold | Rule | Basis | Shown on | Defined in |
 |---|---|---|---|---|
-| Day judged | Each target is ticked or crossed only once the day is closed (status complete); before that you see over/under arrows | design rule | Day, Trends, Week | `data.py evaluate` |
+| Day judged | Each target is ticked or crossed only once the day is closed; before that you see over/under arrows | design rule | Day, Trends, Week | `data.py evaluate` |
 | Live colour | Inside the target = green; missed by up to 10% = amber; more = red | heuristic | Day macro tiles | `app.js liveStatus` |
 | High sat-fat food | A single food item with 3 g or more saturated fat is tinted red | heuristic | Day timeline | `app.js SF_HIGH` |
 | Guessed portions | A note when 15% or more of the day's calories come from low-confidence estimates | heuristic | Day notes | `insights.py` |
@@ -33,7 +36,7 @@ be said. These are self-tracking aids, not medical advice.
 
 | Threshold | Rule | Basis | Shown on | Defined in |
 |---|---|---|---|---|
-| Floors and ranges | Eaten ÷ expected-so-far: 85%+ green, 65–85% amber, below red (the 85% and 65% come from targets.yaml pace) | heuristic | Day pace strips | `pace.py` |
+| Floors and ranges | Eaten ÷ expected-so-far: 85%+ green, 65–85% amber, below red (85% and 65% are adjustable in your pace settings) | heuristic | Day pace strips | `pace.py` |
 | Caps (saturated fat) | Up to 105% of the allowance so far green, up to 125% amber, above red; over the full-day cap is always red | heuristic | Day pace strips | `pace.py` |
 | Range ceiling | More than 115% of the upper end so far = amber (red once over the full-day upper) | heuristic | Day pace strips | `pace.py` |
 | Next move | Sat-fat warning when under 8 g is left; protein prompt when 5 g+ is still needed; fibre prompt after 12:00 when 5 g+ short | heuristic | Day 'next move' line | `glance.py` |
@@ -43,7 +46,7 @@ be said. These are self-tracking aids, not medical advice.
 | Threshold | Rule | Basis | Shown on | Defined in |
 |---|---|---|---|---|
 | Category | Normal under 120/80; elevated 120–129 systolic; stage 1 130–139 or 80–89; stage 2 140+ or 90+; crisis 180+ or 120+ | 2017 ACC/AHA adult guideline | Body, Day notes, Doctor page | `data.py bp_category` |
-| Morning reading | Before the time in settings.yaml (vitals.bp.morning_before, default 09:00) | measurement practice: same time, before coffee | Body (30-day morning average) | `data.py` |
+| Morning reading | Taken before 09:00 (adjustable in your settings) | measurement practice: same time, before coffee | Body (30-day morning average) | `data.py` |
 | Pulse pressure | Systolic − diastolic: under 30 narrow; 30–50 healthy; 50–60 upper normal; over 60 wide, worth watching | 40 typical and 60+ linked with artery stiffness in cohort studies (common rule of thumb); 30 and 50 cut-offs are heuristic | Body | `app.js ppCat` |
 
 ## Glucose (CGM)
@@ -75,7 +78,7 @@ be said. These are self-tracking aids, not medical advice.
 | Signals | Each costs points vs your own 28-day baseline: resting HR and HRV 9 per SD, sleep debt 9 per hour, training-load spike 35 per unit above 1.2, stress and body battery 4, feel 8 per point below 3 | heuristic | Day, Recovery | `readiness.py W` |
 | Noise band | Within 0.5 SD of your baseline costs nothing | heuristic | Day, Recovery | `readiness.py NOISE` |
 | Load spike | 7-day load ÷ 4-week load above 1.2 | acute:chronic workload ratio (Gabbett 2016, inferred) | Day, Recovery | `readiness.py` |
-| HRV dip | HRV under 90% of your baseline (targets.yaml) = 'go easier' | heuristic | Day notes | `insights.py` |
+| HRV dip | HRV under 90% of your HRV baseline = 'go easier' | heuristic | Day notes | `insights.py` |
 | Resting HR rising | 7-day mean more than 2 SD above the 60-day baseline for 3+ days | heuristic | Day notes, toasts | `alerts.py` |
 | vs normal | Glance strip colours only gaps of 5 ms HRV or 3 bpm resting HR | heuristic | Day | `glance.py` |
 
@@ -104,7 +107,7 @@ be said. These are self-tracking aids, not medical advice.
 
 | Threshold | Rule | Basis | Shown on | Defined in |
 |---|---|---|---|---|
-| Scoring curve | 100 at the 'top' reference, 50 at 'average', 0 at 'poor', straight lines between | design; reference values in athlete.yaml (below) | Day, Longevity | `healthscore.py` |
+| Scoring curve | 100 at the 'top' reference, 50 at 'average', 0 at 'poor', straight lines between | design; reference values below | Day, Longevity | `healthscore.py` |
 | Unmeasured | A marker never measured, or stale, counts as 50 | design rule: no credit for unknowns | Day, Longevity | `healthscore.py UNMEASURED` |
 | Stale after | Labs, InBody and manual tests 400 days; watch, CGM and calculated 21 days | heuristic | Day, Longevity | `healthscore.py STALE` |
 | Domain colours | 80+ green, 55+ amber, below red | heuristic | Longevity | `app.js` |

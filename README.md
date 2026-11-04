@@ -494,6 +494,12 @@ suggestions, including anything an AI assistant tells you while logging, are rul
 Glucose, blood pressure and lab values are shown for interest, never for diagnosis or treatment decisions. Talk to a
 doctor before changing your diet, training, medication or supplements, and about any reading that worries you.
 
+**Thresholds.** The bands and cut-offs the dashboard judges you against (listed on its Thresholds page and in
+[docs/thresholds.md](docs/thresholds.md)) are taken from published guidelines where one exists and are otherwise
+judgement calls. We make a best effort to get them right and to say where each one comes from, but guidelines
+change and we can get them wrong. If you spot a problem, please
+[raise a GitHub issue](https://github.com/craigbennett1981/body-kaizen/issues).
+
 **Integrations.** The Garmin Connect and LibreLinkUp syncs use unofficial, community-maintained libraries. They are
 not endorsed by, affiliated with, or supported by Garmin, Abbott, Hevy or any other company named here. Using them
 may be against those services' terms of use and could, in principle, get your account rate-limited, locked or
