@@ -63,6 +63,13 @@ def weight_target_for(date):
 def reference():
     return _targets_file().get("reference", {})
 
+def steps_target():
+    """The daily steps judged as enough: the start of the green band for steps in markers.yaml (7,000 in the
+    starter file). targets.yaml's reference.steps_daily is only a line on the charts."""
+    try: g = (_load(ROOT / "markers.yaml").get("markers") or {}).get("steps", {}).get("green") or []
+    except Exception: g = []
+    return g[0] if g and g[0] else 7000
+
 def targets_for(date, day_type):
     blocks = _blocks()
     blk = None

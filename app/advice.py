@@ -172,8 +172,9 @@ def compute():
             ["Add one line when you log: 'feel 4 gut 3 energy 4' (1–5)."], 5)
     st_ = _mean([d.get("steps") for d in last30 if d.get("steps") and d["steps"] > 500])
     if st_:
-        add("Lifestyle", "keep" if st_ >= ref.get("steps_daily", 10000) else "act", "Daily steps",
-            f"Average {st_:,.0f} steps/day.", ["Keep it above 10,000: walk calls, take stairs, a 15-minute walk after dinner also helps blood sugar."], 7)
+        tgt = data.steps_target()
+        add("Lifestyle", "keep" if st_ >= tgt else "act", "Daily steps",
+            f"Average {st_:,.0f} steps/day (enough: {tgt:,}+).", [f"Keep it above {tgt:,}: walk calls, take stairs, a 15-minute walk after dinner also helps blood sugar."], 7)
 
     order = ["Diet", "Heart & blood", "Training", "Sleep & recovery", "Body", "Lifestyle"]
     sections = [{"name": n, "items": sorted(sec[n], key=lambda x: (x["level"] != "act", x["prio"]))} for n in order if sec.get(n)]

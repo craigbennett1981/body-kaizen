@@ -116,6 +116,7 @@ problem, please [raise a GitHub issue](https://github.com/craigbennett1981/body-
 
 | Threshold | Rule | Basis | Shown on | Defined in |
 |---|---|---|---|---|
+| Steps | Enough = the start of the green band for steps in `markers.yaml` (7,000 a day in the starter file); `targets.yaml reference.steps_daily` is only a chart line | mortality benefit levels off around 7,000–8,000 steps (Paluch 2022; Ding 2025, both Lancet Public Health) | Advice, Day notes, Habits | `data.py steps_target` |
 | Calories advice | In range on under 60% of the last 7 closed days = act | heuristic | Advice | `advice.py` |
 | Sodium | 14-day average over 2,300 mg = act | WHO 2,000 mg / US Dietary Guidelines 2,300 mg (inferred) | Advice | `advice.py` |
 | Protein alert | 7-day protein under 1.4 g/kg | heuristic (below the 1.6 g/kg Morton 2018 plateau) | Day notes, toasts | `alerts.py` |
@@ -132,6 +133,19 @@ Markers marked `verify: true` carry a provisional target that has not yet been c
 dashboard tags them. The starter `markers.yaml` notes the guideline behind each band where there is one (for
 example 2017 ACC/AHA for blood pressure, InBody's 0.360–0.390 ECW ratio, AWGS 2019 for SMI, the lab's printed range
 for `bands: lab`).
+
+### Bands worth knowing the source of
+
+| Marker | Green | Amber | Red | Source |
+|---|---|---|---|---|
+| ApoB | under 0.9 g/L | 0.9–1.0 | over 1.0 | NLA expert consensus 2024 (Soffer et al., *J Clin Lipidol*): 0.9 g/L for borderline-to-intermediate risk (0.7 high, 0.6 very high). 1.0 is the ESC/EAS 2019 moderate-risk goal. The Singapore lipid guideline (ACG 2023) sets no ApoB target. |
+| Systolic BP (30-day avg) | under 120 | 120–129 (elevated) | 130+ (stage 1 and over) | 2017 ACC/AHA |
+| Diastolic BP (30-day avg) | under 80 | none | 80+ (stage 1 and over) | 2017 ACC/AHA: diastolic has no "elevated" band, so stage 1 is red, as it is for systolic |
+| Protein (7-day avg) | 1.6 g/kg or more | 1.2–1.6 | under 1.2 | Muscle gain plateaus near 1.6 g/kg (Morton et al. 2018, *Br J Sports Med*; upper CI ~2.2). No upper limit: more isn't harmful with healthy kidneys |
+| Body fat (InBody) | 8–20% | 20–25% | under 8% or over 25% | Male athletic range. Bioimpedance reads ~3–4 points under DXA, so 8% InBody ≈ 11–12% DXA. Women need about 8 points more: edit the bands |
+| Steps (30-day avg) | 7,000+ | 5,000–7,000 | under 5,000 | Mortality benefit levels off around 7,000–8,000 (Paluch et al. 2022; Ding et al. 2025, both *Lancet Public Health*) |
+
+These live in your `markers.yaml`; change them there if your doctor sets different targets.
 
 ## Health score (`athlete.yaml`, `app/healthscore.py`)
 

@@ -123,6 +123,10 @@ RULES = [
         ("Domain colours", "80+ green, 55+ amber, below red", "app.js", "Longevity", "heuristic"),
     ]),
     ("Advice and alerts", [
+        ("Steps", "Enough = the start of the green band for steps in your markers (7,000 a day in the starter file): "
+         "the 30-day average below it is an 'act' in Advice, a day at or above it a good note, and a hit on the Habits grid",
+         "data.py steps_target", "Advice, Day notes, Habits",
+         "mortality benefit levels off around 7,000–8,000 steps (Paluch 2022 Lancet Public Health; Ding 2025 Lancet Public Health)"),
         ("Calories advice", "In range on under 60% of the last 7 closed days = act", "advice.py", "Advice",
          "heuristic"),
         ("Sodium", "14-day average over 2,300 mg = act", "advice.py", "Advice",
@@ -171,7 +175,7 @@ def build():
     ref = tf.get("reference") or {}
     REF_LABEL = {"easy_run_avg_hr_max": ("Easy runs average under", "bpm"), "hrv_baseline_ms": ("HRV baseline", "ms"),
                  "sleep_hours_min": ("Sleep target", "h"), "rhr_walk_only": ("Walk only when morning resting HR is at or above", "bpm"),
-                 "steps_daily": ("Steps reference line", "a day")}
+                 "steps_daily": ("Steps line on the charts (not judged)", "a day")}
     personal = [[REF_LABEL.get(k, (k, ""))[0], f"{v} {REF_LABEL.get(k, ('', ''))[1]}".strip()] for k, v in ref.items()]
     tp = (data._load(data.ROOT / "exercises.yaml") or {}).get("training_plan") or {}
     if tp.get("rep_range"): personal.append(["Rep range", f"{tp['rep_range'][0]}–{tp['rep_range'][1]} reps"])
