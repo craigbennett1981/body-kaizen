@@ -151,7 +151,7 @@ def for_day(date):
 
     # ---------- steps ----------
     if day.get("steps") is not None:
-        st, sref = day["steps"], ref.get("steps_daily", 10000)
+        st, sref = day["steps"], data.steps_target()
         if st >= sref: add("good", f"{_f(st)} steps.")
         elif st < sref * 0.6: add("info", f"{_f(st)} steps, a quiet day on your feet.")
 

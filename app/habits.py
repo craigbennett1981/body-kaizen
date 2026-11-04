@@ -27,7 +27,7 @@ def daily(weeks=12):
         prior = [longevity._mins_from_noon((det[S[j]["date"]].get("recovery") or {}).get("sleep_start")) for j in range(max(0, idx[ds] - 14), idx[ds])
                  if (det[S[j]["date"]].get("recovery") or {}).get("sleep_start")]
         f = {
-            "steps": None if x.get("steps") is None else x["steps"] >= 7000,
+            "steps": None if x.get("steps") is None else x["steps"] >= data.steps_target(),
             "aerobic": None if not im else (im.get("moderate", 0) + 2 * im.get("vigorous", 0)) >= 21,
             "strength": any(e.get("type") == "gym" for e in x.get("exercise") or []),
             "protein": None if not (t and wkg) else t["protein_g"] / wkg >= 1.6,
