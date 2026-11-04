@@ -43,7 +43,8 @@ calories burnt, and the next seven days laid out: gym, run or rest.</td>
 </tr>
 </table>
 
-**Also:** a muscle map shaded by hard sets per muscle · blood test reports and InBody scans read from a photo
+**Also:** a muscle map shaded by hard sets per muscle · an activity calendar · pulse pressure · set-up and logins
+from the browser · every threshold and its source on one page · blood test reports and InBody scans read from a photo
 or PDF · scale and blood-pressure screenshots · a day timeline from sleep to dinner · Claude's comments saved
 next to the numbers they're about.
 
@@ -148,6 +149,14 @@ behind it, and spot the ones you never train.
 
 ![Muscle map: front and back diagrams shaded by hard sets over the last 7 days, with the lifts behind one muscle](docs/img/muscle-map.png)
 
+**An activity calendar.** A year of sessions on the Training tab, GitHub-style, each square shaded by calories
+burnt (grey when the watch didn't record them and the number is estimated), with the total in kilos of fat.
+
+![Activity: a year of sessions, each day shaded by calories burnt](docs/img/activity.png)
+
+**Blood pressure with pulse pressure.** Each reading on the 2017 ACC/AHA bands, with pulse pressure (top minus
+bottom) alongside and what it means on hover.
+
 **Recovery and readiness.** Sleep stages, HRV and resting heart rate against your own baseline, body battery and
 stress, combined into a readiness score that says what's holding you back.
 
@@ -160,6 +169,12 @@ more, each with target bands and a retest date, rolled into a health score that 
 
 **Fitness tests.** Grip strength, 30-second sit-to-stand, one-leg stand and waist, logged in a sentence ("grip
 47/45") and tracked on the Longevity tab with target bands and a reminder when each is due again.
+
+**Every threshold explained.** "How your numbers are judged", linked at the foot of every page, lists each target,
+band and score the dashboard uses and the guideline or study it comes from.
+
+**Set up from the browser.** On first run the dashboard asks where to keep your data, with your computer's own
+folder picker. **Connections** logs you in to Garmin (two-step code included) and LibreLinkUp: no console needed.
 
 ## Quick start (five minutes)
 
