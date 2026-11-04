@@ -125,6 +125,15 @@ problem, please [raise a GitHub issue](https://github.com/craigbennett1981/body-
 | Weigh-in | No fasted weigh-in for more than 5 days = act | heuristic | Advice | `advice.py` |
 | Weekly hit rate | 70%+ green, under 40% red | heuristic | Week | `app.js` |
 
+## Energy balance (`app/energybalance.py`)
+
+| Threshold | Values | Where it comes from | Shown on | Defined in |
+|---|---|---|---|---|
+| Projected burn today | Garmin's total at the last sync + its resting rate to midnight + your usual active calories after that time (median of the last 14 days, by when workouts and steps happened) | heuristic: Garmin sends no projection | Day | `energybalance.py` |
+| Fat per kcal | 7,700 kcal of deficit = 1 kg of body fat | common rule of thumb (≈3,500 kcal per lb); early loss also includes water and glycogen | Body | `energybalance.py KCAL_PER_KG` |
+| Actual change | Least-squares trend through the last 30 days' fasted weigh-ins (4 or more) | design rule | Body | `energybalance.py` |
+| Logs vs scale | Within 75 kcal a day = consistent; otherwise the gap is shown | heuristic | Body | `app.js renderEnergyBalance` |
+
 ## Longevity marker bands (`markers.yaml`)
 
 Bands include the lower edge and exclude the upper. Green wins, then amber; anything outside both is red. 'contested' bands can make an in-range value amber, never red. 'lab' judges against the range printed on that lab report.

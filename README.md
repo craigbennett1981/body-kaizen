@@ -134,6 +134,11 @@ fibre and weight, every day coloured hit or miss against the target that applied
 
 ![Trends: 30 days of calories, macros and weight against their targets](docs/img/trends.png)
 
+**Energy balance.** The Day page projects today's burn to midnight from Garmin (what you've burnt so far, resting
+burn for the rest of the day, and what you usually burn in the evening) against what you've eaten, so you can see
+the deficit you're heading for. The Body tab charts 30 days of burnt minus eaten and the weight change it should
+have caused against your actual trend, and says how far your logs and Garmin are off from the scale.
+
 **Glucose against every meal.** With a FreeStyle Libre connected, the Day timeline draws the glucose curve with a dot
 on it for each meal (sized by its carbs; hover for the foods), and each timed meal gets its rise, peak and time back
 to baseline. The Body tab adds a 14-day profile and your meals ranked by spike.

@@ -122,6 +122,17 @@ RULES = [
          "healthscore.py STALE", "Day, Longevity", "heuristic"),
         ("Domain colours", "80+ green, 55+ amber, below red", "app.js", "Longevity", "heuristic"),
     ]),
+    ("Energy balance", [
+        ("Projected burn today", "Garmin's total at the last watch sync + its resting rate to midnight + the active calories "
+         "you usually burn after that time of day (median of your last 14 days, from when your workouts and steps happened)",
+         "energybalance.py", "Day", "heuristic: Garmin sends no projection of its own"),
+        ("Fat per kcal", "7,700 kcal of deficit = 1 kg of body fat", "energybalance.py KCAL_PER_KG", "Body",
+         "common rule of thumb (about 3,500 kcal per lb); real early loss includes water and glycogen"),
+        ("Actual change", "Least-squares trend through the fasted weigh-ins in the last 30 days; needs 4 or more",
+         "energybalance.py", "Body", "design rule: a trend, not two single weigh-ins"),
+        ("Logs vs scale", "Within 75 kcal a day = consistent; beyond that the gap is shown as what Garmin or the logging "
+         "is off by", "app.js renderEnergyBalance", "Body", "heuristic"),
+    ]),
     ("Advice and alerts", [
         ("Steps", "Enough = the start of the green band for steps in your markers (7,000 a day in the starter file): "
          "the 30-day average below it is an 'act' in Advice, a day at or above it a good note, and a hit on the Habits grid",

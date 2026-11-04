@@ -6,7 +6,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 os.environ.setdefault("FT_DATA", str(ROOT / "demo"))
 sys.path[:0] = [str(ROOT / "scripts"), str(ROOT / "app")]
 import nutrition as N   # noqa: E402
-import pace, planner, muscles, workouts, thresholds   # noqa: E402
+import pace, planner, muscles, workouts, thresholds, energybalance   # noqa: E402
 import bkenv, garmin_pull, scheduler   # noqa: E402
 
 
@@ -158,6 +158,27 @@ class DemoNeverSyncs(unittest.TestCase):
         self.assertEqual(child_data({**os.environ, "FT_DATA": "demo"}), str(bkenv.DATA / "demo"))   # the old bug
         self.assertTrue(pathlib.Path(bkenv.child_env()["FT_DATA"]).is_absolute())
         self.assertEqual(child_data(bkenv.child_env()), str(bkenv.DATA))
+
+
+class EnergyBalance(unittest.TestCase):
+    def test_fit_and_history(self):
+        b, a = energybalance._fit([(0, 76.0), (10, 75.0), (20, 74.0), (30, 73.0)])
+        self.assertAlmostEqual(b, -0.1); self.assertAlmostEqual(a, 76.0)
+        self.assertIsNone(energybalance._fit([(0, 76.0), (1, 75.9)]))
+        H = energybalance.history(end="2026-10-24")
+        counted = [d for d in H["days"] if d["deficit"] is not None]
+        self.assertTrue(counted)
+        for d in counted: self.assertLessEqual(abs(d["deficit"] - (d["burnt"] - d["eaten"])), 1)
+        self.assertAlmostEqual(H["expected_kg"], -H["avg_deficit"] * 30 / 7700, places=2)
+        if "actual_kg" in H: self.assertEqual(H["gap_kcal_day"], H["avg_deficit"] - H["actual_avg_deficit"])
+
+    def test_today_projection_adds_up(self):
+        last = sorted((pathlib.Path(os.environ["FT_DATA"]) / "days").rglob("*.yaml"))[-1].stem
+        T = energybalance.today(last)
+        if not T["available"]: self.skipTest("no Garmin day in the demo")
+        self.assertEqual(T["projected"], T["burnt_so_far"] + T["rest_of_day_resting"] + (T["rest_of_day_active"] or 0))
+        self.assertEqual(T["deficit_now"], T["projected"] - T["eaten"])
+        self.assertGreaterEqual(T["projected"], T["burnt_so_far"])
 
 
 class ThresholdsPage(unittest.TestCase):

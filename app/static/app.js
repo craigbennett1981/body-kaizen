@@ -184,10 +184,27 @@ async function renderDay(date){
   ((d.vitals||{}).bp||[]).forEach(b => kv.push([`BP ${b.time||''}`, `${esc(b.sys)}/${esc(b.dia)}${b.pulse?`, pulse ${esc(b.pulse)}`:''}`]));
   if(d.steps) kv.push(['Steps', fmt(d.steps)]);
   side += `<h2>Body</h2>` + (kv.length ? `<dl class="kv">${kv.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>` : `<p class="empty">Nothing recorded.</p>`);
-  h += `<div id="ready"></div><div id="daytl"></div><div id="glucose"></div><div class="notes-tasks"><div id="notes"></div><div id="tasks"></div></div>`;
+  h += `<div id="energy"></div><div id="ready"></div><div id="daytl"></div><div id="glucose"></div><div class="notes-tasks"><div id="notes"></div><div id="tasks"></div></div>`;
   h += `<div class="cols"><div>${meals?'<h2>Food</h2><p class="sub sh-key">Numbers are coloured by their share of today\'s target: <span class="sh-g1">protein and fibre</span> greener as they fill more of it; <span class="sh-b1">calories, carbs, fat</span> and <span class="sh-b2">saturated fat</span> amber, then red, as they use up more of the limit. Hover a number for its %.</p>'+meals:''}</div><div>${side}</div></div>`;
   $('#day').innerHTML = h;
-  renderNotes(date); renderTasks(); renderHsTile(); renderDayTimeline(date); renderGlucose(date); renderGlance(date);
+  renderNotes(date); renderTasks(); renderHsTile(); renderDayTimeline(date); renderGlucose(date); renderGlance(date); renderEnergyToday(date);
+}
+/* ---------- energy today: Garmin's burn so far, projected to midnight, against what's been eaten ---------- */
+async function renderEnergyToday(date){
+  const E = await api('/api/energy?date='+date).catch(()=>null);
+  const el = $('#energy'); if(date !== currentDate || !el) return;
+  const t = E && E.today;
+  if(!t || !t.available){ el.innerHTML = ''; return; }
+  const live = !t.complete && t.sync;
+  const bal = v => v==null ? '–' : v >= 0 ? `<b>${fmt(v)}</b> <small>deficit</small>` : `<b>${fmt(-v)}</b> <small>surplus</small>`;
+  const how = live ? `Burnt to ${esc(t.sync)} (last watch sync), plus resting burn to midnight (${fmt(t.rest_of_day_resting)} kcal) and the active calories you usually burn after ${esc(t.sync)} (${fmt(t.rest_of_day_active||0)} kcal, median of your last ${esc(t.typical_days)} days).` : `Garmin's total for the day.`;
+  el.innerHTML = `<div class="eb" title="${how}">
+    <div><span class="lab">${live?`Burnt to ${esc(t.sync)}`:'Burnt'}</span><b>${fmt(t.burnt_so_far)}</b> <small>kcal</small></div>
+    ${live?`<div><span class="lab">Projected burn</span><b>${fmt(t.projected)}</b> <small>kcal by midnight</small></div>`:''}
+    <div><span class="lab">Eaten${live?' so far':''}</span><b>${fmt(t.eaten)}</b> <small>kcal</small></div>
+    <div class="eb-bal ${t.deficit_now>=0?'def':'sur'}"><span class="lab">${live?'Projected balance':'Balance'}</span>${bal(t.deficit_now)}</div>
+    ${live && t.deficit_at_target!=null?`<div><span class="lab">If you finish on target</span>${bal(t.deficit_at_target)}</div>`:''}
+  </div><p class="sub eb-how">${how}</p>`;
 }
 /* ---------- next move + readiness strip ---------- */
 async function renderGlance(date){
@@ -1389,7 +1406,48 @@ async function renderBody(){
   $('#inbodytable').innerHTML = `<table><tr><th>Date</th><th>Weight</th><th>Muscle (SMM)</th><th>Fat mass</th><th>Body fat</th><th>Fat-free</th><th>Visceral</th><th>Phase angle</th><th>Score</th></tr>` +
     BODY.inbody.map(b=>`<tr><td>${shortDate(b.date)} ${b.date.slice(0,4)}</td><td>${esc(b.weight_kg)}${b.clothed?'*':''}</td><td>${b.smm_kg??'–'}</td><td>${b.fat_kg??'–'}</td><td>${b.pbf_pct!=null?b.pbf_pct+'%':'–'}</td><td>${b.ffm_kg??'–'}</td><td>${b.visceral_level??'–'}</td><td>${b.phase_angle??'–'}</td><td>${b.score??'–'}</td></tr>`).join('') +
     `</table><p class="sub">* clothed. InBody reads about 1.7 points higher body fat and 0.8 kg lower fat-free mass than the home scale. Home-scale body fat moves ±0.3% day to day with hydration, so read the trend, not single days.</p>`;
-  renderBP();
+  renderBP(); renderEnergyBalance();
+}
+
+/* ---------- energy balance: 30 days of burnt minus eaten, and the weight it should have moved ---------- */
+async function renderEnergyBalance(){
+  const E = await api('/api/energy').catch(()=>null), H = E && E.history;
+  if(!H || !H.days.length){ $('#ebnote').textContent = 'Needs a few closed days with Garmin data.'; return; }
+  const c = theme(), ax = {axisLine:{lineStyle:{color:c.rule}},axisLabel:{color:c.muted,fontSize:11},splitLine:{lineStyle:{color:c.rule,opacity:.5}}};
+  const kg = v => (v>0?'+':'')+fmt(v,2)+' kg';
+  const parts = [];
+  if(H.avg_deficit!=null) parts.push(`Average ${H.avg_deficit>=0?'deficit':'surplus'} <b>${fmt(Math.abs(H.avg_deficit))} kcal/day</b> over ${esc(H.counted)} closed days with watch data (burnt per Garmin minus eaten as logged). `);
+  if(H.expected_kg!=null) parts.push(`At ${fmt(H.kcal_per_kg)} kcal per kg that should be <b>${kg(H.expected_kg)}</b> in ${H.days.length} days`);
+  if(H.actual_kg!=null) parts.push(`; the trend through your ${esc(H.weights.length)} fasted weigh-ins is <b>${kg(H.actual_kg)}</b>.`);
+  else parts.push('. Not enough fasted weigh-ins in the window for an actual trend yet.');
+  if(H.gap_kcal_day!=null){
+    const g = H.gap_kcal_day;
+    parts.push(Math.abs(g) < 75 ? ` The two agree to within ${fmt(Math.abs(g))} kcal a day: your logging and Garmin's burn are consistent.`
+      : g > 0 ? ` The scale says the real deficit was about <b>${fmt(H.actual_avg_deficit)} kcal/day</b>: ${fmt(g)} kcal a day less than the logs. Either Garmin overestimates your burn, portions are under-logged, or both. Water and glycogen also hide fat loss for a week or two.`
+      : ` The scale says you lost more than the logs explain (about ${fmt(-g)} kcal a day more): Garmin may underestimate your burn, or logged portions run high.`);
+  }
+  $('#ebnote').innerHTML = parts.join('');
+  const dates = H.days.map(d => d.date);
+  chart('ebchart').setOption({animation:MOTION,animationDuration:500,textStyle:{fontFamily:'Archivo'},
+    title:[{text:'Daily balance, kcal: burnt − eaten (up = deficit)',left:52,top:0,textStyle:{fontSize:12.5,fontWeight:600,color:c.ink}},
+           {text:'Weight: expected from the balance vs actual',left:52,top:196,textStyle:{fontSize:12.5,fontWeight:600,color:c.ink}}],
+    legend:{bottom:0,left:52,textStyle:{color:c.muted},data:['Expected','Actual trend','Fasted']},
+    grid:[{left:52,right:40,top:28,height:140},{left:52,right:40,top:222,height:120}],
+    xAxis:[{type:'category',data:dates,gridIndex:0,...ax,axisLabel:{show:false}},
+           {type:'time',gridIndex:1,min:H.start,max:H.end,...ax}],
+    yAxis:[{type:'value',gridIndex:0,...ax},{type:'value',gridIndex:1,scale:true,...ax}],
+    tooltip:{trigger:'axis',...tip(c),formatter:ps => ps.map(p => p.seriesName==='Balance'
+      ? (() => { const d = H.days[p.dataIndex]; return `<b>${shortDate(d.date)}</b><br>burnt ${d.burnt!=null?fmt(d.burnt):'–'} · eaten ${d.eaten!=null?fmt(d.eaten):'–'}<br>${d.deficit==null?'not counted (day open or no watch data)':d.deficit>=0?`<b>${fmt(d.deficit)}</b> deficit`:`<b>${fmt(-d.deficit)}</b> surplus`}`; })()
+      : `${esc(p.seriesName)}: <b>${fmt(p.value[1],2)} kg</b> (${shortDate(String(p.value[0]).slice(0,10))})`).join('<br>')},
+    series:[
+      {type:'bar',name:'Balance',xAxisIndex:0,yAxisIndex:0,barMaxWidth:14,
+        data:H.days.map(d => d.deficit==null ? null : {value:d.deficit, itemStyle:{color:d.deficit>=0?c.good:c.warn, borderRadius:d.deficit>=0?[3,3,0,0]:[0,0,3,3]}}),
+        markLine:{silent:true,symbol:'none',lineStyle:{color:c.muted,type:'dashed'},label:{color:c.muted,position:'end',fontSize:11,formatter:'avg'},
+          data:H.avg_deficit!=null?[{yAxis:H.avg_deficit}]:[]}},
+      {type:'line',name:'Expected',xAxisIndex:1,yAxisIndex:1,data:H.expected_line||[],symbol:'none',lineStyle:{color:c.good,type:'dashed',width:2},itemStyle:{color:c.good}},
+      {type:'line',name:'Actual trend',xAxisIndex:1,yAxisIndex:1,data:H.trend||[],symbol:'none',lineStyle:{color:c.accent,width:3},itemStyle:{color:c.accent}},
+      {type:'scatter',name:'Fasted',xAxisIndex:1,yAxisIndex:1,data:H.weights,symbolSize:8,itemStyle:{color:c.accent,opacity:.5}},
+    ]});
 }
 
 /* ---------- blood pressure ---------- */

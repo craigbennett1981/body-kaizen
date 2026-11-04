@@ -30,6 +30,7 @@ import datasetup  # noqa: E402
 import connections  # noqa: E402
 import muscles  # noqa: E402
 import pace  # noqa: E402
+import energybalance  # noqa: E402
 
 STATIC = pathlib.Path(__file__).resolve().parent / "static"
 HOST = os.environ.get("FT_HOST", "127.0.0.1")   # localhost only — never exposed to the network
@@ -69,6 +70,7 @@ ROUTES = {
     "/api/reference": lambda q: data.reference(),
     "/api/day": lambda q: data.day_detail(q.get("date", [""])[0]),
     "/api/connections": lambda q: connections.status(),
+    "/api/energy": lambda q: energybalance.build(q.get("date", [None])[0]),
     "/api/garmin": lambda q: {**scheduler.status(), "last_watch_date": insights.last_watch_date(), "watch_upto": glance.watch_upto()},
     "/api/insights": lambda q: insights.for_day(q.get("date", [""])[0]),
     "/api/week": lambda q: weekly.week(q.get("start", [None])[0]),
@@ -98,7 +100,7 @@ ROUTES = {
 }
 
 # Reload app code when it changes on disk, so edits never leave a stale server running.
-MODULES = ["insights", "weekly", "readiness", "planner", "longevity", "habits", "todo", "alerts", "timeline", "doctor", "advice", "wellbeing", "healthscore", "glucose", "daytimeline", "glance", "workouts", "muscles", "pace", "thresholds", "datasetup"]
+MODULES = ["insights", "weekly", "readiness", "planner", "longevity", "habits", "todo", "alerts", "timeline", "doctor", "advice", "wellbeing", "healthscore", "glucose", "daytimeline", "glance", "workouts", "muscles", "pace", "thresholds", "datasetup", "energybalance"]
 _HERE = pathlib.Path(data.__file__).parent
 _CODE = [_HERE / "data.py", _HERE.parent / "scripts" / "nutrition.py"] + [_HERE / f"{n}.py" for n in MODULES]
 _code_mtime = tuple(f.stat().st_mtime for f in _CODE if f.exists())   # baseline at startup, not first request: an edit made
