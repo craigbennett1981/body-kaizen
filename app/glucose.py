@@ -38,7 +38,7 @@ def stats(rs):
 
 def meal_times(day):
     """Meal entries that have a time: [(time, meal, label)]."""
-    p = data.ROOT / "days" / day[:4] / f"{day}.yaml"
+    p = data.day_file(day)
     if not p.exists(): return []
     d = data._load(p) or {}
     out = []

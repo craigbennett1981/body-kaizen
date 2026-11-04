@@ -1,7 +1,7 @@
 """The dashboard refuses any request that changes something unless it comes from the dashboard's own page.
 Starts the server on a temporary copy of the demo folder and tries each way a hostile website (or another
 program) could get in. Standard library only."""
-import http.client, json, os, pathlib, re, shutil, socket, subprocess, sys, tempfile, time, unittest, urllib.request
+import http.client, json, os, pathlib, re, shutil, socket, subprocess, sys, tempfile, time, unittest, urllib.parse, urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
@@ -85,6 +85,57 @@ class WriteProtection(unittest.TestCase):
     def test_oversized_body_refused(self):
         status, _, _ = self.req(path="/api/setup", body=json.dumps({"name": "x" * 20000}), **self.good())
         self.assertEqual(status, 413)
+
+
+class Hardening(WriteProtection):
+    """Against injected markup and file reads: a strict Content-Security-Policy, no framing, dates checked."""
+
+    def test_every_response_has_the_security_headers(self):
+        for path in ("/", "/connections.html", "/api/summary", "/app.js", "/nope"):
+            with self.subTest(path=path):
+                _, _, h = self.req("GET", path, body=None)
+                csp = h.get("Content-Security-Policy", "")
+                self.assertIn("script-src 'self'", csp); self.assertIn("frame-ancestors 'none'", csp)
+                self.assertNotIn("unsafe-inline' ;", csp.split("script-src")[1].split(";")[0] + " ;")
+                self.assertEqual(h.get("X-Frame-Options"), "DENY"); self.assertEqual(h.get("X-Content-Type-Options"), "nosniff")
+
+    def test_page_scripts_carry_this_responses_nonce(self):
+        for path in ("/", "/connections.html", "/thresholds.html", "/doctor.html"):
+            with self.subTest(path=path):
+                _, body, h = self.req("GET", path, body=None)
+                nonce = re.search(r"'nonce-([^']+)'", h["Content-Security-Policy"]).group(1)
+                tags = re.findall(rb"<script[^>]*>", body)
+                self.assertTrue(tags)
+                for t in tags: self.assertIn(f'nonce="{nonce}"'.encode(), t)
+        n1 = re.search(r"'nonce-([^']+)'", self.req("GET", "/", body=None)[2]["Content-Security-Policy"]).group(1)
+        n2 = re.search(r"'nonce-([^']+)'", self.req("GET", "/", body=None)[2]["Content-Security-Policy"]).group(1)
+        self.assertNotEqual(n1, n2)
+
+    def test_no_inline_handlers_or_javascript_urls_in_the_front_end(self):
+        """Inline handlers wouldn't run under the policy anyway; keep them out so nothing breaks silently."""
+        for f in (ROOT / "app" / "static").glob("*.*"):
+            if f.suffix not in (".html", ".js"): continue
+            txt = f.read_text(encoding="utf-8")
+            with self.subTest(file=f.name):
+                self.assertIsNone(re.search(r"""<[^>]*\son[a-z]+\s*=\s*["']""", txt), "inline event handler")
+                self.assertNotIn("javascript:", txt)
+
+    def test_dates_must_be_dates(self):
+        for bad in ("/etc/passwd", "../../../etc/passwd", "2026-10-23/../../x", "2026-13-01", "abc", "2026-10-23%00"):
+            with self.subTest(date=bad):
+                status, _, _ = self.req("GET", f"/api/day?date={urllib.parse.quote(bad)}", body=None)
+                self.assertEqual(status, 400)
+        self.assertEqual(self.req("GET", "/api/week?start=..%2F..%2Fx", body=None)[0], 400)
+        self.assertEqual(self.req("GET", "/api/muscles?days=abc", body=None)[0], 400)
+        self.assertEqual(self.req("GET", "/api/day?date=2026-10-23", body=None)[0], 200)
+        self.assertEqual(self.req("GET", "/api/summary?unexpected=1", body=None)[0], 400)
+
+    def test_day_file_refuses_anything_but_a_date(self):
+        sys.path[:0] = [str(ROOT / "app"), str(ROOT / "scripts")]
+        import data
+        for bad in ("/etc/passwd", "../x", "2026-10-23/../../x", ""):
+            with self.subTest(date=bad), self.assertRaises(ValueError): data.day_file(bad)
+        self.assertEqual(data.day_file("2026-10-23").name, "2026-10-23.yaml")
 
 
 if __name__ == "__main__":

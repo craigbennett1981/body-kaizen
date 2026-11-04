@@ -43,8 +43,15 @@ def _nutrition(force=False):
 def day_files():
     return sorted((ROOT / "days").rglob("*.yaml"))
 
+def day_file(date):
+    """The day file for an ISO date. Anything that isn't a real date is refused: the date becomes part of a path."""
+    d = dt.date.fromisoformat(str(date)[:10]) if re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(date)) else None
+    if d is None: raise ValueError(f"not a date: {str(date)[:20]!r}")
+    return ROOT / "days" / f"{d.year:04d}" / f"{d.isoformat()}.yaml"
+
 def get_day(date):
-    p = ROOT / "days" / date[:4] / f"{date}.yaml"
+    try: p = day_file(date)
+    except ValueError: return None
     return _jsonable(_load(p)) if p.exists() else None
 
 # ---------- targets ----------

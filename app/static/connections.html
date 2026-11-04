@@ -65,7 +65,7 @@ async function post(url, body){
   let j = {}; try{ j = await r.json(); }catch(e){}
   return {status: r.status, ...j};
 }
-const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 function ago(iso){ if(!iso) return null; const m = Math.round((Date.now() - new Date(iso)) / 60000);
   return m < 1 ? 'just now' : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m/60)} h ago` : `${Math.round(m/1440)} d ago`; }
 const hm = iso => iso ? iso.slice(11,16) : '';

@@ -18,7 +18,7 @@ table.th td.k{font-weight:600;min-width:120px} table.th td.w{color:var(--muted);
 </style></head>
 <body><main id="r"><p class="sub">Loading…</p></main>
 <script>
-const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 const sd = s => new Date(String(s)+'T00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
 const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 fetch('/api/thresholds').then(r => r.json()).then(T => {
@@ -27,7 +27,7 @@ fetch('/api/thresholds').then(r => r.json()).then(T => {
   const tbl = (head, rows) => `<div class="wrap"><table class="th"><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr>${rows.join('')}</table></div>`;
   let body = '';
   if(T.targets) body += sec('Your daily targets', tbl(['Target','Value'], T.targets.rows.map(r=>`<tr><td class="k">${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`)) +
-    `<p class="note">Set by you: "${esc(T.targets.label||'')}", in force since ${sd(T.targets.from)}.${T.weight?` Weight target ${T.weight.kg} kg${T.weight.source?`, from: ${esc(T.weight.source)}`:''}.`:''} The day type (rest, training, big) picks the calorie range.</p>`, true);
+    `<p class="note">Set by you: "${esc(T.targets.label||'')}", in force since ${sd(T.targets.from)}.${T.weight?` Weight target ${esc(T.weight.kg)} kg${T.weight.source?`, from: ${esc(T.weight.source)}`:''}.`:''} The day type (rest, training, big) picks the calorie range.</p>`, true);
   const P = T.pace;
   if(P && P.windows) body += sec('Your pace windows', tbl(['Window','Until','Calories','Protein','Fibre','Sat fat'],
     P.windows.map((w,i)=>`<tr><td class="k">${esc(w.name)}</td><td>${esc(w.until)}</td>${['kcal','protein_g','fibre_g','satfat_g'].map(k=>`<td>${P.share&&P.share[k]?Math.round(P.share[k][i]*100)+'%':'–'}</td>`).join('')}</tr>`)) +
@@ -43,7 +43,7 @@ fetch('/api/thresholds').then(r => r.json()).then(T => {
   const A = T.athlete;
   body += sec('Health score reference', `<p class="note">Each marker scores 100 at "top" (a fit, athletic ${A.age??''}-year-old ${esc(A.sex||'')}), 50 at "average" and 0 at "poor", straight lines between. Domain weights are a judgement informed by the evidence, not a validated model; use the score to track your own change.</p>` +
     tbl(['Domain','Weight','Marker','Top','Average','Poor','Unit','Weight in domain'],
-      A.domains.flatMap(d => d.markers.map((m,i)=>`<tr>${i===0?`<td class="k" rowspan="${d.markers.length}">${esc(d.label)}</td><td rowspan="${d.markers.length}">${d.weight}</td>`:''}<td>${esc(m.key.replace(/_/g,' '))}${m.verify?'<span class="tag">verify</span>':''}</td><td>${m.top??'–'}</td><td>${m.avg??'–'}</td><td>${m.poor??'–'}</td><td>${esc(m.unit||'')}</td><td>${m.weight}</td></tr>`))), true);
+      A.domains.flatMap(d => d.markers.map((m,i)=>`<tr>${i===0?`<td class="k" rowspan="${d.markers.length}">${esc(d.label)}</td><td rowspan="${d.markers.length}">${esc(d.weight)}</td>`:''}<td>${esc(m.key.replace(/_/g,' '))}${m.verify?'<span class="tag">verify</span>':''}</td><td>${m.top??'–'}</td><td>${m.avg??'–'}</td><td>${m.poor??'–'}</td><td>${esc(m.unit||'')}</td><td>${esc(m.weight)}</td></tr>`))), true);
   document.getElementById('r').innerHTML = `<div class="top"><div><h1>How your numbers are judged</h1><p class="sub">Every number the dashboard judges you against, and where it comes from. Sections marked "your own settings" show the targets you have set; the rest are the dashboard's built-in rules.</p></div><a href="/">Back to the dashboard</a></div>
     <nav class="toc">${secs.map(s=>`<a href="#${slug(s)}">${esc(s)}</a>`).join('')}</nav>${body}
     <p class="note" style="margin-top:24px">"Inferred" means a recognised guideline clearly underlies the number but isn't formally cited. "Heuristic" means a hand-set judgement. These are self-tracking aids, not medical advice.</p>
