@@ -5,6 +5,10 @@ import http.client, json, os, pathlib, re, socket, subprocess, sys, tempfile, ti
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path[:0] = [str(ROOT / "scripts")]
+# Same environment as the other test files (unittest discover imports them all into one process, this one first),
+# and never the real ~/.body-kaizen/config.json.
+os.environ.setdefault("FT_DATA", str(ROOT / "demo"))
+os.environ.setdefault("BK_CONFIG", str(pathlib.Path(tempfile.gettempdir()) / "bk-test-config.json"))
 import bkenv   # noqa: E402
 
 
@@ -30,7 +34,7 @@ class Resolve(unittest.TestCase):
 class SetupMode(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.tmp = tempfile.TemporaryDirectory()
+        cls.tmp = tempfile.TemporaryDirectory(dir=pathlib.Path.home(), prefix='.bk-test-')
         t = pathlib.Path(cls.tmp.name)
         (t / "empty").mkdir()
         cls.cfg = t / "config.json"
@@ -71,7 +75,7 @@ class SetupMode(unittest.TestCase):
         self.assertEqual(e.exception.code, 503)
 
     def test_2_refuses_unsafe_choices(self):
-        for path in (str(ROOT), str(ROOT / "demo"), "relative/path", ""):
+        for path in (str(ROOT), str(ROOT / "demo"), "relative/path", "", "/etc", "~/../.."):
             with self.subTest(path=path):
                 self.assertFalse(self.post("/api/datasetup/check", {"path": path})[1]["ok"])
         busy = pathlib.Path(self.tmp.name) / "busy"; busy.mkdir(); (busy / "notes.txt").write_text("x")

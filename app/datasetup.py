@@ -54,9 +54,14 @@ def check(path):
     """What would happen if this folder were chosen. Never creates anything."""
     raw = str(path or "").strip()
     if not raw: return {"ok": False, "error": "Choose or type a folder."}
-    p = pathlib.Path(raw).expanduser()
-    if not p.is_absolute(): return {"ok": False, "error": "Use a full path, for example ~/body-kaizen-data."}
-    p = p.resolve()
+    raw = os.path.expanduser(raw)
+    if not os.path.isabs(raw): return {"ok": False, "error": "Use a full path, for example ~/body-kaizen-data."}
+    # Normalise before touching the disk, and only ever look inside your home folder.
+    home = os.path.realpath(os.path.expanduser("~"))
+    full = os.path.realpath(raw)
+    if full != home and not full.startswith(home + os.sep):
+        return {"ok": False, "path": full, "short": full, "error": "Choose a folder inside your home folder (~)."}
+    p = pathlib.Path(full)
     out = {"path": str(p), "short": _home(p)}
     if p == bkenv.CODE or p.is_relative_to(bkenv.CODE):
         return {**out, "ok": False, "error": "That's inside the Body Kaizen code folder. Keep your data separate, "
@@ -70,7 +75,7 @@ def check(path):
                 "suggest": str(sub), "suggest_short": _home(sub)}
     parent = p if p.exists() else next((a for a in p.parents if a.exists()), None)
     if parent is None or not os.access(parent, os.W_OK):
-        return {**out, "ok": False, "error": "You can't write to that location. Choose a folder in your home folder."}
+        return {**out, "ok": False, "error": "You can't write to that location."}
     return {**out, "ok": True, "mode": "new", "message": "A new data folder will be created here with starter targets and settings."}
 
 
