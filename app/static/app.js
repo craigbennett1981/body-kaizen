@@ -1462,8 +1462,7 @@ async function pollSync(){
   const dot = $('#syncdot'), msg = $('#syncmsg'), btn = $('#syncbtn');
   dot.className = 'dot'; btn.hidden = !s.ready; btn.disabled = !!s.running;
   if(s.blocked){ msg.textContent = 'Garmin: sync off'; $('#sync').title = s.blocked; }
-  else if(!s.installed){ msg.textContent = 'Garmin: run setup'; $('#sync').title = 'Run scripts/setup_mac.sh to install the Garmin library.'; }
-  else if(!s.logged_in){ msg.textContent = 'Garmin: log in once'; $('#sync').title = 'Run .venv/bin/python scripts/garmin_login.py'; }
+  else if(!s.installed || !s.logged_in){ msg.innerHTML = '<a href="/connections.html">Garmin: connect</a>'; $('#sync').title = 'Log in to Garmin on the Connections page.'; }
   else if(s.running){ dot.classList.add('run'); msg.textContent = 'Syncing Garmin…'; }
   else if(s.last_error && (!s.last_success || s.last_error_at > s.last_success)){ dot.classList.add('err'); msg.textContent = 'Garmin sync failed'; $('#sync').title = s.last_error; }
   else if(s.last_success){ dot.classList.add('ok'); msg.textContent = `Garmin pulled ${ago(s.last_success)}${s.watch_upto?` · watch data to ${s.watch_upto.slice(0,10)===new Date(Date.now()+8*3600e3).toISOString().slice(0,10)?s.watch_upto.slice(11,16):fmtDate(s.watch_upto.slice(0,10))}`:''}`;

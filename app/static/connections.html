@@ -37,9 +37,22 @@ code{font-size:12.5px} [hidden]{display:none!important}
   <p class="note">No LibreLinkUp account yet? In the LibreLink app: Menu › Connected Apps › LibreLinkUp › Add connection, then accept the invite in the LibreLinkUp app and log in here with that account.</p>
 </section>
 
-<section class="card" aria-labelledby="garmin-h">
+<section class="card" id="garmin" aria-labelledby="garmin-h">
   <h2 id="garmin-h"><span class="st" id="garmin-dot" aria-hidden="true"></span>Garmin Connect</h2>
-  <p class="sub" style="margin:0" id="garmin-sub">Coming next: log in here. For now run <code>body-kaizen garmin-login</code> (or <code>.venv/bin/python scripts/garmin_login.py</code>) once.</p>
+  <p class="sub" style="margin:0">Sleep, HRV, resting heart rate, steps, training readiness and workouts from your watch, four times a day. The password is used once to get a token (kept in <code>~/.garminconnect</code>, renewed automatically) and is never stored.</p>
+  <div class="facts" id="garmin-facts"></div>
+  <form id="garmin-form" hidden autocomplete="on">
+    <label>Garmin email<input type="email" id="garmin-email" autocomplete="username" required></label>
+    <label>Garmin password<input type="password" id="garmin-pw" autocomplete="current-password" required></label>
+    <div class="row"><button class="primary" id="garmin-go" type="submit">Connect</button><button type="button" id="garmin-cancel" hidden>Cancel</button></div>
+  </form>
+  <form id="garmin-mfa" hidden>
+    <label>Code from Garmin<input type="text" id="garmin-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{4,12}" maxlength="12" required><small class="note" style="margin:0;font-weight:400">Garmin has just sent a code to your email or phone.</small></label>
+    <div class="row"><button class="primary" id="garmin-verify" type="submit">Verify</button><button type="button" id="garmin-restart">Start again</button></div>
+  </form>
+  <div class="row" id="garmin-acts" hidden><button id="garmin-pull">Pull now</button><button id="garmin-change">Log in again</button><button id="garmin-off">Disconnect</button></div>
+  <p class="msg" id="garmin-msg" role="status" aria-live="polite"></p>
+  <p class="note">Garmin has no official API for personal data, so this uses the community <a href="https://github.com/cyberjunky/python-garminconnect">garminconnect</a> library. It can break when Garmin changes its site.</p>
 </section>
 </main>
 <script>
@@ -89,7 +102,7 @@ function render(){
   if(!L.pulling && $('#libre-msg').textContent === 'Pulling…') msg('');
   clearTimeout(poll); if(L.pulling) poll = setTimeout(load, 2500);
 }
-async function load(){ try{ L = (await (await fetch('/api/connections',{cache:'no-store'})).json()).libre; render(); }catch(e){ msg('Could not reach the dashboard.', 'err'); } }
+async function load(){ try{ L = (await (await fetch('/api/connections',{cache:'no-store'})).json()).libre; if($('#libre-msg').textContent === 'Could not reach the dashboard.') msg(''); render(); }catch(e){ msg('Could not reach the dashboard.', 'err'); clearTimeout(poll); poll = setTimeout(load, 3000); } }
 
 $('#libre-form').onsubmit = async e => {
   e.preventDefault();
@@ -117,9 +130,68 @@ $('#libre-off').onclick = async () => {
   if(r.error){ msg(r.error, 'err'); return; }
   L = r.libre; msg('Disconnected. The password is gone from the keychain; readings already pulled stay in your data folder.', 'ok'); render();
 };
-fetch('/api/garmin',{cache:'no-store'}).then(r=>r.json()).then(g => {
-  $('#garmin-dot').className = 'st' + (g.logged_in ? ' ok' : '');
-  if(g.logged_in) $('#garmin-sub').textContent = 'Logged in (tokens in ~/.garminconnect). Logging in from this page is coming next.';
-}).catch(()=>{});
+/* ---------- Garmin ---------- */
+let G = null, gEditing = false, gLogin = null, gPoll = null;
+const gmsg = (t, kind) => { const m = $('#garmin-msg'); m.className = 'msg' + (kind ? ' '+kind : ''); m.textContent = t || ''; };
+function renderG(){
+  const f = $('#garmin-facts'), dot = $('#garmin-dot');
+  const failed = G.last_error && (!G.last_success || G.last_error_at > G.last_success);
+  dot.className = 'st' + (G.connected ? (failed ? ' err' : G.last_success ? ' ok' : ' warn') : '');
+  if(!G.installed) f.innerHTML = `The Garmin library isn't installed. Run <code>pip install 'body-kaizen[garmin]'</code> (in a clone: <code>scripts/setup_mac.sh</code>), then restart the dashboard.`;
+  else if(G.connected){
+    const lines = ['Connected.'];
+    if(G.pulling) lines.push('Pulling now…');
+    else if(failed) lines.push(`<span style="color:var(--bad)">Last pull failed ${ago(G.last_error_at)}: ${esc(G.last_error)}</span>`);
+    else if(G.last_success) lines.push(`Last pull ${ago(G.last_success)}.`);
+    else lines.push('Not pulled yet.');
+    if(G.blocked) lines.push(`<span style="color:var(--warn)">Sync is off: ${esc(G.blocked)}</span>`);
+    f.innerHTML = lines.join('<br>');
+  } else f.innerHTML = 'Not connected.';
+  const step = !G.installed ? 'none' : gLogin ? 'mfa' : (!G.connected || gEditing) ? 'login' : 'connected';
+  $('#garmin-form').hidden = step !== 'login'; $('#garmin-mfa').hidden = step !== 'mfa'; $('#garmin-acts').hidden = step !== 'connected';
+  $('#garmin-cancel').hidden = !(G.connected && gEditing);
+  $('#garmin-go').textContent = G.connected ? 'Log in again' : 'Connect';
+  $('#garmin-pull').disabled = !!G.pulling || !!G.blocked;
+  if(!G.pulling && $('#garmin-msg').textContent === 'Pulling…') gmsg('');
+  clearTimeout(gPoll); if(G.pulling) gPoll = setTimeout(loadG, 3000);
+}
+async function loadG(){ try{ G = (await (await fetch('/api/connections',{cache:'no-store'})).json()).garmin; renderG(); }catch(e){ clearTimeout(gPoll); gPoll = setTimeout(loadG, 3000); } }
+const gDone = r => {
+  gLogin = null; gEditing = false; $('#garmin-pw').value = ''; $('#garmin-code').value = ''; G = r.garmin;
+  const n = (r.connected_as || {}).name;
+  gmsg(`Connected${n ? ` as ${n}` : ''}.${r.pull_started ? ' Pulling your watch data now…' : ''}`, 'ok'); renderG();
+  if(r.pull_started) setTimeout(loadG, 3000);
+};
+$('#garmin-form').onsubmit = async e => {
+  e.preventDefault(); $('#garmin-go').disabled = true; gmsg('Signing in to Garmin… (this can take 20 seconds)');
+  const r = await post('/api/connections/garmin/connect', {email: $('#garmin-email').value, password: $('#garmin-pw').value}).catch(() => ({error:'Could not reach the dashboard.'}));
+  $('#garmin-go').disabled = false; $('#garmin-pw').value = '';
+  if(r.error){ gmsg(r.error, 'err'); return; }
+  if(r.needs_mfa){ gLogin = r.login_id; gmsg(''); renderG(); $('#garmin-code').focus(); return; }
+  gDone(r);
+};
+$('#garmin-mfa').onsubmit = async e => {
+  e.preventDefault(); $('#garmin-verify').disabled = true; gmsg('Checking the code…');
+  const r = await post('/api/connections/garmin/connect', {login_id: gLogin, code: $('#garmin-code').value}).catch(() => ({error:'Could not reach the dashboard.'}));
+  $('#garmin-verify').disabled = false;
+  if(r.error){ if(/Start again/.test(r.error)){ gLogin = null; renderG(); } gmsg(r.error, 'err'); $('#garmin-code').select(); return; }
+  gDone(r);
+};
+$('#garmin-restart').onclick = () => { gLogin = null; $('#garmin-code').value = ''; gmsg(''); renderG(); };
+$('#garmin-change').onclick = () => { gEditing = true; gmsg(''); renderG(); $('#garmin-email').focus(); };
+$('#garmin-cancel').onclick = () => { gEditing = false; $('#garmin-pw').value = ''; gmsg(''); renderG(); };
+$('#garmin-pull').onclick = async () => {
+  const r = await post('/api/connections/garmin/pull');
+  if(r.error){ gmsg(r.error, 'err'); return; }
+  G = r.garmin; gmsg(r.pull_started ? 'Pulling…' : 'A pull is already running.'); renderG(); setTimeout(loadG, 3000);
+};
+$('#garmin-off').onclick = async () => {
+  const b = $('#garmin-off');
+  if(b.dataset.sure !== '1'){ b.dataset.sure = '1'; b.textContent = 'Click again to disconnect'; return; }
+  const r = await post('/api/connections/garmin/disconnect'); b.dataset.sure = ''; b.textContent = 'Disconnect';
+  if(r.error){ gmsg(r.error, 'err'); return; }
+  G = r.garmin; gmsg('Disconnected: the token is deleted from this computer. Data already pulled stays in your data folder.', 'ok'); renderG();
+};
+loadG();
 load();
 </script></body></html>
