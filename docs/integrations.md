@@ -32,6 +32,18 @@ fields are mapped, `garmin_pull.py --remap` re-applies them without fetching aga
 
 Adds glucose readings from a FreeStyle Libre sensor shared through LibreLinkUp.
 
+**First, a LibreLinkUp account.** The dashboard can't read the LibreLink app (the one on the phone your sensor
+talks to) directly. It reads the copy LibreLink shares with **LibreLinkUp**, Abbott's app for family and carers. So:
+
+1. Install LibreLinkUp and create an account. Use a different email from your LibreLink account; a `+` alias
+   (you+cgm@example.com) usually works.
+2. In the **LibreLink** app: Menu › Connected Apps › LibreLinkUp › Add connection, and invite that email.
+3. In **LibreLinkUp**, accept the invite. You should see your own glucose there.
+4. Use the LibreLinkUp email and password below, not your LibreLink ones.
+
+If LibreLinkUp asks you to accept new terms or verify your email, do it in the app first; the dashboard tells you
+when that's the problem.
+
 Connect from the dashboard: **Connections** (at the foot of every page) › FreeStyle Libre, then your LibreLinkUp
 email and password. The page shows when it last pulled and the latest reading, warns when LibreLinkUp has nothing
 new (an expired sensor, or sharing turned off), and can pull now or disconnect (which removes the password from the
