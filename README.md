@@ -16,6 +16,28 @@ Garmin, glucose and gym data, and shows how your day, week and months are going 
 
 ![You send a message, Claude logs it and replies with your totals, and the dashboard updates](docs/img/claude-loop.gif)
 
+## Ask it anything about your data
+
+Your assistant doesn't only log. Your whole history (meals, workouts, sleep, weigh-ins, blood tests, glucose) is
+plain text in one folder it can read, so you can ask it questions in your own words and get answers from your own
+numbers, not a generic chatbot's:
+
+- *"How's my recovery looking today?"*: last night's sleep, HRV and resting heart rate against your own baseline,
+  the week's bedtimes, and whether to train hard, easy or not at all.
+- *"Where's my saturated fat coming from this week?"*: the foods behind it, ranked, with a swap for the worst one.
+- *"Am I losing fat or muscle?"*: scale and InBody trends side by side, against what your calorie balance predicts.
+- *"How has my squat moved since September?"*: every session, your best sets and estimated 1RM, and what to lift
+  next time.
+- *"What should I eat for dinner to hit protein without going over on calories?"*: what's left of today's targets,
+  turned into a meal.
+- *"When did I last test ApoB, and has the diet moved it?"*: every result with dates and the trend, plus what's
+  due at your next blood test.
+- *"Which meals spike my glucose the most?"*: your meals ranked by rise, from the CGM readings matched to what you
+  ate.
+
+The dashboard shows the numbers; the assistant explains them, compares them and turns them into a next step. It
+reads the same files the dashboard does, so its answers match what you see.
+
 ## What's inside
 
 <table>
@@ -58,7 +80,7 @@ Hevy · InBody · any smart scale or blood-pressure app you can screenshot.
 
 ## Contents
 
-[What's inside](#whats-inside) · [Why](#why) · [How it works](#how-it-works) · [A day with Body Kaizen](#a-day-with-body-kaizen) ·
+[Ask it anything](#ask-it-anything-about-your-data) · [What's inside](#whats-inside) · [Why](#why) · [How it works](#how-it-works) · [A day with Body Kaizen](#a-day-with-body-kaizen) ·
 [Features](#features) · [Quick start](#quick-start-five-minutes) · [Getting data in](#getting-data-in-you-need-an-ai-assistant) ·
 [Setting up your assistant](#setting-up-your-ai-assistant) · [Practical kit](#practical-kit-whats-worth-having) · [Privacy in git](#keeping-your-data-private-in-git) · [Integrations](#integrations) · [Compared with](#compared-with-other-trackers) ·
 [FAQ](#faq) · [Roadmap](#roadmap) · [Disclaimer](#disclaimer)
