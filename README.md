@@ -134,6 +134,20 @@ fibre and weight, every day coloured hit or miss against the target that applied
 
 ![Trends: 30 days of calories, macros and weight against their targets](docs/img/trends.png)
 
+**Body composition.** Under the weight chart on the Body tab, a small chart for every measure your scale gives:
+fat mass, muscle, fat-free mass, skeletal muscle, subcutaneous and visceral fat, water, protein, bone, BMR and BMI,
+each with its 30-day change, InBody scans alongside where they measure the same thing, and target lines where there
+is one.
+
+![Body composition: a small chart for each measure the scale gives, with InBody scans alongside](docs/img/composition.png)
+
+**Energy balance.** The Calories box on the Day page shows your deficit so far (Garmin's burn to the last sync minus
+what you've eaten) and the deficit you're heading for today: burn projected to midnight (resting burn plus what you
+usually burn in the rest of the day) minus your target, or what you've eaten if that's more. Hover for the sums. The Body tab charts 30 days of burnt minus eaten and the weight change it should
+have caused against your actual trend, and says how far your logs and Garmin are off from the scale.
+
+![Energy balance: daily burnt minus eaten, and the weight change it predicts against the actual trend](docs/img/energy-balance.png)
+
 **Glucose against every meal.** With a FreeStyle Libre connected, the Day timeline draws the glucose curve with a dot
 on it for each meal (sized by its carbs; hover for the foods), and each timed meal gets its rise, peak and time back
 to baseline. The Body tab adds a 14-day profile and your meals ranked by spike.

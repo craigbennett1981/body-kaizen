@@ -134,7 +134,7 @@ async function renderDay(date){
         return `<span class="pw-s ${st}" title="${esc(W.name)} (${esc(W.from)}–${esc(W.until)}): ${w.state==='later'?'plan '+fmt(w.plan,dp):fmt(w.eaten,dp)+' eaten, plan '+fmt(w.plan,dp)}${m.kind==='max'?' (limit)':''}">${body}</span>`; }).join('')}</div>`; };
     h += `<div class="macros">` + METRICS.map(([k,lab,u,dp,tk]) =>
       `<div class="m"><div class="lab">${lab}</div>
-        <div class="val lv-${stat(k,tk)}" title="${ttl(k,tk,dp,u)}">${fmt(tot[k],dp)}<small>${u}</small>${ARROW(ev[k])}</div>
+        <div class="val-row"><div class="val lv-${stat(k,tk)}" title="${ttl(k,tk,dp,u)}">${fmt(tot[k],dp)}<small>${u}</small>${ARROW(ev[k])}</div>${k==='kcal'?'<div class="eb-side" id="kcal-eb"></div>':''}</div>
         <div class="tgt">${tgtText(tk,t)}</div>
         <div class="bar"><i class="lv-${stat(k,tk)}" style="width:${barPct(tk,tot[k],t)}%"></i></div>${pw(k,k==='satfat_g'?1:0)}</div>`).join('') + `</div>
       ${PC ? `<p class="sub pw-key">Under each macro: ${PC.windows.map(w=>`<span>${esc(w.name)} <small>${esc(w.from)}–${esc(w.until)}</small></span>`).join(' · ')}. Eaten / plan; what's left is re-spread over the windows still to come.${live?` Colours show pace at ${esc(PC.now)}.`:''}</p>`:''}
@@ -187,7 +187,24 @@ async function renderDay(date){
   h += `<div id="ready"></div><div id="daytl"></div><div id="glucose"></div><div class="notes-tasks"><div id="notes"></div><div id="tasks"></div></div>`;
   h += `<div class="cols"><div>${meals?'<h2>Food</h2><p class="sub sh-key">Numbers are coloured by their share of today\'s target: <span class="sh-g1">protein and fibre</span> greener as they fill more of it; <span class="sh-b1">calories, carbs, fat</span> and <span class="sh-b2">saturated fat</span> amber, then red, as they use up more of the limit. Hover a number for its %.</p>'+meals:''}</div><div>${side}</div></div>`;
   $('#day').innerHTML = h;
-  renderNotes(date); renderTasks(); renderHsTile(); renderDayTimeline(date); renderGlucose(date); renderGlance(date);
+  renderNotes(date); renderTasks(); renderHsTile(); renderDayTimeline(date); renderGlucose(date); renderGlance(date); renderEnergyToday(date);
+}
+/* ---------- energy today, in the Calories box: deficit so far and for the day, from Garmin's burn ---------- */
+async function renderEnergyToday(date){
+  const E = await api('/api/energy?date='+date).catch(()=>null);
+  const el = $('#kcal-eb'); if(date !== currentDate || !el) return;
+  const t = E && E.today;
+  if(!t || !t.available){ el.innerHTML = ''; return; }
+  const bal = v => v >= 0 ? `${fmt(v)} deficit` : `${fmt(-v)} surplus`;
+  const live = !t.complete && t.sync;
+  const word = v => v >= 0 ? 'deficit' : 'surplus';
+  if(!live){ el.innerHTML = `<span><b>${fmt(Math.abs(t.deficit_so_far))}</b> ${word(t.deficit_so_far)}</span><span>burnt ${fmt(t.burnt_so_far)}</span>`;
+    el.title = "Garmin's total burn for the day minus what was eaten."; return; }
+  const a = t.deficit_so_far, b = t.deficit_day;
+  el.innerHTML = `<span><b>${fmt(Math.abs(a))}</b> ${word(a)} now</span><span><b>~${fmt(Math.abs(b))}</b> ${word(b)} today</span>`;
+  el.title = `Now: burnt ${fmt(t.burnt_so_far)} kcal to ${t.sync} (last watch sync) minus ${fmt(t.eaten)} eaten.\n` +
+    `Day: projected burn ${fmt(t.projected)} kcal by midnight (resting ${fmt(t.rest_of_day_resting)} + your usual ${fmt(t.rest_of_day_active||0)} active after ${t.sync}, median of ${t.typical_days} days) ` +
+    `minus ${t.target_mid && t.target_mid > t.eaten ? 'your target, ' + fmt(t.target_mid) : 'what you\'ve eaten'} kcal.`;
 }
 /* ---------- next move + readiness strip ---------- */
 async function renderGlance(date){
@@ -1389,7 +1406,94 @@ async function renderBody(){
   $('#inbodytable').innerHTML = `<table><tr><th>Date</th><th>Weight</th><th>Muscle (SMM)</th><th>Fat mass</th><th>Body fat</th><th>Fat-free</th><th>Visceral</th><th>Phase angle</th><th>Score</th></tr>` +
     BODY.inbody.map(b=>`<tr><td>${shortDate(b.date)} ${b.date.slice(0,4)}</td><td>${esc(b.weight_kg)}${b.clothed?'*':''}</td><td>${b.smm_kg??'–'}</td><td>${b.fat_kg??'–'}</td><td>${b.pbf_pct!=null?b.pbf_pct+'%':'–'}</td><td>${b.ffm_kg??'–'}</td><td>${b.visceral_level??'–'}</td><td>${b.phase_angle??'–'}</td><td>${b.score??'–'}</td></tr>`).join('') +
     `</table><p class="sub">* clothed. InBody reads about 1.7 points higher body fat and 0.8 kg lower fat-free mass than the home scale. Home-scale body fat moves ±0.3% day to day with hydration, so read the trend, not single days.</p>`;
-  renderBP();
+  renderBP(); renderEnergyBalance(); renderComposition();
+}
+
+/* ---------- body composition: one small chart per measure the scale (and InBody) gives ---------- */
+const BC = [   // key, label, unit, decimals, InBody field measuring the same thing (or null)
+  ['fat_kg','Fat mass','kg',1,'fat_kg'], ['muscle_kg','Muscle mass','kg',1,null], ['ffm_kg','Fat-free mass','kg',1,'ffm_kg'],
+  ['skeletal_muscle_pct','Skeletal muscle','%',1,null], ['subcutaneous_fat_pct','Subcutaneous fat','%',1,null],
+  ['visceral','Visceral fat','level',0,'visceral_level'], ['water_pct','Body water','%',1,null], ['protein_pct','Protein','%',1,null],
+  ['bone_kg','Bone mass','kg',2,'bone_mineral_kg'], ['bmr_kcal','BMR','kcal',0,'bmr_kcal'], ['bmi','BMI','',1,'bmi'],
+];
+function renderComposition(){
+  const c = theme(), s = BODY.scale, ib = BODY.inbody || [], bands = BODY.bands || {};
+  const shown = BC.filter(([k]) => s.some(p => p[k] != null));
+  const start = s.length ? s[0].date : null, end = SUMMARY.length ? SUMMARY[SUMMARY.length-1].date : null;
+  $('#bcnote').textContent = 'From the home scale\'s morning readings: the line joins fasted ones, hollow dots are after food (less reliable). ' +
+    'Diamonds are InBody scans where InBody measures the same thing (it reads about 1.7 points more body fat and 0.8 kg less fat-free mass than the scale). The change is against the reading nearest 30 days earlier. ' +
+    'Bioimpedance swings with hydration, so read the trend, not single days.';
+  $('#bcgrid').innerHTML = shown.map(([k,lab]) => `<div class="bc"><div class="bc-h" id="bch-${k}"></div><div id="bc-${k}" class="chart bc-c"></div></div>`).join('');
+  const ax = {axisLine:{lineStyle:{color:c.rule}},axisLabel:{color:c.muted,fontSize:10},splitLine:{lineStyle:{color:c.rule,opacity:.5}}};
+  for(const [k,lab,u,dp,ik] of shown){
+    const pts = s.filter(p => p[k] != null), f = pts.filter(p => p.fasted !== false), nf = pts.filter(p => p.fasted === false);
+    const last = (f.length ? f : pts)[ (f.length ? f : pts).length-1 ];
+    const ago = new Date(new Date(last.date+'T00:00') - 30*864e5).toISOString().slice(0,10);
+    const base = [...(f.length ? f : pts)].reverse().find(p => p.date <= ago) || null;
+    const d = base ? last[k] - base[k] : null;
+    const ibs = ik ? ib.filter(b => b[ik] != null && (!start || b.date >= start)).map(b => [b.date, b[ik]]) : [];
+    // each chart starts a few days before its own first reading, so the measures the scale added later aren't squashed
+    const first = [pts[0].date, ...ibs.map(b => b[0])].sort()[0];
+    const x0 = new Date(new Date(first+'T00:00') - 4*864e5).toISOString().slice(0,10);
+    const band = bands[k];
+    $('#bch-'+k).innerHTML = `<span class="nm">${lab}</span> <b>${fmt(last[k],dp)}</b><small>${u?' '+u:''}</small>` +
+      (d!=null ? ` <span class="sub">${d>0?'+':''}${fmt(d,dp)} in 30 d</span>` : ` <span class="sub">${esc(pts.length)} reading${pts.length!==1?'s':''}</span>`);
+    const vals = [...pts.map(p => p[k]), ...ibs.map(b => b[1]), ...(band ? band.filter(v => v!=null) : [])];
+    const lo = Math.min(...vals), hi = Math.max(...vals), pad = Math.max((hi-lo)*0.1, Math.abs(hi)*0.005, 10**-dp);
+    const yr = niceRange(lo-pad, hi+pad, 3), ydp = Math.max(dp, ((String(+(yr.interval||1).toFixed(4)).split('.')[1])||'').length);
+    chart('bc-'+k).setOption({animation:MOTION,textStyle:{fontFamily:'Archivo'},grid:{left:44,right:14,top:10,bottom:24},
+      xAxis:{type:'time',min:x0,max:end,splitNumber:4,...ax,splitLine:{show:false},axisLabel:{color:c.muted,fontSize:10,hideOverlap:true}},
+      yAxis:{type:'value',...ax,...yr,axisLabel:{color:c.muted,fontSize:10,formatter:v=>fmt(v,ydp)}},
+      tooltip:{trigger:'item',...tip(c),formatter:p => `${shortDate(String(p.value[0]).slice(0,10))} · <b>${fmt(p.value[1],dp)}${u?' '+u:''}</b> ${esc(p.seriesName)}`},
+      series:[
+        {type:'line',name:'fasted',data:f.map(p=>[p.date,p[k]]),symbol:'circle',symbolSize:6,showSymbol:f.length<=30,lineStyle:{color:c.accent,width:2},itemStyle:{color:c.accent},
+          markLine: band ? {silent:true,symbol:'none',lineStyle:{color:c.good,type:'dashed'},label:{color:c.muted,fontSize:10,position:'insideEndTop',
+            formatter:p=>(p.value===band[1]?'under ':'from ')+p.value},data:band.filter(v=>v!=null).map(v=>({yAxis:v}))} : undefined},
+        {type:'scatter',name:'after food',data:nf.map(p=>[p.date,p[k]]),symbolSize:7,itemStyle:{color:c.surface,borderColor:c.accent,borderWidth:1.5}},
+        {type:'scatter',name:'InBody',data:ibs,symbol:'diamond',symbolSize:12,itemStyle:{color:c.warn,...ring(c)},z:5},
+      ]});
+  }
+}
+
+/* ---------- energy balance: 30 days of burnt minus eaten, and the weight it should have moved ---------- */
+async function renderEnergyBalance(){
+  const E = await api('/api/energy').catch(()=>null), H = E && E.history;
+  if(!H || !H.days.length){ $('#ebnote').textContent = 'Needs a few closed days with Garmin data.'; return; }
+  const c = theme(), ax = {axisLine:{lineStyle:{color:c.rule}},axisLabel:{color:c.muted,fontSize:11},splitLine:{lineStyle:{color:c.rule,opacity:.5}}};
+  const kg = v => (v>0?'+':'')+fmt(v,2)+' kg';
+  const parts = [];
+  if(H.avg_deficit!=null) parts.push(`Average ${H.avg_deficit>=0?'deficit':'surplus'} <b>${fmt(Math.abs(H.avg_deficit))} kcal/day</b> over ${esc(H.counted)} closed days with watch data (burnt per Garmin minus eaten as logged). `);
+  if(H.expected_kg!=null) parts.push(`At ${fmt(H.kcal_per_kg)} kcal per kg that should be <b>${kg(H.expected_kg)}</b> in ${H.days.length} days`);
+  if(H.actual_kg!=null) parts.push(`; the trend through your ${esc(H.weights.length)} fasted weigh-ins is <b>${kg(H.actual_kg)}</b>.`);
+  else parts.push('. Not enough fasted weigh-ins in the window for an actual trend yet.');
+  if(H.gap_kcal_day!=null){
+    const g = H.gap_kcal_day;
+    parts.push(Math.abs(g) < 75 ? ` The two agree to within ${fmt(Math.abs(g))} kcal a day: your logging and Garmin's burn are consistent.`
+      : g > 0 ? ` The scale says the real deficit was about <b>${fmt(H.actual_avg_deficit)} kcal/day</b>: ${fmt(g)} kcal a day less than the logs. Either Garmin overestimates your burn, portions are under-logged, or both. Water and glycogen also hide fat loss for a week or two.`
+      : ` The scale says you lost more than the logs explain (about ${fmt(-g)} kcal a day more): Garmin may underestimate your burn, or logged portions run high.`);
+  }
+  $('#ebnote').innerHTML = parts.join('');
+  const dates = H.days.map(d => d.date);
+  chart('ebchart').setOption({animation:MOTION,animationDuration:500,textStyle:{fontFamily:'Archivo'},
+    title:[{text:'Daily balance, kcal: burnt − eaten (up = deficit)',left:52,top:0,textStyle:{fontSize:12.5,fontWeight:600,color:c.ink}},
+           {text:'Weight: expected from the balance vs actual',left:52,top:196,textStyle:{fontSize:12.5,fontWeight:600,color:c.ink}}],
+    legend:{bottom:0,left:52,textStyle:{color:c.muted},data:['Expected','Actual trend','Fasted']},
+    grid:[{left:52,right:40,top:28,height:140},{left:52,right:40,top:222,height:120}],
+    xAxis:[{type:'category',data:dates,gridIndex:0,...ax,axisLabel:{show:false}},
+           {type:'time',gridIndex:1,min:H.start,max:H.end,...ax}],
+    yAxis:[{type:'value',gridIndex:0,...ax},{type:'value',gridIndex:1,scale:true,...ax}],
+    tooltip:{trigger:'axis',...tip(c),formatter:ps => ps.map(p => p.seriesName==='Balance'
+      ? (() => { const d = H.days[p.dataIndex]; return `<b>${shortDate(d.date)}</b><br>burnt ${d.burnt!=null?fmt(d.burnt):'–'} · eaten ${d.eaten!=null?fmt(d.eaten):'–'}<br>${d.deficit==null?'not counted (day open or no watch data)':d.deficit>=0?`<b>${fmt(d.deficit)}</b> deficit`:`<b>${fmt(-d.deficit)}</b> surplus`}`; })()
+      : `${esc(p.seriesName)}: <b>${fmt(p.value[1],2)} kg</b> (${shortDate(String(p.value[0]).slice(0,10))})`).join('<br>')},
+    series:[
+      {type:'bar',name:'Balance',xAxisIndex:0,yAxisIndex:0,barMaxWidth:14,
+        data:H.days.map(d => d.deficit==null ? null : {value:d.deficit, itemStyle:{color:d.deficit>=0?c.good:c.warn, borderRadius:d.deficit>=0?[3,3,0,0]:[0,0,3,3]}}),
+        markLine:{silent:true,symbol:'none',lineStyle:{color:c.muted,type:'dashed'},label:{color:c.muted,position:'end',fontSize:11,formatter:'avg'},
+          data:H.avg_deficit!=null?[{yAxis:H.avg_deficit}]:[]}},
+      {type:'line',name:'Expected',xAxisIndex:1,yAxisIndex:1,data:H.expected_line||[],symbol:'none',lineStyle:{color:c.good,type:'dashed',width:2},itemStyle:{color:c.good}},
+      {type:'line',name:'Actual trend',xAxisIndex:1,yAxisIndex:1,data:H.trend||[],symbol:'none',lineStyle:{color:c.accent,width:3},itemStyle:{color:c.accent}},
+      {type:'scatter',name:'Fasted',xAxisIndex:1,yAxisIndex:1,data:H.weights,symbolSize:8,itemStyle:{color:c.accent,opacity:.5}},
+    ]});
 }
 
 /* ---------- blood pressure ---------- */

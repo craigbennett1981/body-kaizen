@@ -247,16 +247,25 @@ def training():
             top = max(top, pt["e1rm"])
     return {"lifts": lifts, "runs": runs, "machine_swap": swap, "reference": reference(), "energy": energy()}
 
+# What a smart scale's body-composition readout can give, as logged in a day's weight: block.
+SCALE_FIELDS = ("bf_pct", "muscle_kg", "ffm_kg", "skeletal_muscle_pct", "protein_pct", "subcutaneous_fat_pct",
+                "visceral", "water_pct", "bone_kg", "bmi", "bmr_kcal")
+
 def body():
     scale = []
     for p in day_files():
         d = _jsonable(_load(p))
         w = d.get("weight")
         if w and w.get("kg"):
-            scale.append({"date": d["date"], **{k: w.get(k) for k in ("kg", "fasted", "bf_pct", "muscle_kg", "ffm_kg", "note")}})
+            row = {"date": d["date"], "kg": w["kg"], "fasted": w.get("fasted"), "note": w.get("note")}
+            row.update({k: v for k, v in w.items() if k in SCALE_FIELDS and isinstance(v, (int, float)) and not isinstance(v, bool)})
+            if row.get("bf_pct"): row["fat_kg"] = round(w["kg"] * row["bf_pct"] / 100, 2)   # fat mass from weight x body fat %
+            scale.append(row)
     inbody = _jsonable(yaml.safe_load((ROOT / "measurements" / "inbody.yaml").read_text(encoding="utf-8")))
     wt = [{"date": str(w["from"]), "kg": w["kg"], "source": w.get("source")} for w in sorted(_targets_file().get("weight", []), key=lambda b: str(b["from"]))]
-    return {"scale": scale, "inbody": inbody, "weight_targets": wt, "bp": bp_readings()}
+    mk = (_load(ROOT / "markers.yaml").get("markers") or {}) if (ROOT / "markers.yaml").exists() else {}
+    bands = {k: mk[m].get("green") for k, m in (("bf_pct", "body_fat"), ("visceral", "visceral")) if (mk.get(m) or {}).get("green")}
+    return {"scale": scale, "inbody": inbody, "weight_targets": wt, "bp": bp_readings(), "bands": bands}
 
 def bp_category(sys_, dia):
     """2017 ACC/AHA adult categories."""
