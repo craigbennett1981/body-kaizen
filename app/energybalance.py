@@ -85,8 +85,9 @@ def today(day=None):
         projected = so_far + rest + (active_more or 0)
     return {"date": day, "available": True, "sync": f"{sync // 60:02d}:{sync % 60:02d}" if sync < 1440 else None,
             "burnt_so_far": so_far, "projected": projected, "rest_of_day_resting": rest, "rest_of_day_active": active_more,
-            "typical_days": n, "eaten": eaten, "deficit_now": projected - eaten,
-            "target_kcal": tgt, "deficit_at_target": projected - tmid if tmid else None,
+            "typical_days": n, "eaten": eaten, "deficit_so_far": so_far - eaten,
+            # the day's deficit if you eat at least your target (or what you've already eaten, if that's more)
+            "deficit_day": projected - max(eaten, tmid or 0), "target_kcal": tgt, "target_mid": tmid,
             "complete": det.get("status") == "complete"}
 
 

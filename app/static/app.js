@@ -135,7 +135,7 @@ async function renderDay(date){
     h += `<div class="macros">` + METRICS.map(([k,lab,u,dp,tk]) =>
       `<div class="m"><div class="lab">${lab}</div>
         <div class="val lv-${stat(k,tk)}" title="${ttl(k,tk,dp,u)}">${fmt(tot[k],dp)}<small>${u}</small>${ARROW(ev[k])}</div>
-        <div class="tgt">${tgtText(tk,t)}</div>
+        <div class="tgt">${tgtText(tk,t)}</div>${k==='kcal'?'<div class="tgt eb-line" id="kcal-eb"></div>':''}
         <div class="bar"><i class="lv-${stat(k,tk)}" style="width:${barPct(tk,tot[k],t)}%"></i></div>${pw(k,k==='satfat_g'?1:0)}</div>`).join('') + `</div>
       ${PC ? `<p class="sub pw-key">Under each macro: ${PC.windows.map(w=>`<span>${esc(w.name)} <small>${esc(w.from)}–${esc(w.until)}</small></span>`).join(' · ')}. Eaten / plan; what's left is re-spread over the windows still to come.${live?` Colours show pace at ${esc(PC.now)}.`:''}</p>`:''}
       <p class="sub daysub">${t.label?'Targets: '+esc(t.label)+'.':''}${d.status!=='complete'?' Not judged until the day is complete.':''}${tot.low_confidence_kcal_pct?` ${esc(tot.low_confidence_kcal_pct)}% of calories from guessed portions.`:''} Sodium ${fmt(tot.sodium_mg)} mg, caffeine ${fmt(tot.caffeine_mg)} mg.</p>`;
@@ -184,27 +184,25 @@ async function renderDay(date){
   ((d.vitals||{}).bp||[]).forEach(b => kv.push([`BP ${b.time||''}`, `${esc(b.sys)}/${esc(b.dia)}${b.pulse?`, pulse ${esc(b.pulse)}`:''}`]));
   if(d.steps) kv.push(['Steps', fmt(d.steps)]);
   side += `<h2>Body</h2>` + (kv.length ? `<dl class="kv">${kv.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>` : `<p class="empty">Nothing recorded.</p>`);
-  h += `<div id="energy"></div><div id="ready"></div><div id="daytl"></div><div id="glucose"></div><div class="notes-tasks"><div id="notes"></div><div id="tasks"></div></div>`;
+  h += `<div id="ready"></div><div id="daytl"></div><div id="glucose"></div><div class="notes-tasks"><div id="notes"></div><div id="tasks"></div></div>`;
   h += `<div class="cols"><div>${meals?'<h2>Food</h2><p class="sub sh-key">Numbers are coloured by their share of today\'s target: <span class="sh-g1">protein and fibre</span> greener as they fill more of it; <span class="sh-b1">calories, carbs, fat</span> and <span class="sh-b2">saturated fat</span> amber, then red, as they use up more of the limit. Hover a number for its %.</p>'+meals:''}</div><div>${side}</div></div>`;
   $('#day').innerHTML = h;
   renderNotes(date); renderTasks(); renderHsTile(); renderDayTimeline(date); renderGlucose(date); renderGlance(date); renderEnergyToday(date);
 }
-/* ---------- energy today: Garmin's burn so far, projected to midnight, against what's been eaten ---------- */
+/* ---------- energy today, in the Calories box: deficit so far and for the day, from Garmin's burn ---------- */
 async function renderEnergyToday(date){
   const E = await api('/api/energy?date='+date).catch(()=>null);
-  const el = $('#energy'); if(date !== currentDate || !el) return;
+  const el = $('#kcal-eb'); if(date !== currentDate || !el) return;
   const t = E && E.today;
   if(!t || !t.available){ el.innerHTML = ''; return; }
+  const bal = v => v >= 0 ? `${fmt(v)} deficit` : `${fmt(-v)} surplus`;
   const live = !t.complete && t.sync;
-  const bal = v => v==null ? '–' : v >= 0 ? `<b>${fmt(v)}</b> <small>deficit</small>` : `<b>${fmt(-v)}</b> <small>surplus</small>`;
-  const how = live ? `Burnt to ${esc(t.sync)} (last watch sync), plus resting burn to midnight (${fmt(t.rest_of_day_resting)} kcal) and the active calories you usually burn after ${esc(t.sync)} (${fmt(t.rest_of_day_active||0)} kcal, median of your last ${esc(t.typical_days)} days).` : `Garmin's total for the day.`;
-  el.innerHTML = `<div class="eb" title="${how}">
-    <div><span class="lab">${live?`Burnt to ${esc(t.sync)}`:'Burnt'}</span><b>${fmt(t.burnt_so_far)}</b> <small>kcal</small></div>
-    ${live?`<div><span class="lab">Projected burn</span><b>${fmt(t.projected)}</b> <small>kcal by midnight</small></div>`:''}
-    <div><span class="lab">Eaten${live?' so far':''}</span><b>${fmt(t.eaten)}</b> <small>kcal</small></div>
-    <div class="eb-bal ${t.deficit_now>=0?'def':'sur'}"><span class="lab">${live?'Projected balance':'Balance'}</span>${bal(t.deficit_now)}</div>
-    ${live && t.deficit_at_target!=null?`<div><span class="lab">If you finish on target</span>${bal(t.deficit_at_target)}</div>`:''}
-  </div><p class="sub eb-how">${how}</p>`;
+  if(!live){ el.textContent = `${bal(t.deficit_so_far)} (burnt ${fmt(t.burnt_so_far)})`; el.title = "Garmin's total burn for the day minus what was eaten."; return; }
+  const word = v => v >= 0 ? 'deficit' : 'surplus', a = t.deficit_so_far, b = t.deficit_day;
+  el.innerHTML = `${word(a)[0].toUpperCase()+word(a).slice(1)} <b>${fmt(Math.abs(a))}</b> now · ${word(b)===word(a)?'':word(b)+' '}<b>~${fmt(Math.abs(b))}</b> day`;
+  el.title = `Now: burnt ${fmt(t.burnt_so_far)} kcal to ${t.sync} (last watch sync) minus ${fmt(t.eaten)} eaten.\n` +
+    `Day: projected burn ${fmt(t.projected)} kcal by midnight (resting ${fmt(t.rest_of_day_resting)} + your usual ${fmt(t.rest_of_day_active||0)} active after ${t.sync}, median of ${t.typical_days} days) ` +
+    `minus ${t.target_mid && t.target_mid > t.eaten ? 'your target, ' + fmt(t.target_mid) : 'what you\'ve eaten'} kcal.`;
 }
 /* ---------- next move + readiness strip ---------- */
 async function renderGlance(date){
