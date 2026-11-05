@@ -134,8 +134,8 @@ async function renderDay(date){
         return `<span class="pw-s ${st}" title="${esc(W.name)} (${esc(W.from)}–${esc(W.until)}): ${w.state==='later'?'plan '+fmt(w.plan,dp):fmt(w.eaten,dp)+' eaten, plan '+fmt(w.plan,dp)}${m.kind==='max'?' (limit)':''}">${body}</span>`; }).join('')}</div>`; };
     h += `<div class="macros">` + METRICS.map(([k,lab,u,dp,tk]) =>
       `<div class="m"><div class="lab">${lab}</div>
-        <div class="val lv-${stat(k,tk)}" title="${ttl(k,tk,dp,u)}">${fmt(tot[k],dp)}<small>${u}</small>${ARROW(ev[k])}</div>
-        <div class="tgt">${tgtText(tk,t)}</div>${k==='kcal'?'<div class="tgt eb-line" id="kcal-eb"></div>':''}
+        <div class="val-row"><div class="val lv-${stat(k,tk)}" title="${ttl(k,tk,dp,u)}">${fmt(tot[k],dp)}<small>${u}</small>${ARROW(ev[k])}</div>${k==='kcal'?'<div class="eb-side" id="kcal-eb"></div>':''}</div>
+        <div class="tgt">${tgtText(tk,t)}</div>
         <div class="bar"><i class="lv-${stat(k,tk)}" style="width:${barPct(tk,tot[k],t)}%"></i></div>${pw(k,k==='satfat_g'?1:0)}</div>`).join('') + `</div>
       ${PC ? `<p class="sub pw-key">Under each macro: ${PC.windows.map(w=>`<span>${esc(w.name)} <small>${esc(w.from)}–${esc(w.until)}</small></span>`).join(' · ')}. Eaten / plan; what's left is re-spread over the windows still to come.${live?` Colours show pace at ${esc(PC.now)}.`:''}</p>`:''}
       <p class="sub daysub">${t.label?'Targets: '+esc(t.label)+'.':''}${d.status!=='complete'?' Not judged until the day is complete.':''}${tot.low_confidence_kcal_pct?` ${esc(tot.low_confidence_kcal_pct)}% of calories from guessed portions.`:''} Sodium ${fmt(tot.sodium_mg)} mg, caffeine ${fmt(tot.caffeine_mg)} mg.</p>`;
@@ -197,9 +197,11 @@ async function renderEnergyToday(date){
   if(!t || !t.available){ el.innerHTML = ''; return; }
   const bal = v => v >= 0 ? `${fmt(v)} deficit` : `${fmt(-v)} surplus`;
   const live = !t.complete && t.sync;
-  if(!live){ el.textContent = `${bal(t.deficit_so_far)} (burnt ${fmt(t.burnt_so_far)})`; el.title = "Garmin's total burn for the day minus what was eaten."; return; }
-  const word = v => v >= 0 ? 'deficit' : 'surplus', a = t.deficit_so_far, b = t.deficit_day;
-  el.innerHTML = `${word(a)[0].toUpperCase()+word(a).slice(1)} <b>${fmt(Math.abs(a))}</b> now · ${word(b)===word(a)?'':word(b)+' '}<b>~${fmt(Math.abs(b))}</b> day`;
+  const word = v => v >= 0 ? 'deficit' : 'surplus';
+  if(!live){ el.innerHTML = `<span><b>${fmt(Math.abs(t.deficit_so_far))}</b> ${word(t.deficit_so_far)}</span><span>burnt ${fmt(t.burnt_so_far)}</span>`;
+    el.title = "Garmin's total burn for the day minus what was eaten."; return; }
+  const a = t.deficit_so_far, b = t.deficit_day;
+  el.innerHTML = `<span><b>${fmt(Math.abs(a))}</b> ${word(a)} now</span><span><b>~${fmt(Math.abs(b))}</b> ${word(b)} today</span>`;
   el.title = `Now: burnt ${fmt(t.burnt_so_far)} kcal to ${t.sync} (last watch sync) minus ${fmt(t.eaten)} eaten.\n` +
     `Day: projected burn ${fmt(t.projected)} kcal by midnight (resting ${fmt(t.rest_of_day_resting)} + your usual ${fmt(t.rest_of_day_active||0)} active after ${t.sync}, median of ${t.typical_days} days) ` +
     `minus ${t.target_mid && t.target_mid > t.eaten ? 'your target, ' + fmt(t.target_mid) : 'what you\'ve eaten'} kcal.`;

@@ -481,4 +481,4 @@ dialog#setup::backdrop{background:rgba(0,0,0,.55)}
 .site-foot{max-width:1280px;margin:0 auto 28px;padding:14px 32px 0;border-top:1px solid var(--rule);display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;font-size:13px;color:var(--muted)} .site-foot a{font-weight:600} .site-foot span+a{margin-left:14px} @media (max-width:900px){.site-foot{padding:14px 16px 0}}
 
 /* deficit lines in the Calories box (Day page) */
-.m .eb-line{margin-top:1px;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:help} .m .eb-line b{font-weight:700;color:var(--ink)}
+.m .val-row{display:flex;align-items:center;gap:2px 14px} @media (max-width:440px){.m .val-row{flex-wrap:wrap}} .m .val-row .val{flex:0 0 auto} .m .eb-side{display:flex;flex-direction:column;gap:1px;font-size:12.5px;color:var(--muted);line-height:1.3;cursor:help} .m .eb-side span{white-space:nowrap} .m .eb-side b{font-weight:700;color:var(--ink)}
