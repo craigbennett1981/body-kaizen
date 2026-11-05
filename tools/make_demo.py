@@ -284,6 +284,11 @@ def main():
             day["weight"] = {"kg": round(kg, 1), "fasted": True, "time": hm(6 * 60 + 45 + R.randint(0, 40)), "bf_pct": round(bf, 1),
                              "muscle_kg": round(kg * (1 - bf / 100) * 0.95, 1), "visceral": 8 if f < .5 else 7, "water_pct": round(57 + R.gauss(0, .5), 1),
                              "bmi": round(kg / 1.78 ** 2, 1), "source": "scale-app"}
+            # the rest of a smart scale's readout, derived (no random draws, so every other number stays the same)
+            ffm = kg * (1 - bf / 100)
+            day["weight"].update({"ffm_kg": round(ffm, 1), "skeletal_muscle_pct": round(ffm / kg * 64.6, 1),
+                                  "protein_pct": round(ffm / kg * 22.8, 1), "subcutaneous_fat_pct": round(bf * 0.88, 1),
+                                  "bone_kg": round(ffm * 0.05, 2), "bmr_kcal": round(370 + 21.6 * ffm)})   # Katch-McArdle
             weights.append((ds, kg))
         # recovery
         bed = R.randint(30, 95) if d.weekday() not in (5, 6) else R.randint(60, 140)   # minutes before midnight

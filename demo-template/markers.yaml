@@ -31,10 +31,11 @@ markers:
   # ---------- lipids & cardiovascular ----------
   bp_sys:        {name: Systolic BP (30-day avg), unit: mmHg, cat: cardio, source: manual, green: [null, 120], amber: [120, 130], interval_days: 7,
                   note: "2017 ACC/AHA: <120 normal, 120–129 elevated, 130+ stage 1."}
-  bp_dia:        {name: Diastolic BP (30-day avg), unit: mmHg, cat: cardio, source: manual, green: [null, 80], amber: [80, 90], interval_days: 7}
+  bp_dia:        {name: Diastolic BP (30-day avg), unit: mmHg, cat: cardio, source: manual, green: [null, 80], interval_days: 7,
+                  note: "2017 ACC/AHA: 80–89 is stage 1 hypertension, red like systolic 130–139. There's no 'elevated' band for diastolic."}
   rhr:           {name: Resting heart rate (7-day avg), unit: bpm, cat: cardio, source: garmin, green: [null, 60], amber: [60, 70]}
-  apob:          {name: ApoB, unit: g/L, cat: cardio, source: lab, bands: none, interval_days: 180,
-                  note: "Tracked for its trend. Many guidelines set no ApoB target and use LDL-C instead; check yours."}
+  apob:          {name: ApoB, unit: g/L, cat: cardio, source: lab, green: [null, 0.9], amber: [0.9, 1.0], interval_days: 180,
+                  note: "Green under 0.9 g/L: the US National Lipid Association level for borderline-to-intermediate risk (NLA expert consensus, Soffer et al., J Clin Lipidol 2024; 0.7 high risk, 0.6 very high). Amber to 1.0, the ESC/EAS 2019 moderate-risk goal. Some guidelines (Singapore ACG 2023 among them) set no ApoB target and use LDL-C instead."}
   lpa:           {name: Lp(a), unit: nmol/L, cat: cardio, source: lab, green: [null, 75], amber: [75, 125], once: true,
                   note: "Store in the unit the lab reports (nmol/L or mg/dL) — never auto-converted. Genetic: test once."}
   total_chol:    {name: Total cholesterol, unit: mmol/L, cat: cardio, source: lab, bands: lab, interval_days: 180}
@@ -84,8 +85,8 @@ markers:
 
   # ---------- body composition ----------
   waist_height:  {name: Waist-to-height ratio, unit: "", cat: body, source: derived, green: [null, 0.5], amber: [0.5, 0.6], interval_days: 30}
-  body_fat:      {name: Body fat (InBody), unit: "%", cat: body, source: inbody, green: [12, 20], amber: [20, 25], interval_days: 30,
-                  note: "BIA: may read ~3–4 points below DXA. Trend only."}
+  body_fat:      {name: Body fat (InBody), unit: "%", cat: body, source: inbody, green: [8, 20], amber: [20, 25], interval_days: 30,
+                  note: "BIA: may read ~3–4 points below DXA. Trend only. Under 8% by InBody (about 11–12% by DXA) is red: lean enough to cost hormones and recovery. Women need roughly 8 points more: change these bands."}
   visceral:      {name: Visceral fat level (InBody), unit: level, cat: body, source: inbody, green: [null, 9], amber: [9, 12], interval_days: 30}
   smm:           {name: Skeletal muscle mass (InBody), unit: kg, cat: body, source: inbody, bands: none, interval_days: 30}
   smi:           {name: Skeletal muscle index (InBody), unit: kg/m², cat: body, source: inbody, green: [7.0, null], amber: [6.5, 7.0], interval_days: 30, verify: true,
@@ -108,7 +109,8 @@ markers:
   strength_min:  {name: Strength minutes (7-day), unit: min/week, cat: activity, source: derived, green: [30, null], amber: [15, 30]}
 
   # ---------- nutrition ----------
-  protein_gkg:   {name: Protein (7-day avg), unit: g/kg, cat: nutrition, source: derived, green: [1.6, 2.2], amber: [1.2, 1.6]}
+  protein_gkg:   {name: Protein (7-day avg), unit: g/kg, cat: nutrition, source: derived, green: [1.6, null], amber: [1.2, 1.6],
+                  note: "Muscle gain plateaus around 1.6 g/kg (Morton 2018 meta-analysis; up to ~2.2 for some). More isn't harmful with healthy kidneys, so there's no upper limit."}
   fibre:         {name: Fibre (7-day avg), unit: g/day, cat: nutrition, source: derived, green: [30, null], amber: [20, 30]}
   satfat_pct:    {name: Saturated fat (7-day avg), unit: "% energy", cat: nutrition, source: derived, green: [null, 10], amber: [10, 13]}
 

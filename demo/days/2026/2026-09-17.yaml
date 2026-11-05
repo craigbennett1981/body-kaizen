@@ -1,7 +1,8 @@
 date: '2026-09-17'
 status: complete
 day_type: rest
-weight: {kg: 79.9, fasted: true, time: '07:14', bf_pct: 21.0, muscle_kg: 60.0, visceral: 7, water_pct: 57.3, bmi: 25.2, source: scale-app}
+weight: {kg: 79.9, fasted: true, time: '07:14', bf_pct: 21.0, muscle_kg: 60.0, visceral: 7, water_pct: 57.3, bmi: 25.2, source: scale-app, ffm_kg: 63.1, skeletal_muscle_pct: 51.1, protein_pct: 18.0, subcutaneous_fat_pct: 18.5,
+  bone_kg: 3.16, bmr_kcal: 1734}
 recovery:
   sleep: 7h48m
   sleep_stages_min: {deep: 117, light: 221, rem: 130}

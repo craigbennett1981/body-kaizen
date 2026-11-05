@@ -192,6 +192,15 @@ class BodyComposition(unittest.TestCase):
         self.assertIn("bands", B)
 
 
+class DemoTemplate(unittest.TestCase):
+    def test_demo_reference_files_match_the_template(self):
+        """tools/make_demo.py copies demo-template/ into demo/, so a fix made only in demo/ is lost on the next rebuild."""
+        for f in (ROOT / "demo-template").glob("*.yaml"):
+            if f.name == "settings.yaml": continue   # the demo adds its person's profile
+            with self.subTest(file=f.name):
+                self.assertEqual(f.read_text(encoding="utf-8"), (ROOT / "demo" / f.name).read_text(encoding="utf-8"))
+
+
 class ThresholdsPage(unittest.TestCase):
     def test_builds_from_the_demo_folder(self):
         T = thresholds.build()

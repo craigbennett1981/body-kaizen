@@ -1414,7 +1414,7 @@ const BC = [   // key, label, unit, decimals, InBody field measuring the same th
   ['fat_kg','Fat mass','kg',1,'fat_kg'], ['muscle_kg','Muscle mass','kg',1,null], ['ffm_kg','Fat-free mass','kg',1,'ffm_kg'],
   ['skeletal_muscle_pct','Skeletal muscle','%',1,null], ['subcutaneous_fat_pct','Subcutaneous fat','%',1,null],
   ['visceral','Visceral fat','level',0,'visceral_level'], ['water_pct','Body water','%',1,null], ['protein_pct','Protein','%',1,null],
-  ['bone_kg','Bone mass','kg',2,'bone_mineral_kg'], ['bmr_kcal','Resting burn (BMR)','kcal',0,'bmr_kcal'], ['bmi','BMI','',1,'bmi'],
+  ['bone_kg','Bone mass','kg',2,'bone_mineral_kg'], ['bmr_kcal','BMR','kcal',0,'bmr_kcal'], ['bmi','BMI','',1,'bmi'],
 ];
 function renderComposition(){
   const c = theme(), s = BODY.scale, ib = BODY.inbody || [], bands = BODY.bands || {};
@@ -1446,7 +1446,7 @@ function renderComposition(){
       yAxis:{type:'value',...ax,...yr,axisLabel:{color:c.muted,fontSize:10,formatter:v=>fmt(v,ydp)}},
       tooltip:{trigger:'item',...tip(c),formatter:p => `${shortDate(String(p.value[0]).slice(0,10))} · <b>${fmt(p.value[1],dp)}${u?' '+u:''}</b> ${esc(p.seriesName)}`},
       series:[
-        {type:'line',name:'fasted',data:f.map(p=>[p.date,p[k]]),symbol:'circle',symbolSize:6,lineStyle:{color:c.accent,width:2},itemStyle:{color:c.accent},
+        {type:'line',name:'fasted',data:f.map(p=>[p.date,p[k]]),symbol:'circle',symbolSize:6,showSymbol:f.length<=30,lineStyle:{color:c.accent,width:2},itemStyle:{color:c.accent},
           markLine: band ? {silent:true,symbol:'none',lineStyle:{color:c.good,type:'dashed'},label:{color:c.muted,fontSize:10,position:'insideEndTop',
             formatter:p=>(p.value===band[1]?'under ':'from ')+p.value},data:band.filter(v=>v!=null).map(v=>({yAxis:v}))} : undefined},
         {type:'scatter',name:'after food',data:nf.map(p=>[p.date,p[k]]),symbolSize:7,itemStyle:{color:c.surface,borderColor:c.accent,borderWidth:1.5}},
