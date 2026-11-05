@@ -1406,7 +1406,53 @@ async function renderBody(){
   $('#inbodytable').innerHTML = `<table><tr><th>Date</th><th>Weight</th><th>Muscle (SMM)</th><th>Fat mass</th><th>Body fat</th><th>Fat-free</th><th>Visceral</th><th>Phase angle</th><th>Score</th></tr>` +
     BODY.inbody.map(b=>`<tr><td>${shortDate(b.date)} ${b.date.slice(0,4)}</td><td>${esc(b.weight_kg)}${b.clothed?'*':''}</td><td>${b.smm_kg??'–'}</td><td>${b.fat_kg??'–'}</td><td>${b.pbf_pct!=null?b.pbf_pct+'%':'–'}</td><td>${b.ffm_kg??'–'}</td><td>${b.visceral_level??'–'}</td><td>${b.phase_angle??'–'}</td><td>${b.score??'–'}</td></tr>`).join('') +
     `</table><p class="sub">* clothed. InBody reads about 1.7 points higher body fat and 0.8 kg lower fat-free mass than the home scale. Home-scale body fat moves ±0.3% day to day with hydration, so read the trend, not single days.</p>`;
-  renderBP(); renderEnergyBalance();
+  renderBP(); renderEnergyBalance(); renderComposition();
+}
+
+/* ---------- body composition: one small chart per measure the scale (and InBody) gives ---------- */
+const BC = [   // key, label, unit, decimals, InBody field measuring the same thing (or null)
+  ['fat_kg','Fat mass','kg',1,'fat_kg'], ['muscle_kg','Muscle mass','kg',1,null], ['ffm_kg','Fat-free mass','kg',1,'ffm_kg'],
+  ['skeletal_muscle_pct','Skeletal muscle','%',1,null], ['subcutaneous_fat_pct','Subcutaneous fat','%',1,null],
+  ['visceral','Visceral fat','level',0,'visceral_level'], ['water_pct','Body water','%',1,null], ['protein_pct','Protein','%',1,null],
+  ['bone_kg','Bone mass','kg',2,'bone_mineral_kg'], ['bmr_kcal','Resting burn (BMR)','kcal',0,'bmr_kcal'], ['bmi','BMI','',1,'bmi'],
+];
+function renderComposition(){
+  const c = theme(), s = BODY.scale, ib = BODY.inbody || [], bands = BODY.bands || {};
+  const shown = BC.filter(([k]) => s.some(p => p[k] != null));
+  const start = s.length ? s[0].date : null, end = SUMMARY.length ? SUMMARY[SUMMARY.length-1].date : null;
+  $('#bcnote').textContent = 'From the home scale\'s morning readings: the line joins fasted ones, hollow dots are after food (less reliable). ' +
+    'Diamonds are InBody scans where InBody measures the same thing (it reads about 1.7 points more body fat and 0.8 kg less fat-free mass than the scale). The change is against the reading nearest 30 days earlier. ' +
+    'Bioimpedance swings with hydration, so read the trend, not single days.';
+  $('#bcgrid').innerHTML = shown.map(([k,lab]) => `<div class="bc"><div class="bc-h" id="bch-${k}"></div><div id="bc-${k}" class="chart bc-c"></div></div>`).join('');
+  const ax = {axisLine:{lineStyle:{color:c.rule}},axisLabel:{color:c.muted,fontSize:10},splitLine:{lineStyle:{color:c.rule,opacity:.5}}};
+  for(const [k,lab,u,dp,ik] of shown){
+    const pts = s.filter(p => p[k] != null), f = pts.filter(p => p.fasted !== false), nf = pts.filter(p => p.fasted === false);
+    const last = (f.length ? f : pts)[ (f.length ? f : pts).length-1 ];
+    const ago = new Date(new Date(last.date+'T00:00') - 30*864e5).toISOString().slice(0,10);
+    const base = [...(f.length ? f : pts)].reverse().find(p => p.date <= ago) || null;
+    const d = base ? last[k] - base[k] : null;
+    const ibs = ik ? ib.filter(b => b[ik] != null && (!start || b.date >= start)).map(b => [b.date, b[ik]]) : [];
+    // each chart starts a few days before its own first reading, so the measures the scale added later aren't squashed
+    const first = [pts[0].date, ...ibs.map(b => b[0])].sort()[0];
+    const x0 = new Date(new Date(first+'T00:00') - 4*864e5).toISOString().slice(0,10);
+    const band = bands[k];
+    $('#bch-'+k).innerHTML = `<span class="nm">${lab}</span> <b>${fmt(last[k],dp)}</b><small>${u?' '+u:''}</small>` +
+      (d!=null ? ` <span class="sub">${d>0?'+':''}${fmt(d,dp)} in 30 d</span>` : ` <span class="sub">${esc(pts.length)} reading${pts.length!==1?'s':''}</span>`);
+    const vals = [...pts.map(p => p[k]), ...ibs.map(b => b[1]), ...(band ? band.filter(v => v!=null) : [])];
+    const lo = Math.min(...vals), hi = Math.max(...vals), pad = Math.max((hi-lo)*0.1, Math.abs(hi)*0.005, 10**-dp);
+    const yr = niceRange(lo-pad, hi+pad, 3), ydp = Math.max(dp, ((String(+(yr.interval||1).toFixed(4)).split('.')[1])||'').length);
+    chart('bc-'+k).setOption({animation:MOTION,textStyle:{fontFamily:'Archivo'},grid:{left:44,right:14,top:10,bottom:24},
+      xAxis:{type:'time',min:x0,max:end,splitNumber:4,...ax,splitLine:{show:false},axisLabel:{color:c.muted,fontSize:10,hideOverlap:true}},
+      yAxis:{type:'value',...ax,...yr,axisLabel:{color:c.muted,fontSize:10,formatter:v=>fmt(v,ydp)}},
+      tooltip:{trigger:'item',...tip(c),formatter:p => `${shortDate(String(p.value[0]).slice(0,10))} · <b>${fmt(p.value[1],dp)}${u?' '+u:''}</b> ${esc(p.seriesName)}`},
+      series:[
+        {type:'line',name:'fasted',data:f.map(p=>[p.date,p[k]]),symbol:'circle',symbolSize:6,lineStyle:{color:c.accent,width:2},itemStyle:{color:c.accent},
+          markLine: band ? {silent:true,symbol:'none',lineStyle:{color:c.good,type:'dashed'},label:{color:c.muted,fontSize:10,position:'insideEndTop',
+            formatter:p=>(p.value===band[1]?'under ':'from ')+p.value},data:band.filter(v=>v!=null).map(v=>({yAxis:v}))} : undefined},
+        {type:'scatter',name:'after food',data:nf.map(p=>[p.date,p[k]]),symbolSize:7,itemStyle:{color:c.surface,borderColor:c.accent,borderWidth:1.5}},
+        {type:'scatter',name:'InBody',data:ibs,symbol:'diamond',symbolSize:12,itemStyle:{color:c.warn,...ring(c)},z:5},
+      ]});
+  }
 }
 
 /* ---------- energy balance: 30 days of burnt minus eaten, and the weight it should have moved ---------- */

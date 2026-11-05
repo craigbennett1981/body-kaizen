@@ -134,6 +134,11 @@ fibre and weight, every day coloured hit or miss against the target that applied
 
 ![Trends: 30 days of calories, macros and weight against their targets](docs/img/trends.png)
 
+**Body composition.** Under the weight chart on the Body tab, a small chart for every measure your scale gives:
+fat mass, muscle, fat-free mass, skeletal muscle, subcutaneous and visceral fat, water, protein, bone, BMR and BMI,
+each with its 30-day change, InBody scans alongside where they measure the same thing, and target lines where there
+is one.
+
 **Energy balance.** The Calories box on the Day page shows your deficit so far (Garmin's burn to the last sync minus
 what you've eaten) and the deficit you're heading for today: burn projected to midnight (resting burn plus what you
 usually burn in the rest of the day) minus your target, or what you've eaten if that's more. Hover for the sums. The Body tab charts 30 days of burnt minus eaten and the weight change it should

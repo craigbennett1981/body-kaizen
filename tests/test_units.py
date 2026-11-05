@@ -182,6 +182,16 @@ class EnergyBalance(unittest.TestCase):
         self.assertGreaterEqual(T["projected"], T["burnt_so_far"])
 
 
+class BodyComposition(unittest.TestCase):
+    def test_scale_fields_and_fat_mass(self):
+        import data
+        B = data.body()
+        for p in B["scale"]:
+            self.assertTrue(set(p) <= {"date", "kg", "fasted", "note", "fat_kg", *data.SCALE_FIELDS})
+            if p.get("bf_pct"): self.assertAlmostEqual(p["fat_kg"], p["kg"] * p["bf_pct"] / 100, places=2)
+        self.assertIn("bands", B)
+
+
 class ThresholdsPage(unittest.TestCase):
     def test_builds_from_the_demo_folder(self):
         T = thresholds.build()
