@@ -1,4 +1,4 @@
-"""Advice tab: practical advice per area, worked out from your own recent data.
+"""Advice (on the Week tab): practical advice per area, worked out from your own recent data.
 Each item: level (act | keep | info), title, why (his numbers), do (concrete steps). Rule-based; no medical claims."""
 import datetime as dt, statistics as st
 from collections import defaultdict

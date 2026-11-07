@@ -4,11 +4,11 @@ Every tab of the dashboard, what it shows and how to read it. Screenshots are fr
 person). To click around yourself, open the [live demo](https://demo.bodykaizen.app/). The screenshots are made
 from the demo by `tools/readme_media.py`, so they show the current code.
 
-![A tour of the dashboard on demo data: Day, Food, Sleep, Training, Body and Longevity](img/tour.gif)
+![A tour of the dashboard on demo data: Day, Food, Sleep & recovery, Experiments, Training, Body, Week and Longevity](img/tour.gif)
 
 - [A day with Body Kaizen](#a-day-with-body-kaizen)
-- [Day](#day) · [Food](#food) · [Sleep](#sleep) · [Experiments](#experiments) · [Training](#training) · [Recovery](#recovery) · [Body](#body) ·
-  [Trends](#trends) · [Longevity](#longevity) · [Everything else](#everything-else)
+- [Day](#day) · [Food](#food) · [Sleep & recovery](#sleep--recovery) · [Experiments](#experiments) · [Training](#training) ·
+  [Body](#body) · [Week](#week) · [History](#history) · [Longevity](#longevity) · [Everything else](#everything-else)
 
 ## A day with Body Kaizen
 
@@ -70,7 +70,19 @@ baseline. The Body tab adds a 14-day profile and your meals ranked by spike.
 
 ![Food: plants this week against 30, and swaps for the biggest saturated-fat sources](img/food-plants-swaps.png)
 
-## Sleep
+**Glucose** (with a CGM): the last 14 days' average, time in range, variability and estimated HbA1c, a 24-hour
+profile, and what raised it, ranked by food (the median rise after meals that included it) or by meal. A day-by-day
+table sits underneath.
+
+![Glucose on the Food tab: the 24-hour profile and foods ranked by the rise after them](img/food-glucose.png)
+
+## Sleep & recovery
+
+![Readiness: today's state against your own last 4 weeks, with off episodes shaded](img/readiness.png)
+
+- **Readiness:** today's state against your own last 4 weeks (resting heart rate, HRV, sleep debt, training load,
+  stress, body battery), saying what's holding you back. It's tested against your recorded off episodes and says
+  how often it warned ahead.
 
 ![Sleep: last night, sleep debt, tonight's bedtime and last night's stages](img/sleep.png)
 
@@ -93,7 +105,14 @@ baseline. The Body tab adds a 14-day profile and your meals ranked by spike.
 
 ![Your nights split by the day before, each with a verdict and the difference in sleep, score, HRV and bedtime](img/sleep-factors.png)
 
+**HRV and resting heart rate** every night against your baseline, with the resting heart rate at which the day
+should be a walk only.
+
+![Overnight HRV and resting heart rate over time](img/recovery.png)
+
 ## Experiments
+
+![Experiments: a running experiment with today's checklist, its nights so far and an early read](img/experiments.png)
 
 Test one change on yourself and see what it does to your own sleep, recovery, blood pressure or weight.
 
@@ -141,13 +160,6 @@ Test one change on yourself and see what it does to your own sleep, recovery, bl
 
 ![Activity: a year of sessions, each day shaded by calories burnt](img/activity.png)
 
-## Recovery
-
-![Recovery: sleep, HRV and resting heart rate over time](img/recovery.png)
-
-Readiness from your sleep, HRV and resting heart rate against your own baseline, body battery and stress, saying
-what's holding you back, and a one-line summary of last night linking to the Sleep tab.
-
 ## Body
 
 **Weight** with a 7-day trend. **Body composition:** a small chart for every measure your scale gives (fat mass,
@@ -159,12 +171,33 @@ trend. **Blood pressure** on the 2017 ACC/AHA bands, with pulse pressure.
 
 ![Energy balance: daily burnt minus eaten, and the weight change it predicts against the actual trend](img/energy-balance.png)
 
-## Trends
+## Week
+
+![Week: the week at a glance against its targets, with what to change next week](img/week.png)
+
+One week at a glance, and the place to check on a Sunday. Use the arrows to go back a week.
+
+- **Focus for next week,** with the top changes the advice picks from your own data.
+- **Tiles:** days on target for calories, protein, saturated fat and fibre, the week's average weight, sessions,
+  sleep, HRV and steps.
+- **Trends:** calories (with Garmin's measured burn), protein, carbs, fat with a saturated-fat line, fibre and
+  weight over 14, 30 or 60 days or all time, every day coloured hit or miss against the target that applied that
+  day. Click a day to open it.
+- **Habits** against their targets, the **last 12 weeks** as a grid of days, **new bests** and a table of the
+  **days**.
+- **All advice,** by area (diet, heart and blood, training, sleep and recovery, body, lifestyle), each saying what
+  it saw in your last 2–4 weeks and what to do.
 
 ![Trends: 30 days of calories, macros and weight against their targets](img/trends.png)
 
-Calories (with Garmin's measured burn), protein, carbs, fat with a saturated-fat line, fibre and weight, every day
-coloured hit or miss against the target that applied that day.
+## History
+
+![History: weight with blood tests, scans and target changes marked, and mood scores with symptoms](img/history.png)
+
+What happened and when. Your weight (7-day average) with blood tests, scans, target and training changes and off
+episodes marked on it, the mood, energy, gut and stress scores and symptoms you report, with sleep alongside, and
+every event by month. Tell your assistant about other events (a trip, an illness, a new supplement) and they're
+added.
 
 ## Longevity
 
@@ -176,12 +209,6 @@ sentence ("grip 47/45").
 
 ## Everything else
 
-- **Advice:** the top things to change this week, worked out from your last 2–4 weeks of logs, watch data and
-  blood tests.
-- **Week:** one week at a glance, day by day.
-- **Timeline:** your weight trend with what might explain it: blood tests, scans, target changes, time off and
-  training changes.
-- **Wellbeing:** mood scores and health issues as you report them, with sleep alongside.
 - **How your numbers are judged**, linked at the foot of every page: each target, band and score and the guideline
   or study it comes from ([docs/thresholds.md](thresholds.md)).
 - **Set up from the browser:** on first run the dashboard asks where to keep your data, and **Connections** logs

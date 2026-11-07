@@ -80,8 +80,15 @@ class StaticDemo(unittest.TestCase):
             for i in range(min(4, chips.count())): chips.nth(i).click(); pg.wait_for_timeout(400)
             pg.click('nav button[data-tab="week"]'); pg.wait_for_timeout(500)
             for _ in range(2): pg.click("#wprev"); pg.wait_for_timeout(400)
-            pg.click('nav button[data-tab="trends"]'); pg.wait_for_timeout(500)
-            for d in ("14", "60", "0"): pg.click(f'#range button[data-d="{d}"]'); pg.wait_for_timeout(400)
+            for d in ("14", "60", "0"): pg.click(f'#range button[data-d="{d}"]'); pg.wait_for_timeout(400)   # the trends chart, on Week
+            self.assertGreater(pg.locator("#advice .adv").count(), 2, "Week shows no advice")
+            pg.click('nav button[data-tab="food"]'); pg.wait_for_timeout(800)
+            pg.click('#gseg button[data-g="meal"]'); pg.wait_for_timeout(300)
+            self.assertTrue(pg.locator("#gmeals").is_visible())
+            # old links to merged tabs land on their new home
+            for old, new in (("recovery", "sleep"), ("trends", "week"), ("advice", "week"), ("wellbeing", "history"), ("timeline", "history")):
+                pg.evaluate(f"showTab('{old}')"); pg.wait_for_timeout(300)
+                with self.subTest(old=old): self.assertTrue(pg.locator(f"#tab-{new}").is_visible())
             # writes are refused politely, not broken
             r = pg.evaluate("fetch('api/garmin/sync', {method:'POST'}).then(r => r.json())")
             self.assertTrue(r.get("demo"))

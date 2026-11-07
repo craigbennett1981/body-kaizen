@@ -23,16 +23,21 @@ SHOTS = [
     ("glucose.png", "day", "#glucose", "#glucose", 0),
     ("food.png", "food", "h2:Where it came from", ".staples", 0),
     ("food-plants-swaps.png", "food", "h2:Plants this week", ".sw-grid", 0),
-    ("sleep.png", "sleep", "#tab-sleep h1", "#sl-hyp", 0),
+    ("food-glucose.png", "food", "h2:Glucose", "#gfood", 0),
+    ("sleep.png", "sleep", "#sleep", "#sl-hyp", 0),
+    ("readiness.png", "sleep", "#tab-sleep h1", "#readychart", 0),
     ("sleep-stages.png", "sleep", "h2:Sleep stages", "#sl-stg", 0),
     ("sleep-factors.png", "sleep", "h2:What goes with better", ".sl-fx", 0),
     ("workout.png", "training", "h2:Workouts", "#wodetail", 0),
     ("muscle-map.png", "training", "h2:Muscles worked", "#musclemap", 0),
     ("activity.png", "training", "h2:Activity", "#actcal", 0),
-    ("recovery.png", "recovery", "h2:Sleep, HRV", "#recchart", 0),
+    ("recovery.png", "sleep", "h2:HRV and resting", "#recchart", 0),
+    ("experiments.png", "experiments", "#tab-experiments h1", ".xp", 0),
     ("composition.png", "body", "h2:Body composition", "#bcgrid", 0),
     ("energy-balance.png", "body", "h2:Energy balance", "#ebchart", 0),
-    ("trends.png", "trends", None, None, 0),
+    ("week.png", "week", "#week h1", ".wk-grid + .wk-grid", 0),
+    ("trends.png", "week", "h2:Trends", "#trend", 0),
+    ("history.png", "history", "#tab-history h1", "#wbchart", 0),
     ("longevity.png", "longevity", None, None, 0),
 ]
 
@@ -103,15 +108,17 @@ def gif_tour(P):
     P.sweep("#daytl", fy=.3, ms=1650); pg.mouse.move(5, 5)
     P.tab("food", 900); P.caption("Food: where your saturated fat, protein and fibre really come from"); pg.wait_for_timeout(1500)
     P.scroll("h2:Plants this week", 1200); P.caption("Plants this week, and swaps from foods you already eat"); pg.wait_for_timeout(1800)
-    P.tab("sleep", 900); P.caption("Sleep: last night, your sleep debt, and when to be in bed tonight"); pg.wait_for_timeout(1650)
+    P.tab("sleep", 900); P.caption("Sleep & recovery: readiness, last night, and when to be in bed tonight"); pg.wait_for_timeout(1650)
     P.scroll("h2:Sleep stages", 1300); P.caption("Your sleep stages, and what changes them"); pg.wait_for_timeout(1350)
     P.scroll("h2:What goes with better", 1200); P.caption("Your own nights compared: what goes with the bad ones"); pg.wait_for_timeout(1800)
+    P.tab("experiments", 900); P.caption("Experiments: test one change on yourself and see what it really does"); pg.wait_for_timeout(1950)
     P.tab("training", 900); P.caption("Training: every session with coach notes and heart rate"); P.scroll("h2:Workouts", 900)
     chips = pg.locator("#wopick button[data-k]")
     for i in (1, 2): chips.nth(i).click(); pg.wait_for_timeout(825)
     P.scroll("h2:Muscles worked", 1000); P.caption("A muscle map of the hard sets you did")
     P.hover("#musclemap", .3, .35); pg.wait_for_timeout(675); P.hover("#musclemap", .72, .55); pg.wait_for_timeout(825)
     P.tab("body", 900); P.scroll("h2:Body composition", 900); P.caption("Body: weight, composition and energy balance"); pg.wait_for_timeout(1650)
+    P.tab("week", 900); P.caption("Week: how it went, what to change, and the trends behind it"); pg.wait_for_timeout(1650)
     P.tab("longevity", 900); P.caption("Longevity: blood markers, fitness and a health score"); pg.wait_for_timeout(1950)
 
 
@@ -130,7 +137,7 @@ def gif_food(P):
 
 def gif_sleep(P):
     pg = P.pg
-    P.tab("sleep", 1000); pg.wait_for_timeout(1500)
+    P.tab("sleep", 1000); P.scroll("#sleep", 900); pg.wait_for_timeout(1200)
     P.sweep("#sl-hyp", fy=.5, ms=1800); pg.mouse.move(5, 5)
     P.scroll("h2:Every night", 1100); P.sweep("#sl-trend", fy=.35, ms=1800); pg.mouse.move(5, 5)
     P.scroll("h2:Sleep stages", 1200); pg.wait_for_timeout(1600)
@@ -149,8 +156,19 @@ def gif_training(P):
     P.scroll("h2:Calories burnt", 1000); P.sweep("#trainchart", fy=.3, ms=1800)
 
 
+def gif_experiments(P):
+    pg = P.pg
+    P.tab("experiments", 1000); pg.wait_for_timeout(1800)
+    P.scroll("h2:Try a rule", 1100); pg.wait_for_timeout(900)
+    for v in ("22:00", "23:00", "22:30"):
+        box = pg.locator("#xtry-val"); box.fill(v); box.dispatch_event("input"); pg.wait_for_timeout(1200)
+    P.scroll("h2:Look for a relationship", 1100); pg.wait_for_timeout(1800)
+    P.scroll("h2:Finished", 1100); pg.wait_for_timeout(2200)
+
+
 GIFS = {"tour.gif": (gif_tour, 800, "day"), "food.gif": (gif_food, 680, "food"), "sleep.gif": (gif_sleep, 680, "sleep"),
-        "training.gif": (gif_training, 680, "training")}   # file: (script, width, tab it opens on)
+        "training.gif": (gif_training, 680, "training"),
+        "experiments.gif": (gif_experiments, 680, "experiments")}   # file: (script, width, tab it opens on)
 
 
 def to_gif(video, out, width, skip=1.0, fps=6):
