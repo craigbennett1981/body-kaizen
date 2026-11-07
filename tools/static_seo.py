@@ -13,9 +13,12 @@ REPO = "https://github.com/craigbennett1981/body-kaizen"
 
 PAGES = {
     "index.html": dict(
-        title="Body Kaizen: private health dashboard for food, sleep and training",
-        description="Free, open-source health dashboard that runs on your own computer: macros, sleep, Garmin, "
-                    "glucose, workouts and longevity, logged by chatting with an AI.",
+        # The words the page itself uses most (calories, protein, fat, fibre, sleep, training, body) belong in the
+        # title, the description and the headings, so search engines can tell what the page is about.
+        title="Body Kaizen: free calorie, protein, sleep and training dashboard",
+        description="Free, private health dashboard on your computer: calories, protein, carbs, fat and fibre, "
+                    "sleep, training, body fat and glucose, logged by chatting to an AI.",
+        heading="Body Kaizen live demo: a calorie, protein, sleep and training dashboard",
         index=True, about=True),
     "thresholds.html": dict(
         title="How Body Kaizen judges your numbers: every target and its source",
@@ -33,7 +36,7 @@ FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect w
 
 ABOUT = """
 <section class="bk-about" aria-labelledby="bk-about-h">
-  <h2 id="bk-about-h">About Body Kaizen</h2>
+  <h2 id="bk-about-h">About Body Kaizen: a free, private calorie, protein and sleep tracker</h2>
   <p><strong>Body Kaizen is a free, open-source health dashboard that runs on your own computer.</strong> You tell an AI
   assistant such as Claude what you ate, send it a photo of a nutrition label or a screenshot of your scale, and it
   writes everything into plain files in your own private git repository. Body Kaizen works out calories and macros,
@@ -43,11 +46,12 @@ ABOUT = """
   analytics or trackers, and sends nothing anywhere: everything you see comes from static files on this site.
   Every tab works:</p>
   <ul>
-    <li><strong>Day:</strong> macros paced through the day, readiness, energy balance and a timeline with glucose under each meal.</li>
-    <li><strong>Food:</strong> where your saturated fat, protein and fibre come from, plants per week, and swaps from foods you already eat.</li>
-    <li><strong>Sleep:</strong> sleep stages, sleep debt, when to be in bed tonight, and which of your days go with your worst nights.</li>
+    <li><strong>Day:</strong> calories, protein, carbs, fat, saturated fat and fibre paced through the day, readiness, energy balance and a timeline with glucose under each meal.</li>
+    <li><strong>Food:</strong> where your saturated fat, protein and fibre come from, plants per week, swaps from foods you already eat, and glucose by food.</li>
+    <li><strong>Sleep &amp; recovery:</strong> readiness, HRV and resting heart rate, sleep stages, sleep debt, when to be in bed tonight, and which of your days go with your worst nights.</li>
     <li><strong>Training:</strong> every session with coach notes and heart rate, lift progression, a muscle map and an activity calendar.</li>
-    <li><strong>Body, Recovery, Trends and Longevity:</strong> body composition, HRV and resting heart rate, targets over time, blood markers and a health score.</li>
+    <li><strong>Experiments:</strong> test one change, like an earlier bedtime or less salt, and see what it does to your own sleep, blood pressure or weight.</li>
+    <li><strong>Body, Week, History and Longevity:</strong> body composition and blood pressure, each week against your targets, what changed and when, blood markers and a health score.</li>
   </ul>
   <p><a href="{repo}">Body Kaizen on GitHub</a> · <a href="{repo}#quick-start">Quick start</a> ·
   <a href="{repo}/blob/main/docs/features.md">Every page explained</a> · <a href="thresholds.html">How your numbers are judged</a> ·
@@ -113,6 +117,13 @@ def apply(html, page, base):
     if page not in PAGES: return html
     html = re.sub(r"<title>.*?</title>", lambda _: head(page, base), html, count=1, flags=re.S)
     html = html.replace('<html lang="en"', '<html lang="en-GB"', 1)
+    if PAGES[page].get("heading"):
+        # The page's top heading: the brand in the header becomes the h1, naming what the page is (the visible text
+        # stays "Body Kaizen"; the rest is read by screen readers and search engines, and it describes the page honestly).
+        html = re.sub(r'<div class="brand">Body Kaizen(.*?)</div>',
+                      lambda m: f'<h1 class="brand" style="margin:0;font-size:22px;line-height:inherit">Body Kaizen'
+                                f'<span class="bk-sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">'
+                                f'{H.escape(PAGES[page]["heading"][len("Body Kaizen"):])}</span>{m.group(1)}</h1>', html, count=1, flags=re.S)
     if PAGES[page].get("about"):
         anchor = '<footer class="site-foot">' if '<footer class="site-foot">' in html else '<script src="app.js"></script>'
         html = html.replace(anchor, ABOUT.format(repo=REPO) + anchor, 1)   # after the dashboard, before its footer
