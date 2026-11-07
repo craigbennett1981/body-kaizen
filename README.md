@@ -26,6 +26,10 @@ click anything.
 
 ![You send a message, Claude logs it and replies with your totals, and the dashboard updates](docs/img/claude-loop.gif)
 
+> **Please read first:** Body Kaizen is a free wellness tool, not medical advice or a medical device, and it comes
+> with no warranty: you use it, and act on what it or your AI assistant shows you, at your own risk. It isn't for
+> under 18s, pregnancy, eating disorders or adjusting medication; see the full [Disclaimer](DISCLAIMER.md).
+
 ## Highlights
 
 <table>
