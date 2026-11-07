@@ -108,6 +108,19 @@ function liveStatus(key, val, t){
   return miss <= 0.10 ? 'warn' : 'bad';
 }
 const LIVE_TITLE = {good:'On target', warn:'Within 10% of target', bad:'More than 10% off target', none:'No target'};
+// The user's wall-clock time as a Date whose UTC fields read as local time (so .toISOString().slice(0,10) is their
+// date and getUTCHours() their hour), in the profile's timezone. The static demo fixes it with window.BK_NOW, the
+// moment its data was exported, so its "now" line sits where its data ends.
+const userTZ = () => { try { if(PROFILE && PROFILE.timezone) return PROFILE.timezone; } catch(e){} return Intl.DateTimeFormat().resolvedOptions().timeZone; };
+function wallNow(){
+  if(window.BK_NOW) return new Date(window.BK_NOW + ':00Z');
+  try {
+    const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA', {timeZone: userTZ(), year:'numeric', month:'2-digit', day:'2-digit',
+      hour:'2-digit', minute:'2-digit', hourCycle:'h23'}).formatToParts(new Date()).map(x => [x.type, x.value]));
+    return new Date(`${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:00Z`);
+  } catch(e){ const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset()*60000); }
+}
+const todayISO = () => wallNow().toISOString().slice(0,10);
 let currentDate = null;
 async function renderDay(date){
   const dates = SUMMARY.map(d => d.date);
@@ -249,8 +262,8 @@ async function renderDayTimeline(date){
   const hasWatch = T && ((T.body_battery||[]).length || (T.steps||[]).length);
   if(!T || (!T.events.length && !hasWatch)){
     el.innerHTML = T && T.untimed ? `<div class="notes-h"><h2>Timeline</h2><span class="sub">${esc(T.untimed)} item${T.untimed!==1?'s':''} logged without a time</span></div>` : ''; return; }
-  const c = theme(), P = T.protein, isToday = date === new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
-  const nowMin = isToday ? (()=>{ const n = new Date(Date.now()+8*3600e3); return n.getUTCHours()*60+n.getUTCMinutes(); })() : null;
+  const c = theme(), P = T.protein, isToday = date === todayISO();
+  const nowMin = isToday ? (()=>{ const n = wallNow(); return n.getUTCHours()*60+n.getUTCMinutes(); })() : null;
   const lanes = TL_LANES.filter(l => T.events.some(e => e.lane === l));
   const LANE = 38, L = 92, R = 44;
   const panels = [];   // [key, height]
@@ -911,7 +924,7 @@ function renderTrends(){
           label:{show:!!arrow,position:'top',distance:2,formatter:arrow||'',color:c.bad,fontSize:14,fontWeight:800}};
       })});
     if(p.key==='kcal'){   // Garmin's measured total burn for the day; today's is only up to the last watch sync
-      const today = new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
+      const today = todayISO();
       series.push({type:'line',xAxisIndex:i,yAxisIndex:i,z:8,name:'Burnt (Garmin)',connectNulls:false,symbol:'circle',symbolSize:7,
         lineStyle:{color:'#eb6834',width:2},itemStyle:{color:'#eb6834',...ring(c)},
         data: days.map(d => d.burn==null ? null : {value:d.burn, itemStyle: d.date===today ? {color:c.surface,borderColor:'#eb6834',borderWidth:2} : undefined})});
@@ -934,7 +947,7 @@ function renderTrends(){
       formatter: ps => { const d = days[ps[0].dataIndex]; const t = d.totals||{}, g = d.targets||{};
         return `<b>${fmtDate(d.date)}</b><br>${esc(d.day_type)} day, ${esc(d.status)}<br>` +
           (d.totals?(()=>{ const E = d.eval||{}, a = k => ARROW(E[k]);
-            const today = new Date(Date.now()+8*3600e3).toISOString().slice(0,10);
+            const today = todayISO();
             const burn = d.burn!=null ? `<br><span style="color:#eb6834">●</span> burnt ${fmt(d.burn)} kcal (Garmin${d.date===today?', so far':''})${d.date!==today?` · balance <b>${t.kcal-d.burn>=0?'+':''}${fmt(t.kcal-d.burn)}</b>`:''}` : '';
             return `${fmt(t.kcal)}${a('kcal')} kcal eaten (target ${bandTxt(g.kcal)||'–'})${burn}<br>protein ${fmt(t.protein_g)}${a('protein_g')} (≥ ${g.protein_min??'–'}) · carbs ${fmt(t.carbs_g)}${a('carbs_g')} · fat ${fmt(t.fat_g)}${a('fat_g')} · sat ${fmt(t.satfat_g,1)}${a('satfat_g')}${g.satfat_max?' (≤ '+g.satfat_max+')':''} · fibre ${fmt(t.fibre_g)}${a('fibre_g')}`; })():'No food logged') +
           (d.weight?`<br>${esc(d.weight.kg)} kg${d.weight.fasted===false?' (not fasted)':''} · target ${esc(g.weight_kg)}`:'') +
@@ -1846,7 +1859,7 @@ async function pollSync(){
   else if(!s.installed || !s.logged_in){ msg.innerHTML = '<a href="/connections.html">Garmin: connect</a>'; $('#sync').title = 'Log in to Garmin on the Connections page.'; }
   else if(s.running){ dot.classList.add('run'); msg.textContent = 'Syncing Garmin…'; }
   else if(s.last_error && (!s.last_success || s.last_error_at > s.last_success)){ dot.classList.add('err'); msg.textContent = 'Garmin sync failed'; $('#sync').title = s.last_error; }
-  else if(s.last_success){ dot.classList.add('ok'); msg.textContent = `Garmin pulled ${ago(s.last_success)}${s.watch_upto?` · watch data to ${s.watch_upto.slice(0,10)===new Date(Date.now()+8*3600e3).toISOString().slice(0,10)?s.watch_upto.slice(11,16):fmtDate(s.watch_upto.slice(0,10))}`:''}`;
+  else if(s.last_success){ dot.classList.add('ok'); msg.textContent = `Garmin pulled ${ago(s.last_success)}${s.watch_upto?` · watch data to ${s.watch_upto.slice(0,10)===todayISO()?s.watch_upto.slice(11,16):fmtDate(s.watch_upto.slice(0,10))}`:''}`;
     $('#sync').title = (s.last_changes||[]).join('\n') || 'No changes in the last sync' + (s.last_push_ok===false ? '\nGitHub push failed — will retry' : ''); }
   else msg.textContent = 'Garmin: not synced yet';
   if(!s.running) garminToasts(s);
