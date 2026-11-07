@@ -1524,7 +1524,8 @@ let XP = null;
 const XP_PILL = {running:['run','Running'], planned:['plan','Planned'], worked:['good','It worked'], 'no effect':['none','No clear effect'],
                  worse:['bad','Made it worse'], inconclusive:['none','Not enough nights']};
 const xpVal = (v, unit) => v == null ? '–' : unit === 'min' ? mh(v) : `${fmt(v, 1)}${unit ? ' ' + unit : ''}`;
-const xpDiff = (v, unit) => v == null ? '' : `${v > 0 ? '+' : v < 0 ? '−' : '±'}${unit === 'min' ? Math.round(Math.abs(v)) + ' min' : fmt(Math.abs(v), 1) + (unit ? ' ' + unit : '')}`;
+const xpDiff = (v, unit) => { if(v == null) return ''; const r = unit === 'min' ? Math.round(v) : Math.round(v * 10) / 10;
+  return `${r > 0 ? '+' : r < 0 ? '−' : '±'}${unit === 'min' ? Math.abs(r) + ' min' : fmt(Math.abs(r), 1) + (unit ? ' ' + unit : '')}`; };
 
 function xpResults(E){
   return `<div class="xp-res">${E.results.map(r => {
@@ -1541,7 +1542,7 @@ function xpResults(E){
 function xpCard(E){
   const [pc, pl] = XP_PILL[E.verdict] || ['none', E.verdict];
   const cal = E.calendar.map(c => `<i class="xc ${c.state.replace(' ', '-')}" title="${esc(shortDate(c.date))}: ${c.state === 'future' ? 'to come' : c.state === 'no data' ? 'no sleep data' : c.state === 'kept' ? 'kept to the rule' : 'missed the rule'}${c.bed ? ', asleep ' + c.bed : ''}"></i>`).join('');
-  const kept = E.nights_so_far ? `Kept to the rule on <b>${esc(E.kept)} of ${esc(E.nights_so_far)}</b> nights so far${E.share_kept != null ? ` (${Math.round(E.share_kept * 100)}%)` : ''}.` : '';
+  const kept = E.nights_so_far ? `Kept to the rule on <b>${esc(E.kept)} of ${esc(E.nights_so_far)}</b> nights${E.verdict === 'running' ? ' so far' : ''}${E.share_kept != null ? ` (${Math.round(E.share_kept * 100)}%)` : ''}.` : '';
   return `<div class="xp xp-${pc}">
     <div class="xp-top"><h3>${esc(E.title)}</h3><span class="xp-pill">${esc(pl)}</span></div>
     <p class="xp-rule"><b>Rule:</b> ${esc(E.rule_text)} · ${esc(shortDate(E.start))} to ${esc(shortDate(E.end))} (${esc(E.days)} nights)${E.hypothesis ? `<br><span class="sub">${esc(E.hypothesis)}</span>` : ''}</p>
