@@ -252,6 +252,16 @@ experiments:
     hypothesis: Screens off earlier helps me fall asleep sooner.   # optional
     baseline_days: 28           # optional: nights before the start to compare with
     status: stopped             # optional: only to end one early; otherwise worked out from the dates
+    requires: [bp.evening]      # optional: extra readings to remind about (below)
+  - id: salt                    # a period experiment: a daily habit, and readings that move over days, not one night
+    type: period
+    title: Sodium under 2 g a day
+    start: 2026-11-08           # the first day of the habit
+    days: 21
+    ramp_days: 3                # optional, default 3: readings from the first days are left out while any effect builds
+    daily:                      # checked against each day, like rule: (no night.*, bp.* or weight.* in it)
+      all: [{var: day.sodium, op: "<=", value: 2000}]
+    outcomes: [bp.morning_sys, bp.morning_dia]         # required; weight.kg needs {var: weight.kg, better: lower} or higher
 ```
 
 Operators: `<=`, `>=`, `<`, `>`, `=`, `!=` (yes/no variables take `=` or `!=` with `true` or `false`). Times are
@@ -268,15 +278,30 @@ Operators: `<=`, `>=`, `<`, `>`, `=`, `!=` (yes/no variables take `=` or `!=` wi
 | `day.dinner_kcal`, `day.dinner_carbs` | dinner's calories and carbs |
 | `day.trained`, `day.session_end`, `day.steps`, `day.stress` | trained (yes/no), when the last session ended, steps, average stress |
 | `food.<key>` | yes/no: had that food or supplement (any key in your food list) |
+| `amount.<key>` | how much of it: g, ml, or servings for foods logged by count |
 | `habit.<name>` | a habit declared above |
+| `bp.morning_sys`, `bp.morning_dia`, `bp.morning_pulse`, `bp.evening_sys`, `bp.evening_dia` | that date's blood pressure, the average of its morning or evening readings (period outcomes) |
+| `weight.kg` | that morning's fasted weight (period outcome) |
 
-Only `night.*` variables can be outcomes. A time that didn't happen (no training, no caffeine, no timed food) keeps
+Night experiments take `night.*` outcomes; period experiments take `night.*`, `bp.*` and `weight.*`. A time that didn't happen (no training, no caffeine, no timed food) keeps
 a "by" rule (`<=` or `<`). A night with no value for the rule is left out, not counted either way. Unknown
 variables, operators or values are listed on the Experiments tab and that experiment isn't scored.
 
 Kept nights are compared with the baseline nights; each outcome gets the difference and a 90% range from
 resampling, and only counts as better or worse when the whole range is on one side of zero. A finished experiment
 needs 60% of judged nights kept (and at least 5) for a verdict.
+
+A period experiment compares the period's readings (after the ramp-up) with the baseline's, resampling runs of 3
+days because one day's reading is close to the next. It needs 7+ readings on each side and 75% of days kept. If an
+outcome was already drifting the same way before the start, and that drift would explain at least 30% of the
+change, the verdict is "Could be a trend" instead of "It worked".
+
+Each running or planned experiment has a checklist for today on its card: the readings it is judged on (needed
+during the baseline weeks too), and once it has started, the rule. Readings follow from the outcomes and rule
+(`bp.morning_*` needs a morning reading, `weight.kg` a weigh-in, `night.*` the watch worn overnight); `requires:`
+adds more, from `bp.morning`, `bp.evening`, `weight`, `sleep` or a `habit.*`/`food.*` variable to log. Anything not
+done by its time shows as a dashboard toast, dismissed for the day: morning readings from 10:00, food from 20:00,
+habits from 21:00, an evening reading from 21:30, and a bedtime rule 45 minutes before the time.
 
 ### settings.yaml
 

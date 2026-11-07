@@ -66,6 +66,14 @@ def params_ok(q):
     return True
 SETUP_MODE = data.bkenv.needs_data_setup()   # no data folder yet: serve only the first-run folder setup
 
+
+def _exp_reminders():
+    """Experiment reminders ride along with the alerts as toasts; a broken experiments.yaml must not stop the alerts."""
+    try: return experiments.reminders()
+    except Exception as e:
+        print("experiment reminders failed:", e, flush=True); return []
+
+
 ROUTES = {
     "/api/summary": lambda q: data.summary(),
     "/api/training": lambda q: data.training(),
@@ -83,7 +91,7 @@ ROUTES = {
     "/api/plan": lambda q: planner.plan(),
     "/api/longevity": lambda q: {**longevity.compute(), "lab_alerts": [a for a in alerts.compute() if a["id"].startswith("lab-")]},
     "/api/todo": lambda q: todo.items(),
-    "/api/alerts": lambda q: alerts.compute(),
+    "/api/alerts": lambda q: alerts.compute() + _exp_reminders(),
     "/api/timeline": lambda q: timeline.events(),
     "/api/doctor": lambda q: doctor.report(),
     "/api/advice": lambda q: advice.compute(),

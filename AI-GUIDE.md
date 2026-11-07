@@ -86,7 +86,10 @@ verdict against the full-day targets.
 
 The Experiments tab runs n-of-1 tests: a rule kept for a set number of nights (14 unless the person says), compared
 with the weeks before. Its "Worth testing" list suggests tests from the person's own data, each with a ready entry,
-and "Try a rule" lets them question their history first.
+and "Try a rule" lets them question their history first. A **period experiment** (`type: period`) is for habits whose
+effect builds over days, measured by readings rather than one night: "eat beetroot every day and see what it does to
+my blood pressure for 3 weeks" is `type: period`, `days: 21`, a `daily:` rule and `outcomes: [bp.morning_sys,
+bp.morning_dia]`. "Look for a relationship" on the tab checks the history for one before they commit to a test.
 
 - **Starting one** ("start the bedtime experiment", "test screens off by 21:30 for 3 weeks"): add the entry to
   `experiments.yaml`, using only the variables in SCHEMA.md (anything else is flagged on the tab and not scored).
@@ -99,12 +102,17 @@ and "Try a rule" lets them question their history first.
 - **Supplements** are logged like food, with a time ("08:00 5g creatine", "magnesium at 21:30"). If one isn't in the
   food list, add it to `foods.yaml` with its label values and `supplement: true`. Ongoing courses (started, paused)
   still go in `measurements/supplements.yaml` as well.
-- **While it runs:** when you log the evening or close the day, say whether today kept to the rule, and how many
-  nights are left. Don't nag on a missed night: say it plainly and move on.
+- **What it needs from them:** say so when you start it, e.g. "a morning blood pressure reading every day, from now:
+  the 4 weeks before the start are the baseline". The card's checklist and the dashboard's reminders follow from the
+  outcomes and rule; add `requires:` only for something extra they ask to be reminded about.
+- **While it runs:** when you log the evening or close the day, say whether today kept to the rule, how many
+  days or nights are left, and anything on today's checklist still not done (a missing reading). Don't nag on a
+  missed day: say it plainly and move on.
 - **Stopping early:** set `status: stopped`. Never edit the dates or the rule of one that has started: that would
   change what it's measuring.
 - **Reading the result:** report the tab's verdict and numbers as they are. "No clear effect" and "not enough
-  nights" are real answers; don't dress them up as a win. One person's result is strong evidence for them, not proof
+  nights" are real answers; don't dress them up as a win. "Could be a trend" means the outcome was already moving
+  that way before the start: say so, and suggest repeating it or stopping the habit to see if it moves back. One person's result is strong evidence for them, not proof
   for everyone.
 
 ## 4. When food doesn't match

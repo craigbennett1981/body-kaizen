@@ -1520,9 +1520,9 @@ async function renderEnergyBalance(){
 let FOODS = null, FSORT = {k:'times', dir:-1}, FQ = '', FWIN = 'all';
 const PE_CLS = v => v==null ? '' : v >= 15 ? 'good' : v >= 8 ? 'warn' : '';   // grams of protein per 100 kcal
 /* ---------- experiments ---------- */
-let XP = null, XTRY = {var: 'night.bedtime', op: '<=', value: '22:30', outs: ['night.asleep', 'night.score', 'night.hrv']};
+let XP = null, XP_AT = 0, XTRY = {var: 'night.bedtime', op: '<=', value: '22:30', outs: ['night.asleep', 'night.score', 'night.hrv']};
 const XP_PILL = {running:['run','Running'], planned:['plan','Planned'], worked:['good','It worked'], 'no effect':['none','No clear effect'],
-                 worse:['bad','Made it worse'], inconclusive:['none','Not enough nights'], invalid:['bad','Needs fixing']};
+                 worse:['bad','Made it worse'], inconclusive:['none','Not enough data'], invalid:['bad','Needs fixing'], trend:['warn','Could be a trend']};
 const XP_TIME = k => k === 'time' || k === 'night_time';
 const xpVal = (v, r) => v == null ? '–' : XP_TIME(r.kind) ? clk(v) : r.unit === 'min' ? mh(v) : `${fmt(v, 1)}${r.unit ? ' ' + r.unit : ''}`;
 const xpDiff = (v, r) => { if(v == null) return ''; const t = XP_TIME(r.kind), m = t || r.unit === 'min', x = m ? Math.round(v) : Math.round(v * 10) / 10;
@@ -1546,15 +1546,27 @@ function xpCard(E){
   if(E.verdict === 'invalid') return `<div class="xp xp-bad"><div class="xp-top"><h3>${esc(E.title || E.id)}</h3><span class="xp-pill">${esc(pl)}</span></div>
     <p class="xp-v">This experiment can't be scored until it's fixed in <code>experiments.yaml</code>:</p><ul class="xp-err">${E.errors.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
     <p class="sub">What it can use is listed under "What you can test" below.</p></div>`;
-  const cal = E.calendar.map(c => `<i class="xc ${c.state.replace(' ', '-')}" title="${esc(shortDate(c.date))}: ${c.state === 'future' ? 'to come' : c.state === 'no data' ? 'no data to judge' : c.state === 'kept' ? 'kept to the rule' : 'missed the rule'}${c.bed ? ', asleep ' + c.bed : ''}"></i>`).join('');
-  const judged = E.kept + E.missed;
-  const kept = judged ? `Kept to the rule on <b>${esc(E.kept)} of ${esc(judged)}</b> nights${E.verdict === 'running' ? ' so far' : ''}${E.share_kept != null ? ` (${Math.round(E.share_kept * 100)}%)` : ''}.` : '';
+  const cal = E.calendar.map(c => `<i class="xc ${c.state.replace(' ', '-')}${c.ramp ? ' ramp' : ''}" title="${esc(shortDate(c.date))}: ${c.state === 'future' ? 'to come' : c.state === 'no data' ? 'no data to judge' : c.state === 'kept' ? 'kept to the rule' : 'missed the rule'}${c.bed ? ', asleep ' + c.bed : ''}${c.ramp ? ' (ramp-up day: its reading is left out)' : ''}${c.reading === false && c.state !== 'future' ? ', no reading the next morning' : ''}"></i>`).join('');
+  const judged = E.kept + E.missed, per = E.type === 'period', unit = per ? 'days' : 'nights';
+  const kept = judged ? `Kept to the rule on <b>${esc(E.kept)} of ${esc(judged)}</b> ${unit}${E.verdict === 'running' ? ' so far' : ''}${E.share_kept != null ? ` (${Math.round(E.share_kept * 100)}%)` : ''}.` : '';
   return `<div class="xp xp-${pc}">
     <div class="xp-top"><h3>${esc(E.title)}</h3><span class="xp-pill">${esc(pl)}</span></div>
-    <p class="xp-rule"><b>Rule:</b> ${esc(E.rule_text)} · ${esc(shortDate(E.start))} to ${esc(shortDate(E.end))} (${esc(E.days)} nights)${E.hypothesis ? `<br><span class="sub">${esc(E.hypothesis)}</span>` : ''}</p>
+    <p class="xp-rule"><b>${E.type === 'period' ? 'Every day' : 'Rule'}:</b> ${esc(E.rule_text)} · ${esc(shortDate(E.start))} to ${esc(shortDate(E.end))} (${esc(E.days)} ${E.type === 'period' ? 'days' : 'nights'}${E.type === 'period' && E.ramp_days ? `, the first ${esc(E.ramp_days)} left out while any effect builds` : ''})${E.hypothesis ? `<br><span class="sub">${esc(E.hypothesis)}</span>` : ''}</p>
     <div class="xp-cal" aria-label="Nights of the experiment">${cal}</div>
-    <p class="xp-v"><b>${esc(E.verdict_text)}</b> ${kept} Compared with ${esc(E.baseline.nights)} nights before it started.</p>
-    ${xpResults(E.results, 'kept nights', 'baseline nights')}${E.notes ? `<p class="sub">${esc(E.notes)}</p>` : ''}</div>`;
+    ${xpToday(E)}
+    <p class="xp-v"><b>${esc(E.verdict_text)}</b> ${kept} Compared with ${esc(E.baseline.nights)} ${E.type === 'period' ? 'readings' : 'nights'} in the ${esc(XP.baseline_days)} days before it started.</p>
+    ${E.type === 'period' ? xpResults(E.results, 'readings in the period', 'readings before') : xpResults(E.results, 'kept nights', 'baseline nights')}${E.notes ? `<p class="sub">${esc(E.notes)}</p>` : ''}</div>`;
+}
+
+// today's checklist: the readings the experiment is judged on, and (once it has started) the rule itself
+const XP_TODAY = {done: ['✓', 'Done'], todo: ['○', 'To do'], 'on track': ['✓', 'On track so far'], missed: ['✗', 'Missed today'], tonight: ['☾', 'Tonight']};
+function xpToday(E){
+  const its = E.today || [], bp = E.baseline_progress;
+  if(!its.length) return '';
+  const base = E.verdict === 'planned' && bp ? `<p class="sub">Before it starts: ${esc(bp.have)} ${esc(bp.unit)} so far in the ${esc(XP.baseline_days)}-day baseline, and a verdict needs at least ${esc(bp.need)}${bp.have >= bp.need ? ' (enough already: keep them coming)' : ''}.</p>` : '';
+  return `<div class="xp-today"><h4>${E.verdict === 'planned' ? 'Needed now, for the baseline' : 'Today'}</h4><ul>${its.map(it => {
+    const [ic, st] = XP_TODAY[it.state] || ['·', it.state];
+    return `<li class="xt ${esc(it.state.replace(' ', '-'))}" title="${esc(st)}${it.due && it.state !== 'done' ? ' · reminder from ' + it.due : ''}"><span class="xt-i" aria-hidden="true">${ic}</span>${esc(it.label)}<span class="sr-only"> (${esc(st)})</span></li>`; }).join('')}</ul>${base}</div>`;
 }
 
 // ---- Try a rule: the same split and resampling as experiments.py, in the browser, over XP.table ----
@@ -1579,9 +1591,9 @@ function xpHolds(v, meta, key, op, x){
 function xpTry(){
   const T = XP.table, cat = XP.catalogue, meta = cat[XTRY.var], x = xpParse(meta, XTRY.value), el = $('#xtry-out');
   if(x == null){ el.innerHTML = `<p class="sub">Enter a ${XP_TIME(meta.kind) ? 'time like 22:30' : 'number'}.</p>`; return; }
-  const col = T.cols[XTRY.var] || T.dates.map(() => null), yes = [], no = [];
+  const col = xcol(T, XTRY.var), yes = [], no = [];
   T.dates.forEach((d, i) => { const h = xpHolds(col[i], meta, XTRY.var, XTRY.op, x); if(h === true) yes.push(i); else if(h === false) no.push(i); });
-  const res = XTRY.outs.map(o => { const m = cat[o], c = T.cols[o] || [], a = yes.map(i => c[i]).filter(v => v != null), b = no.map(i => c[i]).filter(v => v != null);
+  const res = XTRY.outs.map(o => { const m = cat[o], c = xcol(T, o), a = yes.map(i => c[i]).filter(v => v != null), b = no.map(i => c[i]).filter(v => v != null);
     const sign = m.better || 1, r = {key: o, label: m.label, kind: m.kind, unit: m.kind === 'min' ? 'min' : m.unit, better_if: sign > 0 ? 'higher' : 'lower', n: a.length, n_base: b.length,
       trial: a.length ? xpMean(a) : null, base: b.length ? xpMean(b) : null};
     if(a.length < XP.min_nights || b.length < XP.min_nights){ r.verdict = 'too early'; return r; }
@@ -1623,13 +1635,79 @@ function xpTryForm(){
   xpTry();
 }
 
+// columns arrive dense, or sparse as {s: [[row, value], ...]} for mostly empty ones (most foods)
+function xcol(T, k){ const c = T.cols[k]; if(!c) return T.dates.map(() => null); if(Array.isArray(c)) return c;
+  const a = T.dates.map(() => null); c.s.forEach(([i, v]) => { a[i] = v; }); return a; }
+
+// ---- Relationship: does more of X go with a higher or lower Y, some days later? Over XP.daily, in the browser ----
+let XREL = {x: null, y: 'bp.morning_sys', lag: 1, avg: 1};
+function xpCorr(xs, ys){
+  const n = xs.length, mx = xpMean(xs), my = xpMean(ys); let sxy = 0, sxx = 0, syy = 0;
+  for(let i = 0; i < n; i++){ const a = xs[i] - mx, b = ys[i] - my; sxy += a * b; sxx += a * a; syy += b * b; }
+  return {r: sxx && syy ? sxy / Math.sqrt(sxx * syy) : 0, slope: sxx ? sxy / sxx : 0, mx, my};
+}
+function xpRelPairs(){
+  const D = XP.daily, xc = xcol(D, XREL.x), yc = xcol(D, XREL.y), meta = XP.catalogue[XREL.x], pairs = [];
+  const val = i => { const v = xc[i]; return meta.kind === 'bool' ? (v ? 1 : 0) : (v == null && XREL.x.startsWith('amount.') ? 0 : v); };
+  for(let i = 0; i + XREL.lag < D.dates.length; i++){
+    const y = yc[i + XREL.lag]; if(y == null) continue;
+    const w = []; for(let j = i - XREL.avg + 1; j <= i; j++) if(j >= 0){ const v = val(j); if(v != null) w.push(v); }
+    if(w.length < Math.ceil(XREL.avg / 2)) continue;
+    pairs.push([xpMean(w), y, D.dates[i + XREL.lag]]);
+  }
+  return pairs;
+}
+function xpRel(){
+  const el = $('#xrel-out'), cat = XP.catalogue, mx = cat[XREL.x], my = cat[XREL.y], pairs = xpRelPairs();
+  const xs = pairs.map(p => p[0]), ys = pairs.map(p => p[1]);
+  if(pairs.length < 10 || new Set(xs).size < 2){ el.innerHTML = `<p class="sub">Only ${pairs.length} days have both, or ${esc(mx.label.toLowerCase())} never changes. It needs at least 10, with some variation: log ${esc(my.label.toLowerCase())} regularly and try again later.</p>`; return; }
+  const c = xpCorr(xs, ys), r = xpRand(11), bs = [];
+  for(let k = 0; k < 1000; k++){ const ix = xs.map(() => Math.floor(r() * xs.length)); bs.push(xpCorr(ix.map(i => xs[i]), ix.map(i => ys[i])).r); }
+  bs.sort((a, b) => a - b); const lo = bs[50], hi = bs[949];
+  const clear = lo > 0 || hi < 0, dir = c.r > 0 ? 'higher' : 'lower', good = my.better ? (c.r * my.better > 0) : null;
+  const per = XREL.x.startsWith('amount.') ? (mx.unit === 'servings' ? 1 : 100) : 1, perTxt = XREL.x.startsWith('amount.') ? `${per} ${mx.unit}` : mx.kind === 'bool' ? 'having it' : `1 ${mx.unit || 'unit'}`;
+  const effect = c.slope * per, eu = my.unit ? ' ' + my.unit : '';
+  const when = XREL.lag === 0 ? 'the same day' : XREL.lag === 1 ? (XREL.y.startsWith('night.') ? 'that night' : 'the next day') : `${XREL.lag} days later`;
+  el.innerHTML = `<p class="xp-v"><b>${clear ? `More ${esc(mx.label.toLowerCase().replace(/^had /, '').replace(/^amount of /, ''))} goes with ${dir} ${esc(my.label.toLowerCase())} ${when}` : 'No clear relationship'}</b>${clear && good != null ? ` <span class="${good ? 'good' : 'bad'}">(${good ? 'better' : 'worse'})</span>` : ''}.
+    Correlation ${fmt(c.r, 2)} (90% range ${fmt(lo, 2)} to ${fmt(hi, 2)}) over ${pairs.length} days${XREL.avg > 1 ? `, using the ${XREL.avg}-day average of ${esc(mx.label.toLowerCase())}` : ''}. Roughly ${effect >= 0 ? '+' : '−'}${fmt(Math.abs(effect), 1)}${eu} for each ${esc(perTxt)}.</p>
+    <div id="xrel-chart" class="chart" style="height:280px"></div>
+    <p class="sub">A relationship isn't proof: days with more of one thing often differ in other ways too. If this looks real, test it as a period experiment: tell your assistant "start a period experiment: ${esc(mx.label.toLowerCase())} every day for 21 days, outcome ${esc(my.label.toLowerCase())}".</p>`;
+  const t = theme(), ax = {axisLine:{lineStyle:{color:t.rule}},axisLabel:{color:t.muted,fontSize:11},splitLine:{lineStyle:{color:t.rule,opacity:.5}}};
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), yAt = x => c.my + c.slope * (x - c.mx);
+  chart('xrel-chart').setOption({animation:false, textStyle:{fontFamily:'Archivo'}, grid:{left:56,right:20,top:16,bottom:44},
+    xAxis:{type:'value', name:`${mx.label}${mx.unit ? ' (' + mx.unit + ')' : ''}${XREL.avg > 1 ? `, ${XREL.avg}-day average` : ''}`, nameLocation:'middle', nameGap:28, nameTextStyle:{color:t.muted}, scale:true, ...ax},
+    yAxis:{type:'value', name:`${my.label}${my.unit ? ' (' + my.unit + ')' : ''}`, nameLocation:'middle', nameGap:42, nameRotate:90, nameTextStyle:{color:t.muted,fontSize:11}, scale:true, ...ax},
+    tooltip:{...tip(t), formatter: p => p.seriesIndex ? '' : `<b>${esc(shortDate(pairs[p.dataIndex][2]))}</b><br>${esc(mx.label)}: ${fmt(p.value[0], 1)}<br>${esc(my.label)}: ${fmt(p.value[1], 1)}`},
+    series:[{type:'scatter', data:pairs.map(p => [p[0], p[1]]), symbolSize:8, itemStyle:{color:t.accent, opacity:.75}},
+            {type:'line', data:[[x0, yAt(x0)], [x1, yAt(x1)]], symbol:'none', lineStyle:{color:clear ? (good === false ? t.bad : t.good) : t.muted, width:2, type: clear ? 'solid' : 'dashed'}}]});
+}
+function xpRelForm(){
+  const cat = XP.catalogue, D = XP.daily, have = k => D.cols[k];
+  const xs = Object.entries(cat).filter(([k, m]) => !m.period_outcome && have(k) && !k.startsWith('food.') && m.kind !== 'time' && m.kind !== 'night_time');
+  const ys = Object.entries(cat).filter(([k, m]) => m.period_outcome && have(k));
+  if(!xs.length || !ys.length){ $('#xrel').innerHTML = '<p class="sub">Not enough logged days yet.</p>'; return; }
+  if(!XREL.x || !have(XREL.x)) XREL.x = (xs.find(([k]) => k === 'day.sodium') || xs[0])[0];
+  if(!have(XREL.y)) XREL.y = (ys.find(([k]) => k.startsWith('bp.')) || ys[0])[0];
+  const grp = list => { const g = {}; list.forEach(([k, m]) => (g[m.group] = g[m.group] || []).push([k, m]));
+    return Object.entries(g).map(([n, l]) => `<optgroup label="${esc(n)}">${l.sort((a, b) => a[1].label.localeCompare(b[1].label)).map(([k, m]) => `<option value="${esc(k)}">${esc(m.label)}</option>`).join('')}</optgroup>`).join(''); };
+  $('#xrel').innerHTML = `<div class="xtry-row"><select id="xrel-x" aria-label="What you had or did">${grp(xs)}</select>
+      <span class="sub">against</span><select id="xrel-y" aria-label="Result">${grp(ys)}</select>
+      <select id="xrel-lag" aria-label="How much later">${[0,1,2,3,5,7].map(l => `<option value="${l}">${l === 0 ? 'same day' : l === 1 ? 'next day / that night' : l + ' days later'}</option>`).join('')}</select>
+      <select id="xrel-avg" aria-label="Averaged over">${[1,3,7,14].map(a => `<option value="${a}">${a === 1 ? 'that day only' : a + '-day average'}</option>`).join('')}</select></div>
+    <div id="xrel-out"></div>`;
+  $('#xrel-x').value = XREL.x; $('#xrel-y').value = XREL.y; $('#xrel-lag').value = XREL.lag; $('#xrel-avg').value = XREL.avg;
+  $('#xrel-x').onchange = e => { XREL.x = e.target.value; xpRel(); }; $('#xrel-y').onchange = e => { XREL.y = e.target.value; xpRel(); };
+  $('#xrel-lag').onchange = e => { XREL.lag = +e.target.value; xpRel(); }; $('#xrel-avg').onchange = e => { XREL.avg = +e.target.value; xpRel(); };
+  xpRel();
+}
+
 async function renderExperiments(){
-  XP = XP || await api('/api/experiments').catch(() => null);
+  if(!XP || Date.now() - XP_AT > 10 * 60 * 1000){ XP = await api('/api/experiments').catch(() => null); XP_AT = Date.now(); }   // the checklist changes through the day
   const el = $('#experiments');
   if(!XP){ el.innerHTML = '<p class="empty">Couldn’t load your experiments.</p>'; return; }
   const live = XP.experiments.filter(e => ['running', 'planned', 'invalid'].includes(e.verdict)), past = XP.experiments.filter(e => !['running', 'planned', 'invalid'].includes(e.verdict));
   const cat = XP.catalogue, groups = {};
-  Object.entries(cat).forEach(([k, m]) => { if(k.startsWith('food.') && !m.supplement) return; (groups[m.group] = groups[m.group] || []).push([k, m]); });
+  Object.entries(cat).forEach(([k, m]) => { if((k.startsWith('food.') || k.startsWith('amount.')) && !m.supplement) return; (groups[m.group] = groups[m.group] || []).push([k, m]); });
   const kinds = {time: 'a time', night_time: 'a time', num: 'a number', min: 'minutes', bool: 'yes or no'};
   el.innerHTML = `<p class="sub">Test one change on yourself and see what it does to your own sleep and recovery. Each experiment is a rule kept for a set number of nights (${esc(XP.default_days)} unless you choose), compared with the weeks before it. To start one, tell your assistant, for example "start the ${esc((XP.suggestions[0] || {}).name || 'bedtime')} experiment".</p>
     <h2>Running now</h2>${live.length ? live.map(xpCard).join('') : '<p class="sub">No experiment running. Pick one below, or try a rule of your own.</p>'}
@@ -1641,19 +1719,23 @@ async function renderExperiments(){
     <h2>Try a rule</h2>
     <p class="sub">Ask your history a question: how did your nights go when this held, against when it didn't? Nothing is saved.</p>
     <div id="xtry" class="xp"></div>
+    <h2>Look for a relationship</h2>
+    <p class="sub">For things that build up over days, like what you eat and your blood pressure or weight: does having more of one go with a higher or lower other, some days later?</p>
+    <div id="xrel" class="xp"></div>
     ${past.length ? `<h2>Finished</h2>${past.map(xpCard).join('')}` : ''}
     <h2>What you can test</h2>
     <p class="sub">Experiments can only use these; anything else is flagged, not ignored. "The day before" is the day you went to bed on. Supplements and foods count if you logged them that day (log supplements like food: "5 g creatine"). Habits are things no device records, like when your screens went off: declare them in experiments.yaml and tell your assistant each day ("screens off at 21:40").</p>
-    <div class="xcat">${['Night', 'Food the day before', 'Activity the day before', 'Your habits', 'Supplements'].filter(g => groups[g] || g === 'Your habits').map(g => `<div class="fs"><h3>${esc(g)}</h3>${(groups[g] || []).map(([k, m]) => `<div class="xcat-r"><code>${esc(k)}</code><span>${esc(m.label)}${m.unit ? ` (${esc(m.unit)})` : ''} · ${kinds[m.kind]}${m.outcome ? ' · outcome' : ''}</span></div>`).join('') || '<p class="sub">None declared yet. For example, in experiments.yaml:<br><code>habits: {screens_off: {type: time, label: screens off}}</code></p>'}</div>`).join('')}
-      <div class="fs"><h3>Foods</h3><p class="sub">Any food in your list, as <code>food.&lt;key&gt;</code>: whether you had it that day.</p></div></div>
+    <div class="xcat">${['Night', 'Daily readings', 'Food the day before', 'Activity the day before', 'Your habits', 'Supplements'].filter(g => groups[g] || g === 'Your habits').map(g => `<div class="fs"><h3>${esc(g)}</h3>${(groups[g] || []).map(([k, m]) => `<div class="xcat-r"><code>${esc(k)}</code><span>${esc(m.label)}${m.unit ? ` (${esc(m.unit)})` : ''} · ${kinds[m.kind]}${m.outcome ? ' · outcome' : m.period_outcome ? ' · outcome (period)' : ''}</span></div>`).join('') || '<p class="sub">None declared yet. For example, in experiments.yaml:<br><code>habits: {screens_off: {type: time, label: screens off}}</code></p>'}</div>`).join('')}
+      <div class="fs"><h3>Foods</h3><p class="sub">Any food in your list, as <code>food.&lt;key&gt;</code> (whether you had it that day) or <code>amount.&lt;key&gt;</code> (how much, in g, ml or servings).</p></div></div>
     <h2>How it's judged</h2>
     <ul class="sub xp-how">
+      <li><b>Two kinds of experiment.</b> A night experiment (the default) judges each night against the rule, for things that act overnight, like bedtime or caffeine. A period experiment (<code>type: period</code>) is for things that build up, like eating something every day and your blood pressure: it compares the readings across the period, after a few ramp-up days, with the readings before.</li>
       <li>Nights are counted by the morning you wake up. The rule is checked against that night's bedtime and the day before it; the outcomes are that night's sleep and the next morning's HRV and resting heart rate.</li>
       <li>Only nights that kept to the rule are compared with the baseline: every night in the ${esc(XP.baseline_days)} days before the start. A night with no data for the rule is left out, not counted either way.</li>
       <li>The bar shows the difference and a 90% range for it, from resampling those nights. It only counts as better or worse when the whole range is on one side of zero; otherwise it's unclear.</li>
       <li>A finished experiment needs ${Math.round(XP.enough_kept * 100)}% of nights kept, and at least ${esc(XP.min_nights)}, to give a verdict. One person, one experiment: treat a result as strong evidence for you, not proof for everyone, and repeat it if it matters.</li>
     </ul>`;
-  xpTryForm();
+  xpTryForm(); xpRelForm();
 }
 
 /* ---------- sleep ---------- */
@@ -2016,7 +2098,7 @@ function toast(key, kind, title, why, actions=[]){
   if(dismissed[key] || document.querySelector(`.toast[data-key="${CSS.escape(key)}"]`)) return;
   const el = document.createElement('div');
   el.className = 'toast ' + kind; el.dataset.key = key; el.setAttribute('role', kind==='err' ? 'alert' : 'status');
-  el.innerHTML = `<span class="ic" aria-hidden="true">${kind==='err' ? '⛔' : '⚠️'}</span><b></b><span class="why"></span><div class="acts"></div>`;
+  el.innerHTML = `<span class="ic" aria-hidden="true">${kind==='err' ? '⛔' : kind.includes('exp') ? '🧪' : '⚠️'}</span><b></b><span class="why"></span><div class="acts"></div>`;
   el.querySelector('b').textContent = title; el.querySelector('.why').textContent = why;
   const acts = el.querySelector('.acts');
   for(const [label, fn, primary] of [...actions, ['Dismiss', null]]){
@@ -2049,8 +2131,10 @@ function garminToasts(s){
 
 async function alertToasts(){
   const al = await api('/api/alerts').catch(()=>[]);
-  for(const a of al) if(!a.id.startsWith('lab-')) toast(`alert:${esc(a.id)}:${esc(a.since)}`, 'warn', a.title, `${esc(a.text)} ${esc(a.todo)}`);
+  for(const a of al) if(!a.id.startsWith('lab-')) toast(`alert:${esc(a.id)}:${esc(a.since)}`, a.kind === 'remind' ? 'warn exp' : 'warn', a.title, `${esc(a.text)} ${esc(a.todo)}`,
+    a.kind === 'remind' ? [['Open experiments', () => showTab('experiments')]] : []);
 }
+setInterval(() => { if(!document.hidden) alertToasts(); }, 15 * 60 * 1000);   // experiment reminders come due through the day
 async function reloadData(){
   SUMMARY = await api('/api/summary'); HS = null; TRAIN = null; FOODS = null; SLEEP = null; XP = null;  WO = null; BODY = null; REF = null; READY = null; renderAll();
 }

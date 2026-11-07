@@ -337,10 +337,60 @@ class Experiments(unittest.TestCase):
 
     def test_demo_experiments(self):
         B = self.X.build()
-        self.assertEqual(len(B["experiments"]), 2)
+        self.assertEqual(len(B["experiments"]), 3)
         for e in B["experiments"]:
             self.assertNotEqual(e["verdict"], "invalid", e.get("errors"))
             self.assertEqual(len(e["calendar"]), e["days"])
             self.assertEqual(e["kept"] + e["missed"], sum(c["state"] in ("kept", "missed") for c in e["calendar"]))
         self.assertIn("habit.screens_off", B["catalogue"]); self.assertIn("habit.screens_off", B["table"]["cols"])
         self.assertTrue(any(m.get("supplement") for m in B["catalogue"].values()))
+        # the salt experiment rode a blood pressure that was already falling: the trend guard has to say so
+        salt = next(e for e in B["experiments"] if e["id"] == "salt")
+        self.assertEqual(salt["type"], "period"); self.assertEqual(salt["verdict"], "trend")
+        self.assertTrue(any(r.get("trend_note") for r in salt["results"]))
+        self.assertTrue(all(sum(c["ramp"] for c in e["calendar"]) == e["ramp_days"] for e in B["experiments"] if e["type"] == "period"))
+        self.assertIn("bp.morning_sys", B["daily"]["cols"])
+
+    def test_period_rules(self):
+        X, cat = self.X, self.cat
+        good = {"type": "period", "start": "2026-11-01", "days": 21, "daily": {"all": [{"var": "day.sodium", "op": "<=", "value": 2000}]},
+                "outcomes": ["bp.morning_sys", {"var": "weight.kg", "better": "lower"}]}
+        self.assertEqual(X.check(good, cat)[3], [])
+        errs = lambda **kw: X.check({**good, **kw}, cat)[3]
+        self.assertTrue(errs(daily={"all": [{"var": "bp.morning_sys", "op": "<=", "value": 120}]}))   # a result isn't a daily habit
+        self.assertTrue(errs(rule={"bedtime_by": "22:30"}))                                              # rule: belongs to night experiments
+        self.assertTrue(errs(outcomes=[]))
+        self.assertTrue(errs(outcomes=["weight.kg"]))                                                    # which way is better?
+        self.assertTrue(errs(ramp_days=30))
+        self.assertTrue(errs(requires=["screen_time"]))
+        self.assertEqual(errs(requires=["bp.evening", "habit.screens_off"]), [])
+        # bp.* only works as a period outcome
+        self.assertTrue(X.check({"start": "2026-11-01", "rule": {"bedtime_by": "22:30"}, "outcomes": ["bp.morning_sys"]}, cat)[3])
+
+    def test_requirements(self):
+        X, cat = self.X, self.cat
+        e = {"type": "period", "start": "2026-11-01", "days": 21, "requires": ["bp.evening"],
+             "daily": {"all": [{"var": "food.creatine", "op": "=", "value": True}, {"var": "habit.screens_off", "op": "<=", "value": "22:00"},
+                               {"var": "day.sodium", "op": "<=", "value": 2000}, {"var": "day.protein", "op": ">=", "value": 150}]},
+             "outcomes": ["bp.morning_sys", {"var": "weight.kg", "better": "lower"}]}
+        row = {"bp.morning_sys": 121, "day.sodium": 2400, "day.protein": 90, "habit.screens_off": 21 * 60 + 40}
+        at = lambda hm, status="active": {i["key"]: i for i in X.requirements(e, {"status": status}, row, cat, X._hm(hm))}
+        T = at("09:00")
+        self.assertEqual(list(T)[:3], ["bp.morning", "weight", "bp.evening"])
+        self.assertEqual((T["bp.morning"]["state"], T["weight"]["state"], T["bp.evening"]["state"]), ("done", "todo", "todo"))
+        self.assertEqual((T["food.creatine"]["state"], T["habit.screens_off"]["state"]), ("todo", "done"))
+        self.assertEqual((T["day.sodium"]["state"], T["day.protein"]["state"]), ("missed", "todo"))
+        self.assertFalse(any(i["remind"] for i in T.values()))              # nothing due at 9am
+        T = at("21:45")
+        self.assertEqual({k for k, i in T.items() if i["remind"]}, {"weight", "bp.evening", "food.creatine"})
+        self.assertEqual(list(at("21:45", "planned")), ["bp.morning", "weight", "bp.evening"])   # before the start: readings only
+        self.assertEqual(at("21:45", "done"), {})
+        night = {"start": "2026-11-01", "rule": {"bedtime_by": "22:30"}}
+        bed = lambda hm: X.requirements(night, {"status": "active"}, {}, cat, X._hm(hm))[1]
+        self.assertEqual((bed("21:50")["due"], bed("21:50")["remind"], bed("21:00")["remind"]), ("21:45", True, False))
+        self.assertFalse(bed("22:40")["remind"])                           # too late to help
+
+    def test_sparse_columns(self):
+        rows = [{"date": f"2026-10-{i + 1:02d}", "day.kcal": 2000 + i, "food.creatine": True if i == 3 else None} for i in range(10)]
+        C = self.X._cols(rows, self.cat)["cols"]
+        self.assertEqual(len(C["day.kcal"]), 10); self.assertEqual(C["food.creatine"], {"s": [[3, True]]})

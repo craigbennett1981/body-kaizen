@@ -447,6 +447,9 @@ def main():
         {"id": "bedtime", "title": "Asleep by 23:00", "start": (END - dt.timedelta(days=40)).isoformat(), "days": 14,
          "rule": {"bedtime_by": "23:00"}, "outcomes": ["asleep", "sleep_score", "hrv", "rhr"],
          "hypothesis": "A regular bedtime before 23:00 gives longer sleep and a better HRV."},
+        {"id": "salt", "type": "period", "title": "Salt under 2,000 mg a day", "start": (END - dt.timedelta(days=30)).isoformat(), "days": 21,
+         "ramp_days": 3, "daily": {"all": [{"var": "day.sodium", "op": "<=", "value": 2000}]}, "outcomes": ["bp.morning_sys", "bp.morning_dia"],
+         "hypothesis": "Less salt every day lowers morning blood pressure within a few weeks."},
         {"id": "session-by-19", "title": "Training finished by 19:00", "start": (END - dt.timedelta(days=9)).isoformat(), "days": 14,
          "rule": {"session_end_by": "19:00"}, "outcomes": ["asleep", "sleep_score", "hrv"],
          "hypothesis": "Finishing training by 19:00 protects that night's sleep."}]}), encoding="utf-8")

@@ -95,13 +95,20 @@ baseline. The Body tab adds a 14-day profile and your meals ranked by spike.
 
 ## Experiments
 
-Test one change on yourself and see what it does to your own sleep and recovery.
+Test one change on yourself and see what it does to your own sleep, recovery, blood pressure or weight.
 
 - **Worth testing:** patterns your nights already show (late sessions, late meals, caffeine, bedtime), each with
   the evidence so far and the test that would settle it. Tell your assistant "start the bedtime experiment" and
   it adds it to `experiments.yaml`.
-- **Running now:** the rule, a square for each night (kept, missed or still to come), and an early read on each
-  outcome against the weeks before.
+- **Two kinds:** a night experiment (a rule each evening, judged on that night's sleep) and a period experiment (a
+  daily habit for a few weeks, like "beetroot every day for 21 days", judged on morning blood pressure, weight or
+  sleep, with the first few days left out while any effect builds).
+- **Running now:** the rule, a square for each day or night (kept, missed or still to come), an early read on each
+  outcome against the weeks before, and today's checklist: the readings it needs (a morning blood pressure, a
+  weigh-in, the watch worn overnight) and the rule. Anything not done by its time comes up as a reminder toast.
+- **Look for a relationship:** does more of one thing go with a higher or lower reading some days later? Pick a
+  food, amount or daily total, a reading, a delay and an averaging window, and get a scatter chart with the
+  correlation and its 90% range, before committing to a test.
 - **Try a rule:** pick any variable, a comparison and a value ("asleep by 22:30", "dinner carbs under 60 g", "had
   magnesium") and see how your nights went when it held against when it didn't, with a button to turn it into an
   experiment. Nothing is saved.
@@ -109,7 +116,8 @@ Test one change on yourself and see what it does to your own sleep and recovery.
   steps and stress, any food or supplement you log, and habits no device records (like when your screens went off),
   which your assistant logs from chat. Anything outside the list is flagged, not silently ignored. Length is 14
   nights unless you choose otherwise (3 to 60).
-- **Finished:** a verdict per experiment: it worked, no clear effect, made it worse, or not enough nights kept.
+- **Finished:** a verdict per experiment: it worked, no clear effect, made it worse, not enough kept, or "could be
+  a trend" when the reading was already moving that way before the start.
   Each outcome shows the difference with a 90% range from resampling, and only counts as better or worse when the
   whole range is on one side of zero.
 
