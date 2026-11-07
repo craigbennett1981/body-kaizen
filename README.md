@@ -97,7 +97,7 @@ files the dashboard does, so its answers match what you see.
 
 [Quick start](#quick-start) · [How it works](#how-it-works) · [Logging](#logging-you-need-an-ai-assistant) ·
 [Integrations](#integrations) · [Privacy in git](#keeping-your-data-private-in-git) · [FAQ](#faq) ·
-[Roadmap](#roadmap) · [Project layout](#project-layout) · [Contributing](#contributing)
+[Project layout](#project-layout) · [Contributing](#contributing)
 
 **Guides:** [Every page](docs/features.md) · [Logging with Claude](docs/logging-with-claude.md) ·
 [Integrations](docs/integrations.md) · [What kit is worth having](docs/kit.md) · [The data folder](docs/data-folder.md) ·
@@ -329,15 +329,6 @@ Each person needs their own data folder; run one dashboard per folder, on differ
 Body Kaizen sends nothing anywhere. What your AI assistant does with your messages depends on its provider's
 settings; check them.
 </details>
-
-## Roadmap
-
-- Units: imperial (lb, oz) as an option
-- More importers: Apple Health export, Oura, Withings, Strava
-- A mobile-friendly Day page layout
-- Weekly review generated into `reviews/`
-
-Ideas and pull requests are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Project layout
 
