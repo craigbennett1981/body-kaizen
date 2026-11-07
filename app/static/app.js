@@ -1522,7 +1522,7 @@ async function renderSleep(){
       <div class="t"><div class="lab">Last night</div><div class="v ${ok(L.asleep, L.asleep >= T)}">${esc(mh(L.asleep))}</div><div class="s">${clk(L.start)}–${clk(L.end)} · ${esc(L.awake ?? '–')} min awake</div></div>
       <div class="t"><div class="lab">Sleep score</div><div class="v ${ok(L.score, L.score >= 80)}">${esc(L.score ?? '–')}</div><div class="s">HRV ${esc(L.hrv ?? '–')} ms · resting HR ${esc(L.rhr ?? '–')}</div></div>
       <div class="t"><div class="lab">Last ${esc(S.recent_n)} nights</div><div class="v ${ok(R.asleep, R.asleep >= T)}">${esc(mh(R.asleep))}</div><div class="s">${esc(R.on_target)} of ${esc(S.recent_n)} on target</div></div>
-      <div class="t"><div class="lab">Sleep debt, 7 nights</div><div class="v ${ok(R.debt7, R.debt7 <= 60)}">${R.debt7 > 0 ? esc(mh(R.debt7)) : 'none'}</div><div class="s">under your target</div></div>
+      <div class="t"><div class="lab">Sleep debt, 7 nights</div><div class="v ${ok(R.debt7, R.debt7 <= 60)}">${R.debt7 > 0 ? esc(mh(R.debt7)) : 'none'}</div><div class="s">${R.debt7 > 0 ? 'under your target' : 'you’re at or over your target'}</div></div>
       ${TN ? `<div class="t tn"><div class="lab">Tonight</div><div class="v">${esc(TN.in_bed)}</div><div class="s">in bed, for a ${esc(TN.wake)} wake-up${TN.weekend?' (your weekday time: no weekend lie-in)':''}. Wind down from ${esc(TN.wind_down)}.</div></div>` : ''}
     </div>
     <h2>Last night</h2>
