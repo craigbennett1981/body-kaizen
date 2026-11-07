@@ -252,6 +252,7 @@ experiments:
     hypothesis: Screens off earlier helps me fall asleep sooner.   # optional
     baseline_days: 28           # optional: nights before the start to compare with
     status: stopped             # optional: only to end one early; otherwise worked out from the dates
+    notes: Asleep 20 min sooner on kept nights; keeping it.   # optional: the write-up, added when it finishes
     requires: [bp.evening]      # optional: extra readings to remind about (below)
   - id: salt                    # a period experiment: a daily habit, and readings that move over days, not one night
     type: period
@@ -295,6 +296,10 @@ A period experiment compares the period's readings (after the ramp-up) with the 
 days because one day's reading is close to the next. It needs 7+ readings on each side and 75% of days kept. If an
 outcome was already drifting the same way before the start, and that drift would explain at least 30% of the
 change, the verdict is "Could be a trend" instead of "It worked".
+
+While one runs, the card shows what's left and how many more misses it can take and still give a verdict; early
+results read "leaning better" or "leaning worse", since the range is wide and can flip. A toast marks the halfway
+point and the finish (with the verdict and what to do next).
 
 Each running or planned experiment has a checklist for today on its card: the readings it is judged on (needed
 during the baseline weeks too), and once it has started, the rule. Readings follow from the outcomes and rule

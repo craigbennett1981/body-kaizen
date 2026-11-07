@@ -18,7 +18,7 @@ better or worse when the whole range is on one side of zero.
 The tab's "Try a rule" panel runs the same comparison in the browser over the table this module returns, so it
 works on the static demo too; static/app.js must split nights the same way.
 """
-import datetime as dt, random, re, statistics as st
+import datetime as dt, math, random, re, statistics as st
 import data, sleep, foods
 
 MIN_NIGHTS = 5           # kept nights needed before showing a result
@@ -381,7 +381,7 @@ def evaluate_period(e, drows, today, cat, comb, conds, outs, base_info):
     bdays = int(e.get("baseline_days") or BASELINE_DAYS)
     by = {r["date"]: r for r in drows}
     span = [start + dt.timedelta(days=i) for i in range(n)]                 # the days you keep the habit
-    judged = [(d, kept(by.get(d.isoformat(), {}), comb, conds, cat) if d <= today else "future") for d in span]
+    judged = [(d, kept(by.get(d.isoformat(), {}), comb, conds, cat) if d < today else "future") for d in span]   # today is still going
     k = sum(1 for _, x in judged if x is True); miss = sum(1 for _, x in judged if x is False)
     so_far = sum(1 for d in span if d <= today)
     status = e.get("status") or ("planned" if today < start else "active" if today < span[-1] + dt.timedelta(days=1) else "done")
@@ -432,7 +432,7 @@ def evaluate_period(e, drows, today, cat, comb, conds, outs, base_info):
             if trends:
                 verdict = ("trend" if verdict[0] in ("worked", "worse") else verdict[0],
                            verdict[1] + " But be careful: " + " ".join(r["trend_note"] for r in trends)
-                           + " Run it again after a steady spell, or stop the habit for two weeks and see if it moves back.")
+                           )
     elif status == "active":
         verdict = ("running", f"Day {so_far} of {n}." + (f" The first {ramp} days are left out while any effect builds." if so_far <= ramp + 1 else "")
                    + (" Early read: it can still change." if any(r["verdict"] != "too early" for r in results) else " Too early to read anything."))
@@ -570,11 +570,50 @@ def baseline_progress(x):
             "unit": "readings" if x.get("type") == "period" else "nights"}
 
 
+def progress(x):
+    """For a running experiment: what's left, and how many more misses it can take and still give a verdict."""
+    if x["status"] != "active": return None
+    left = sum(1 for c in x["calendar"] if c["state"] == "future")
+    k, m = x["kept"], x["missed"]; judged = k + m + left
+    p = PERIOD_KEPT if x["type"] == "period" else ENOUGH_KEPT
+    can = math.floor(k + left - p * judged + 1e-9)
+    if x["type"] != "period": can = min(can, k + left - MIN_NIGHTS)
+    return {"left": left, "unit": "days" if x["type"] == "period" else "nights", "can_miss": can, "need": p}
+
+
+NEXT = {   # what to do after a finished experiment, by verdict
+    "worked": "Keep the habit. If it matters to you, repeat the experiment in a month or two: a second result is much stronger than one.",
+    "worse": "Stop the habit, or change it before trying again.",
+    "no effect": "Drop it unless you like it for its own sake, or test a stronger version (an earlier time, a bigger change) for longer.",
+    "trend": "Run it again after a steady spell, or stop the habit for two weeks and see if the reading moves back.",
+    "inconclusive": "Run it again when you can keep to it most days, and take the readings it needs every day.",
+}
+
+
+def lean(x):
+    """Early results are a lean, not a verdict: a range at night 5 is wide and the label can flip."""
+    for r in x.get("results") or []:
+        if r.get("verdict") in ("better", "worse"): r["lean"] = True
+
+
 def reminders(B=None):
     """Toasts for the dashboard: requirements that are due today and not yet done."""
     if B is None and not _load()[0]: return []
-    B = B or build(); out = []
+    B = B or build(); out = []; today = data.bkenv.today()
     for x in B["experiments"]:
+        if x["status"] == "active" and x.get("progress"):
+            n = x["days"]; half = dt.date.fromisoformat(x["start"]) + dt.timedelta(days=(n + 1) // 2)   # the morning the first half is in
+            if 0 <= (today - half).days < 3:
+                leans = [f"leaning {r['verdict']} on {r['label'][0].lower() + r['label'][1:]}" for r in x["results"] if r.get("lean")]
+                pr = x["progress"]
+                out.append({"id": f"exp-{x['id']}-halfway", "since": half.isoformat(), "kind": "remind", "title": f"{x['title']}: halfway",
+                            "text": f"Kept {x['kept']} of {x['kept'] + x['missed']} so far, {pr['left']} {pr['unit']} to go"
+                                    + (f"; {_and(leans)}." if leans else "; no lean either way yet."),
+                            "todo": "Early reads can still flip: keep going." if pr["can_miss"] >= 0 else
+                                    "It can't reach enough kept days for a verdict any more: think about stopping it and starting again."})
+        if x["status"] == "done" and x.get("finished_on") and 0 <= (today - dt.date.fromisoformat(x["finished_on"])).days < 4:
+            out.append({"id": f"exp-{x['id']}-done", "since": x["finished_on"], "kind": "remind", "title": f"{x['title']}: finished",
+                        "text": x["verdict_text"].split(" But be careful")[0], "todo": (x.get("next") or "") + " Ask your assistant to write it up."})
         for it in x.get("today") or []:
             if it["remind"]:
                 out.append({"id": f"exp-{x['id']}-{it['key']}", "since": data.bkenv.today().isoformat(), "kind": "remind",
@@ -653,6 +692,12 @@ def build():
     for e, x in zip(exps, E):
         x["today"] = requirements(e, x, trow, cat, now_min)
         if x["status"] in ("active", "planned"): x["baseline_progress"] = baseline_progress(x)
+        x["progress"] = progress(x)
+        if x["status"] == "active": lean(x)
+        if x["status"] in ("done", "stopped"):
+            x["next"] = NEXT.get(x["verdict"])
+            if x["status"] == "done":   # a night experiment's last night ends the morning of `end`; a period's last day ends that evening
+                x["finished_on"] = (dt.date.fromisoformat(x["end"]) + dt.timedelta(days=1 if x["type"] == "period" else 0)).isoformat()
     live = [x for x in E if x["status"] in ("active", "planned", "invalid")]
     past = sorted([x for x in E if x not in live], key=lambda x: x["start"], reverse=True)
     taken = {x["id"] for x in live}

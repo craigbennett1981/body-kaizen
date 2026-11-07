@@ -390,6 +390,21 @@ class Experiments(unittest.TestCase):
         self.assertEqual((bed("21:50")["due"], bed("21:50")["remind"], bed("21:00")["remind"]), ("21:45", True, False))
         self.assertFalse(bed("22:40")["remind"])                           # too late to help
 
+    def test_progress_and_what_next(self):
+        X = self.X
+        cal = lambda kept, missed, left: [{"state": "kept"}] * kept + [{"state": "missed"}] * missed + [{"state": "future"}] * left
+        P = lambda typ, k, m, left: X.progress({"status": "active", "type": typ, "kept": k, "missed": m, "calendar": cal(k, m, left)})
+        self.assertEqual(P("night", 5, 2, 7)["can_miss"], 3)     # 9 of 14 kept is 64%: one more miss would be 57%
+        self.assertEqual(P("night", 2, 0, 3)["can_miss"], 0)     # needs 5 kept nights, has 2 with 3 to go
+        self.assertLess(P("period", 10, 8, 3)["can_miss"], 0)    # can't reach 75% any more
+        self.assertEqual(P("night", 5, 2, 7)["left"], 7)
+        self.assertIsNone(X.progress({"status": "done"}))
+        self.assertEqual(set(X.NEXT), {"worked", "worse", "no effect", "trend", "inconclusive"})
+        B = X.build()
+        for e in B["experiments"]:
+            if e["status"] == "done": self.assertTrue(e["next"]); self.assertTrue(e["finished_on"])
+            if e["status"] == "active": self.assertFalse(any(r.get("lean") and r["verdict"] == "unclear" for r in e["results"]))
+
     def test_sparse_columns(self):
         rows = [{"date": f"2026-10-{i + 1:02d}", "day.kcal": 2000 + i, "food.creatine": True if i == 3 else None} for i in range(10)]
         C = self.X._cols(rows, self.cat)["cols"]

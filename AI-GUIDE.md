@@ -108,6 +108,13 @@ bp.morning_dia]`. "Look for a relationship" on the tab checks the history for on
 - **While it runs:** when you log the evening or close the day, say whether today kept to the rule, how many
   days or nights are left, and anything on today's checklist still not done (a missing reading). Don't nag on a
   missed day: say it plainly and move on.
+- **Early reads:** a running card shows "leaning better" or "leaning worse" once there's enough data. Call it a lean,
+  never a result, and don't suggest changing anything because of it. If the card says it can no longer reach enough
+  kept days for a verdict, say so and ask whether to stop it and start again.
+- **When one finishes** (the card moves to Finished, and a toast says so): report the verdict and the card's "What
+  next", ask what they want to do (keep, drop or repeat), then add a `notes:` write-up to the entry: two or three
+  plain sentences on what was tested, what happened and what they're doing next. The card's "Copy for your assistant
+  to write up" button gives you the numbers. Change nothing else in a finished entry.
 - **Stopping early:** set `status: stopped`. Never edit the dates or the rule of one that has started: that would
   change what it's measuring.
 - **Reading the result:** report the tab's verdict and numbers as they are. "No clear effect" and "not enough

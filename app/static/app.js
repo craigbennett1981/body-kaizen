@@ -1533,12 +1533,12 @@ function xpResults(list, aLab, bLab){
   return `<div class="xp-res">${list.map(r => {
     if(r.diff == null) return `<div class="xr"><span class="xr-l">${esc(r.label)}</span><span class="sub">${r.verdict === 'too early' ? `needs ${XP.min_nights}+ nights on each side (${r.n} and ${r.n_base})` : '–'}</span></div>`;
     const span = Math.max(Math.abs(r.lo), Math.abs(r.hi), 1) * 1.15, pos = v => 50 + v / span * 50;
-    const cls = r.verdict === 'better' ? 'g' : r.verdict === 'worse' ? 'b' : 'q';
-    return `<div class="xr" title="${esc(r.label)}: ${xpVal(r.trial, r)} on ${r.n} ${aLab} against ${xpVal(r.base, r)} on ${r.n_base} ${bLab}. 90% range for the difference: ${xpDiff(r.lo, r)} to ${xpDiff(r.hi, r)}. ${r.better_if === 'higher' ? 'Higher' : 'Lower'} is better.">
+    const cls = (r.verdict === 'better' ? 'g' : r.verdict === 'worse' ? 'b' : 'q') + (r.lean ? ' lean' : '');
+    return `<div class="xr" title="${r.lean ? 'Early read: the range is still wide and this can flip as more come in. ' : ''}${esc(r.label)}: ${xpVal(r.trial, r)} on ${r.n} ${aLab} against ${xpVal(r.base, r)} on ${r.n_base} ${bLab}. 90% range for the difference: ${xpDiff(r.lo, r)} to ${xpDiff(r.hi, r)}. ${r.better_if === 'higher' ? 'Higher' : 'Lower'} is better.">
       <span class="xr-l">${esc(r.label)}</span>
       <span class="xr-v"><span class="sub">${xpVal(r.base, r)} →</span> <b>${xpVal(r.trial, r)}</b></span>
       <span class="xr-bar"><i class="z"></i><i class="rng ${cls}" style="left:${pos(r.lo)}%;width:${Math.max(1, pos(r.hi) - pos(r.lo))}%"></i><i class="pt ${cls}" style="left:${pos(r.diff)}%"></i></span>
-      <span class="xr-d ${cls}">${xpDiff(r.diff, r)} <span class="sub">${r.verdict === 'better' ? 'better' : r.verdict === 'worse' ? 'worse' : 'unclear'}</span></span></div>`; }).join('')}</div>`;
+      <span class="xr-d ${cls}">${xpDiff(r.diff, r)} <span class="sub">${r.lean ? 'leaning ' : ''}${r.verdict === 'better' ? 'better' : r.verdict === 'worse' ? 'worse' : 'unclear'}</span></span></div>`; }).join('')}</div>`;
 }
 
 function xpCard(E){
@@ -1550,12 +1550,43 @@ function xpCard(E){
   const judged = E.kept + E.missed, per = E.type === 'period', unit = per ? 'days' : 'nights';
   const kept = judged ? `Kept to the rule on <b>${esc(E.kept)} of ${esc(judged)}</b> ${unit}${E.verdict === 'running' ? ' so far' : ''}${E.share_kept != null ? ` (${Math.round(E.share_kept * 100)}%)` : ''}.` : '';
   return `<div class="xp xp-${pc}">
-    <div class="xp-top"><h3>${esc(E.title)}</h3><span class="xp-pill">${esc(pl)}</span></div>
+    <div class="xp-top"><h3>${esc(E.title)}</h3><span class="xp-top-r">${E.progress ? `<span class="sub">${esc(E.progress.left)} ${esc(E.progress.left === 1 ? E.progress.unit.slice(0, -1) : E.progress.unit)} to go</span>` : ''}<span class="xp-pill">${esc(pl)}</span></span></div>
     <p class="xp-rule"><b>${E.type === 'period' ? 'Every day' : 'Rule'}:</b> ${esc(E.rule_text)} · ${esc(shortDate(E.start))} to ${esc(shortDate(E.end))} (${esc(E.days)} ${E.type === 'period' ? 'days' : 'nights'}${E.type === 'period' && E.ramp_days ? `, the first ${esc(E.ramp_days)} left out while any effect builds` : ''})${E.hypothesis ? `<br><span class="sub">${esc(E.hypothesis)}</span>` : ''}</p>
     <div class="xp-cal" aria-label="Nights of the experiment">${cal}</div>
     ${xpToday(E)}
     <p class="xp-v"><b>${esc(E.verdict_text)}</b> ${kept} Compared with ${esc(E.baseline.nights)} ${E.type === 'period' ? 'readings' : 'nights'} in the ${esc(XP.baseline_days)} days before it started.</p>
-    ${E.type === 'period' ? xpResults(E.results, 'readings in the period', 'readings before') : xpResults(E.results, 'kept nights', 'baseline nights')}${E.notes ? `<p class="sub">${esc(E.notes)}</p>` : ''}</div>`;
+    ${E.type === 'period' ? xpResults(E.results, 'readings in the period', 'readings before') : xpResults(E.results, 'kept nights', 'baseline nights')}${xpAfter(E)}</div>`;
+}
+// under the results: on course for a verdict? what next? the write-up
+function xpAfter(E){
+  const P = E.progress, unit1 = P ? P.unit.slice(0, -1) : '';
+  const course = !P ? '' : P.can_miss < 0
+    ? `<p class="xp-course bad">It can't reach the ${Math.round(P.need * 100)}% of ${esc(P.unit)} kept that a verdict needs any more, even keeping every one left. Think about stopping it and starting again when you can keep to it.</p>`
+    : `<p class="xp-course">${P.can_miss === 0 ? `Keep to every ${esc(unit1)} left to get a verdict.` : `You can miss ${esc(P.can_miss)} more ${esc(P.can_miss === 1 ? unit1 : P.unit)} and still get a verdict.`}
+       ${E.results.some(r => r.lean) ? ' Early reads are a lean, not a result: they can still flip, so don\u2019t change anything yet.' : ''}</p>`;
+  const next = E.next ? `<p class="xp-next"><b>What next:</b> ${esc(E.next)}</p>` : '';
+  const notes = E.notes ? `<p class="xp-notes"><b>${E.next ? 'Write-up' : 'Notes'}:</b> ${esc(E.notes)}</p>` : '';
+  const wu = E.next && !E.notes ? `<p class="xs-copy"><button class="xs-cp xp-wu" data-id="${esc(E.id)}" title="Copies the result with instructions for your assistant">Copy for your assistant to write up</button> <span class="sub"></span></p><pre class="xtry-yaml" hidden></pre>` : '';
+  return course + next + notes + wu;
+}
+function xpWriteUp(E){
+  const lines = E.results.map(r => r.diff == null ? `- ${r.label}: not enough data` :
+    `- ${r.label}: ${xpVal(r.base, r)} before, ${xpVal(r.trial, r)} during (${xpDiff(r.diff, r)}, 90% range ${xpDiff(r.lo, r)} to ${xpDiff(r.hi, r)}): ${r.verdict}${r.trend_note ? '. ' + r.trend_note : ''}`);
+  return `Please write up my finished Body Kaizen experiment "${E.title}" (id: ${E.id}).
+
+1. Read the Experiments section of AI-GUIDE.md.
+2. Add notes: to that entry in experiments.yaml in my data folder: two or three plain sentences on what was tested, what happened, and what I'm doing next. Change nothing else in the entry.
+3. Report the result as it is: "no clear effect" and "not enough kept" are real answers, and one person's result is evidence for me, not proof for everyone.
+4. If I haven't said what I'm doing next, ask me (keep the habit, drop it, or repeat it) before writing that part.
+5. Commit the change if my data folder is a git repository.
+
+What the Experiments tab shows:
+${E.rule_text}, ${E.start} to ${E.end} (${E.days} ${E.type === 'period' ? 'days' : 'nights'}).
+Verdict: ${E.verdict_text}
+Kept to the rule on ${E.kept} of ${E.kept + E.missed} ${E.type === 'period' ? 'days' : 'nights'}; compared with ${E.baseline.nights} ${E.type === 'period' ? 'readings' : 'nights'} before it started.
+${lines.join('\n')}
+Suggested next step: ${E.next}
+`;
 }
 
 // today's checklist: the readings the experiment is judged on, and (once it has started) the rule itself
@@ -1762,7 +1793,8 @@ async function renderExperiments(){
       <li>The bar shows the difference and a 90% range for it, from resampling those nights. It only counts as better or worse when the whole range is on one side of zero; otherwise it's unclear.</li>
       <li>A finished experiment needs ${Math.round(XP.enough_kept * 100)}% of nights kept, and at least ${esc(XP.min_nights)}, to give a verdict. One person, one experiment: treat a result as strong evidence for you, not proof for everyone, and repeat it if it matters.</li>
     </ul>`;
-  el.querySelectorAll('.xs-cp').forEach(b => b.onclick = () => xpCopy(xpForAgent(xpWithDays(XP.suggestions[+b.dataset.i].yaml, b.parentNode.querySelector('.xs-days').value)), b.nextElementSibling,
+  el.querySelectorAll('.xp-wu').forEach(b => b.onclick = () => xpCopy(xpWriteUp(XP.experiments.find(x => x.id === b.dataset.id)), b.nextElementSibling, b.parentNode.nextElementSibling));
+  el.querySelectorAll('.xs-cp:not(.xp-wu)').forEach(b => b.onclick = () => xpCopy(xpForAgent(xpWithDays(XP.suggestions[+b.dataset.i].yaml, b.parentNode.querySelector('.xs-days').value)), b.nextElementSibling,
     b.closest('.xs').querySelector('details pre')));
   xpTryForm(); xpRelForm();
 }

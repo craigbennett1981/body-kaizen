@@ -606,3 +606,7 @@ ol.sl-gen{padding-left:20px;line-height:1.5;font-size:14px} ol.sl-gen li{margin:
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .xs-copy{margin:6px 0} .xs-cp{background:none;border:1px solid var(--rule);border-radius:6px;padding:3px 10px;cursor:pointer;font-size:12.5px;color:inherit}
 .xp-len{display:inline-flex;align-items:center;gap:6px;margin-right:8px}
+.xp-top-r{display:inline-flex;align-items:center;gap:10px}
+.xp-res .xr-d.lean,.xp-res .rng.lean,.xp-res .pt.lean{opacity:.6}
+.xp-course{font-size:13px;margin:6px 0} .xp-course.bad{color:var(--bad)}
+.xp-next,.xp-notes{font-size:13px;margin:6px 0}

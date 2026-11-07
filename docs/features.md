@@ -106,6 +106,9 @@ Test one change on yourself and see what it does to your own sleep, recovery, bl
 - **Running now:** the rule, a square for each day or night (kept, missed or still to come), an early read on each
   outcome against the weeks before, and today's checklist: the readings it needs (a morning blood pressure, a
   weigh-in, the watch worn overnight) and the rule. Anything not done by its time comes up as a reminder toast.
+- **Progress:** days or nights to go, how many more you can miss and still get a verdict (or a warning when it can't
+  reach one any more), and early results shown as a lean, not a verdict. A toast at the halfway point says how it's
+  going.
 - **Look for a relationship:** does more of one thing go with a higher or lower reading some days later? Pick a
   food, amount or daily total, a reading, a delay and an averaging window, and get a scatter chart with the
   correlation and its 90% range, before committing to a test.
@@ -117,7 +120,8 @@ Test one change on yourself and see what it does to your own sleep, recovery, bl
   which your assistant logs from chat. Anything outside the list is flagged, not silently ignored. Length is 14
   nights unless you choose otherwise (3 to 60).
 - **Finished:** a verdict per experiment: it worked, no clear effect, made it worse, not enough kept, or "could be
-  a trend" when the reading was already moving that way before the start.
+  a trend" when the reading was already moving that way before the start. A toast tells you when one finishes, the
+  card says what to do next, and a button copies the result for your assistant to write up in the experiment's notes.
   Each outcome shows the difference with a 90% range from resampling, and only counts as better or worse when the
   whole range is on one side of zero.
 
