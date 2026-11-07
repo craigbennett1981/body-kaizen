@@ -78,11 +78,13 @@ table sits underneath.
 
 ## Sleep & recovery
 
-![Readiness: today's state against your own last 4 weeks, with off episodes shaded](img/readiness.png)
+![Readiness, then overnight HRV and resting heart rate against your baseline](img/readiness.png)
 
 - **Readiness:** today's state against your own last 4 weeks (resting heart rate, HRV, sleep debt, training load,
   stress, body battery), saying what's holding you back. It's tested against your recorded off episodes and says
   how often it warned ahead.
+- **HRV and resting heart rate** every night against your baseline, with the resting heart rate at which the day
+  should be a walk only.
 
 ![Sleep: last night, sleep debt, tonight's bedtime and last night's stages](img/sleep.png)
 
@@ -104,11 +106,6 @@ table sits underneath.
 ![Sleep stages: shares against typical ranges, patterns in plain words, and minutes of each stage every night](img/sleep-stages.png)
 
 ![Your nights split by the day before, each with a verdict and the difference in sleep, score, HRV and bedtime](img/sleep-factors.png)
-
-**HRV and resting heart rate** every night against your baseline, with the resting heart rate at which the day
-should be a walk only.
-
-![Overnight HRV and resting heart rate over time](img/recovery.png)
 
 ## Experiments
 
