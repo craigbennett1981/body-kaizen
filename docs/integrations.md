@@ -91,5 +91,5 @@ and `vitals: bp:` in [SCHEMA.md](../SCHEMA.md). Any scale or monitor works.
 ## Something missing?
 
 If there's a watch, ring, scale, CGM, gym app or health service you'd like Body Kaizen to read from,
-[ask for it on GitHub](https://github.com/craigbennett1981/body-kaizen/issues/new?template=integration_request.yml) (a short form): say what it is, what data you'd want from it, and whether it has an export
+[ask for it on GitHub](https://github.com/craigbennett1981/body-kaizen/issues/new/choose) (choose "Integration request", a short form): say what it is, what data you'd want from it, and whether it has an export
 or an API. Requests shape what gets built next.
