@@ -3,6 +3,25 @@
 What changed in each release. Earlier releases are described on the
 [releases page](https://github.com/craigbennett1981/body-kaizen/releases).
 
+## Unreleased
+
+### Experiments tab
+- **Test one change on yourself:** a rule each evening (asleep by 22:30) judged on that night's sleep, or a daily
+  habit for a few weeks (sodium under 2 g) judged on morning blood pressure, weight or sleep. Suggested from your own
+  data, built from a fixed list of variables (anything else is flagged), with habits no device records and
+  supplements logged like food.
+- **While it runs:** a checklist for today, reminder toasts for readings and the rule, days to go, how many more you
+  can miss and still get a verdict, early results shown as a lean, and a halfway note.
+- **When it ends:** a verdict with a 90% range per outcome, a warning when a reading was already trending that way,
+  what to do next, and a button that copies the result for your assistant to write up.
+- **Try a rule** and **Look for a relationship** question your history before you commit to a test; copying one
+  gives your assistant the entry and the steps to start it.
+
+### Fewer tabs: 13 down to 9
+- **Sleep & recovery** (was Sleep and Recovery), **Week** (now with the trends chart and all the advice),
+  **History** (was Timeline and Wellbeing). Glucose by food and by meal moved to **Food**; the health score shows
+  once, on Longevity. Old links to the merged tabs still work.
+
 ## 0.5.0 (7 November 2026)
 
 ### Try it without installing

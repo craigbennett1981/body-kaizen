@@ -534,7 +534,8 @@ def requirements(e, x, row, cat, now_min):
     for n in needs:
         label, todo, due, var = REQUIRES[n]
         add(n, label, todo, "done" if row.get(var) is not None else "todo", due)
-    if x["status"] != "active": return items
+    tonight = x["status"] == "planned" and e.get("type") != "period" and str(e.get("start")) == data.bkenv.today().isoformat()
+    if x["status"] != "active" and not tonight: return items   # a night experiment's rule starts the evening of its start date
     extra = [{"var": r, "op": "=", "value": True, "parsed": True} for r in (e.get("requires") or []) if str(r).startswith(("habit.", "food."))]
     for c in conds + [c for c in extra if c["var"] not in {k["var"] for k in conds}]:
         v, meta = c["var"], cat[c["var"]]; text = condition_text(cat, c); val = row.get(v)

@@ -1,4 +1,4 @@
-"""The Sleep tab: last night in detail, the trend against your target and Garmin's sleep need, how regular your
+"""The Sleep & recovery tab: last night in detail, the trend against your target and Garmin's sleep need, how regular your
 sleep is, what in your own days goes with better or worse nights, and advice built from all of that.
 
 A night belongs to the day you wake up on (the 7 Nov file holds the night of 6-7 Nov). "The day before" a night is

@@ -66,18 +66,18 @@ problem, please [raise a GitHub issue](https://github.com/craigbennett1981/body-
 |---|---|---|---|---|
 | Sleep score colour | Garmin score 80+ green, under 60 red | Garmin's own bands (inferred) | Day readiness strip | `app.js` |
 | Late session | Gym or run starting at 19:00 or later followed by a sleep score under 70 = warning | heuristic | Day notes | `insights.py` |
-| Short night | Under 7 h counts as short | AASM/SRS adult minimum of 7 h (inferred) | Advice | `advice.py` |
-| Irregular bedtime | Sleep-onset standard deviation over 30 min = advice; over 60 min = alert | heuristic | Advice, Day notes, toasts | `advice.py, alerts.py` |
+| Short night | Under 7 h counts as short | AASM/SRS adult minimum of 7 h (inferred) | Week advice | `advice.py` |
+| Irregular bedtime | Sleep-onset standard deviation over 30 min = advice; over 60 min = alert | heuristic | Week advice, Day notes, toasts | `advice.py, alerts.py` |
 | Bedtime habit | Asleep within 30 min of the median of the previous 14 nights | heuristic | Week | `habits.py` |
 
 ## Recovery and readiness
 
 | Threshold | Rule | Basis | Shown on | Defined in |
 |---|---|---|---|---|
-| Readiness bands | 70+ green, 50–69 amber, under 50 red | heuristic, checked by the built-in backtest against your logged off-episodes | Day, Recovery | `readiness.py BANDS` |
-| Signals | Each costs points vs your own 28-day baseline: resting HR and HRV 9 per SD, sleep debt 9 per hour, training-load spike 35 per unit above 1.2, stress and body battery 4, feel 8 per point below 3 | heuristic | Day, Recovery | `readiness.py W` |
-| Noise band | Within 0.5 SD of your baseline costs nothing | heuristic | Day, Recovery | `readiness.py NOISE` |
-| Load spike | 7-day load ÷ 4-week load above 1.2 | acute:chronic workload ratio (Gabbett 2016, inferred) | Day, Recovery | `readiness.py` |
+| Readiness bands | 70+ green, 50–69 amber, under 50 red | heuristic, checked by the built-in backtest against your logged off-episodes | Day, Sleep & recovery | `readiness.py BANDS` |
+| Signals | Each costs points vs your own 28-day baseline: resting HR and HRV 9 per SD, sleep debt 9 per hour, training-load spike 35 per unit above 1.2, stress and body battery 4, feel 8 per point below 3 | heuristic | Day, Sleep & recovery | `readiness.py W` |
+| Noise band | Within 0.5 SD of your baseline costs nothing | heuristic | Day, Sleep & recovery | `readiness.py NOISE` |
+| Load spike | 7-day load ÷ 4-week load above 1.2 | acute:chronic workload ratio (Gabbett 2016, inferred) | Day, Sleep & recovery | `readiness.py` |
 | HRV dip | HRV under 90% of your HRV baseline = 'go easier' | heuristic | Day notes | `insights.py` |
 | Resting HR rising | 7-day mean more than 2 SD above the 60-day baseline for 3+ days | heuristic | Day notes, toasts | `alerts.py` |
 | vs normal | Glance strip colours only gaps of 5 ms HRV or 3 bpm resting HR | heuristic | Day | `glance.py` |
@@ -116,13 +116,13 @@ problem, please [raise a GitHub issue](https://github.com/craigbennett1981/body-
 
 | Threshold | Rule | Basis | Shown on | Defined in |
 |---|---|---|---|---|
-| Steps | Enough = the start of the green band for steps in `markers.yaml` (7,000 a day in the starter file); `targets.yaml reference.steps_daily` is only a chart line | mortality benefit levels off around 7,000–8,000 steps (Paluch 2022; Ding 2025, both Lancet Public Health) | Advice, Day notes, Habits | `data.py steps_target` |
-| Calories advice | In range on under 60% of the last 7 closed days = act | heuristic | Advice | `advice.py` |
-| Sodium | 14-day average over 2,300 mg = act | WHO 2,000 mg / US Dietary Guidelines 2,300 mg (inferred) | Advice | `advice.py` |
+| Steps | Enough = the start of the green band for steps in `markers.yaml` (7,000 a day in the starter file); `targets.yaml reference.steps_daily` is only a chart line | mortality benefit levels off around 7,000–8,000 steps (Paluch 2022; Ding 2025, both Lancet Public Health) | Week advice, Day notes, Habits | `data.py steps_target` |
+| Calories advice | In range on under 60% of the last 7 closed days = act | heuristic | Week advice | `advice.py` |
+| Sodium | 14-day average over 2,300 mg = act | WHO 2,000 mg / US Dietary Guidelines 2,300 mg (inferred) | Week advice | `advice.py` |
 | Protein alert | 7-day protein under 1.4 g/kg | heuristic (below the 1.6 g/kg Morton 2018 plateau) | Day notes, toasts | `alerts.py` |
-| Lifting frequency | Under 2.5 gym sessions a week (30 days) = act | heuristic | Advice | `advice.py` |
-| Cardio frequency | Under 2 cardio sessions a week = act | heuristic | Advice | `advice.py` |
-| Weigh-in | No fasted weigh-in for more than 5 days = act | heuristic | Advice | `advice.py` |
+| Lifting frequency | Under 2.5 gym sessions a week (30 days) = act | heuristic | Week advice | `advice.py` |
+| Cardio frequency | Under 2 cardio sessions a week = act | heuristic | Week advice | `advice.py` |
+| Weigh-in | No fasted weigh-in for more than 5 days = act | heuristic | Week advice | `advice.py` |
 | Weekly hit rate | 70%+ green, under 40% red | heuristic | Week | `app.js` |
 
 ## Energy balance (`app/energybalance.py`)

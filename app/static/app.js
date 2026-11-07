@@ -14,7 +14,10 @@ let SUMMARY = [], charts = {};
 
 /* ---------- tabs ---------- */
 document.querySelectorAll('nav button').forEach(b => b.onclick = () => showTab(b.dataset.tab));
+// tabs that were merged into others: old links land on the new home
+const TAB_MOVED = {recovery:'sleep', trends:'week', advice:'week', wellbeing:'history', timeline:'history'};
 function showTab(t){
+  t = TAB_MOVED[t] || t;
   if(!document.getElementById('tab-'+t)) t = 'day';
   document.querySelectorAll('nav button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab===t));
   document.querySelectorAll('main > section').forEach(s => s.hidden = s.id !== 'tab-'+t);
@@ -715,7 +718,7 @@ async function renderWellbeing(){
   const how = `<div class="wb-how"><b>How to report</b> (any part, any day, in chat):<code>feel 4 mood 4 energy 3 gut 2 stress 3</code><code>sym headache mild 15:00, bloating moderate, sore shoulder (left) mild</code>
     <span class="sub">Scores are 1–5 (5 = great; for stress 5 = very stressed). Severity: mild, moderate or severe. Add a note in plain words and I'll file it.</span></div>`;
   const delta = s => s.now==null ? '–' : `${fmt(s.now,1)}${s.before!=null?` <span class="sub">${s.now>s.before?'↑':s.now<s.before?'↓':'→'} vs ${fmt(s.before,1)} before</span>`:''}`;
-  $('#wb-head').innerHTML = `<p class="sub">Your mood scores and health issues as you report them, with off episodes shaded and sleep for context.</p>
+  $('#wb-head').innerHTML = `<p class="sub">Mood scores and symptoms as you report them, with off episodes shaded and sleep for context.</p>
     <div class="tiles-g wb-tiles">${['overall','mood','energy','gut','stress'].map(k => `<div class="t"><div class="lab">${WB[k][0].split(' (')[0]} · 7-day avg</div><div class="v">${delta(W.summary[k])}</div></div>`).join('')}
       <div class="t"><div class="lab">Logged</div><div class="v">${esc(W.logged_14d)}<small> of 14 days</small></div></div>
       <div class="t"><div class="lab">Days with symptoms</div><div class="v">${esc(W.symptom_days_30d)}<small> in 30 days</small></div></div></div>
@@ -743,30 +746,36 @@ async function renderWellbeing(){
   const last = D.slice(-60);
   let h = '';
   if(W.symptoms.length){
-    h += `<h2>Symptoms, last 60 days</h2><div class="wrap"><table class="wb-grid"><tr><th></th>${last.map((d,i)=>`<th title="${shortDate(d.date)}"><span>${i%7===0?shortDate(d.date):''}</span></th>`).join('')}<th class="num">Total</th></tr>` +
+    h += `<h3>Symptoms, last 60 days</h3><div class="wrap"><table class="wb-grid"><tr><th></th>${last.map((d,i)=>`<th title="${shortDate(d.date)}"><span>${i%7===0?shortDate(d.date):''}</span></th>`).join('')}<th class="num">Total</th></tr>` +
       W.symptoms.map(s => `<tr><td class="nm">${esc(s.what)}</td>${last.map(d => { const m = d.symptoms.filter(z=>z.what===s.what); const v = m.length ? Math.max(...m.map(z=>z.severity)) : 0;
         return `<td class="c s${v}" title="${shortDate(d.date)}${v?': '+SEV_TXT[v]:''}"></td>`; }).join('')}<td class="num">${esc(s.count)}</td></tr>`).join('') + `</table></div>
       <p class="sub">Darker = more severe.${W.symptoms.filter(s=>s.context).map(s=>` <b>${esc(s.what)}</b>: ${esc(s.context)}`).join('')}</p>`;
   }
-  if(W.reports.length) h += `<h2>Recent reports</h2><table class="wb-rep"><tr><th>Date</th><th>Scores</th><th>Symptoms</th><th>Note</th></tr>${W.reports.map(r => `<tr><td>${shortDate(r.date)}</td>
+  if(W.reports.length) h += `<h3>Recent reports</h3><table class="wb-rep"><tr><th>Date</th><th>Scores</th><th>Symptoms</th><th>Note</th></tr>${W.reports.map(r => `<tr><td>${shortDate(r.date)}</td>
       <td>${Object.entries(r.feel).map(([k,v])=>`${WB[k][0].split(' (')[0].toLowerCase()} ${v}`).join(' · ')||'–'}</td>
       <td>${r.symptoms.map(s=>`${esc(s.what)} <span class="sub">${SEV_TXT[s.severity]}${s.time?' '+s.time:''}</span>`).join(', ')||'–'}</td><td>${esc(r.note||'')}</td></tr>`).join('')}</table>`;
-  h += `<h2>Off episodes</h2><ul class="tl">${[...W.episodes].reverse().map(e => `<li><i style="background:${c.bad}"></i><span class="d">${shortDate(e.start)}${e.end!==e.start?'–'+shortDate(e.end):''}</span><span>${esc(e.what)}</span></li>`).join('')}</ul>`;
   if(any) h += how;
   $('#wb-body').innerHTML = h;
 }
 
 /* ---------- advice ---------- */
 const ADV_LABEL = {act:'Act on this', keep:'Keep doing', info:'Worth knowing'};
+let ADV = null;
+const advCard = (i, sec) => `<div class="adv ${esc(i.level)}"><div class="adv-top"><span class="adv-lv">${ADV_LABEL[i.level]}</span>${sec?`<span class="area">${sec}</span>`:''}</div>
+    <h3>${esc(i.title)}</h3><p class="why">${esc(i.why)}</p><ul>${i.do.map(d=>`<li>${esc(d)}</li>`).join('')}</ul></div>`;
+// the advice's top picks, under the week's focus; only for the current week, since advice is about now
+function adviceTop(){
+  const el = $('#advice-top'); if(!el || !ADV) return;
+  el.innerHTML = ADV.top.length ? `<div class="adv-g top">${ADV.top.map(i => advCard(i, i.section)).join('')}</div>` : '';
+}
 async function renderAdvice(){
   const A = await api('/api/advice').catch(()=>null);
   if(!A){ $('#advice').innerHTML = '<p class="empty">Couldn’t load advice. The dashboard service may need a restart.</p>'; return; }
-  const card = (i, sec) => `<div class="adv ${esc(i.level)}"><div class="adv-top"><span class="adv-lv">${ADV_LABEL[i.level]}</span>${sec?`<span class="area">${sec}</span>`:''}</div>
-    <h3>${esc(i.title)}</h3><p class="why">${esc(i.why)}</p><ul>${i.do.map(d=>`<li>${esc(d)}</li>`).join('')}</ul></div>`;
-  let h = `<h1>Advice</h1><p class="sub">Worked out from your own last 2–4 weeks of logs, watch data and blood tests (data to ${shortDate(A.as_of)}). It updates as you log. Not medical advice.</p>`;
-  if(A.top.length) h += `<h2>Top ${A.top.length} for this week</h2><div class="adv-g top">${A.top.map(i => card(i, i.section)).join('')}</div>`;
+  const card = advCard;
+  ADV = A; adviceTop();
+  let h = `<h2>All advice</h2><p class="sub">Worked out from your own last 2–4 weeks of logs, watch data and blood tests (data to ${shortDate(A.as_of)}). It updates as you log. Not medical advice.</p>`;
   h += `<nav class="adv-jump">${A.sections.map(s => `<a href="#" data-j="${esc(s.name)}">${esc(s.name)} <b>${s.items.filter(i=>i.level==='act').length}</b></a>`).join('')}</nav>`;
-  for(const s of A.sections) h += `<h2 id="adv-${esc(s.name.replace(/\W+/g,'-'))}">${esc(s.name)}</h2><div class="adv-g">${s.items.map(i => card(i)).join('')}</div>`;
+  for(const s of A.sections) h += `<h3 class="adv-h" id="adv-${esc(s.name.replace(/\W+/g,'-'))}">${esc(s.name)}</h3><div class="adv-g">${s.items.map(i => card(i)).join('')}</div>`;
   $('#advice').innerHTML = h;
   document.querySelectorAll('.adv-jump a').forEach(a => a.onclick = e => { e.preventDefault(); document.getElementById('adv-'+a.dataset.j.replace(/\W+/g,'-')).scrollIntoView({behavior:'smooth'}); });
 }
@@ -795,11 +804,10 @@ async function renderTimeline(){
       markLine:{symbol:'none',label:{show:false},data:marks.map(e=>({xAxis:e.date,name:e.what,lineStyle:{color:col(e.kind),type:e.kind==='target'?'dashed':'solid',width:1.5}})),
         emphasis:{label:{show:true,formatter:p=>p.name,color:c.ink,fontSize:11,position:'insideEndTop'}}},
       markArea:{silent:true,label:{show:false},data:eps.map(e=>[{xAxis:e.date,itemStyle:{color:'rgba(200,55,45,.10)'}},{xAxis:plus1(e.end||e.date)}])}}]});
-  const H = await hsGet(); if(H && H.history.length) hsChart('tlhs', H, ev);
   const months = {};
   ev.forEach(e => { const k = new Date(e.date+'T00:00').toLocaleDateString('en-GB',{month:'long',year:'numeric'}); (months[k] = months[k] || []).push(e); });
   $('#tllist').innerHTML = `<div class="tl-legend">${Object.entries(TL_KIND).filter(([k])=>ev.some(e=>e.kind===k)).map(([k,[l]])=>`<span><i style="background:${col(k)}"></i>${l}</span>`).join('')}</div>` +
-    Object.entries(months).map(([m, es]) => `<h2>${m}</h2><ul class="tl">${es.map(e => `<li><i style="background:${col(e.kind)}" title="${(TL_KIND[e.kind]||[e.kind])[0]}"></i><span class="d">${shortDate(e.date)}${e.end&&e.end!==e.date?'–'+shortDate(e.end):''}</span><span><b>${esc(e.what)}</b>${e.detail?`<span class="td">${esc(e.detail)}</span>`:''}</span></li>`).join('')}</ul>`).join('');
+    Object.entries(months).map(([m, es]) => `<h3>${m}</h3><ul class="tl">${es.map(e => `<li><i style="background:${col(e.kind)}" title="${(TL_KIND[e.kind]||[e.kind])[0]}"></i><span class="d">${shortDate(e.date)}${e.end&&e.end!==e.date?'–'+shortDate(e.end):''}</span><span><b>${esc(e.what)}</b>${e.detail?`<span class="td">${esc(e.detail)}</span>`:''}</span></li>`).join('')}</ul>`).join('');
 }
 
 /* ---------- week ---------- */
@@ -812,11 +820,11 @@ async function renderWeek(start){
   const hitTile = (k, label) => { const h = w.hits[k], a = w.averages[k];
     const cls = !h.of ? '' : h.hit/h.of >= .7 ? 'good' : h.hit/h.of >= .4 ? '' : 'bad';
     return `<div class="t"><div class="lab">${label}</div><div class="v ${cls}">${h.of ? `${esc(h.hit)}/${esc(h.of)}` : '–'}</div><div class="s">${h.of ? 'days on target' : 'no target that week'} · avg ${a==null?'–':fmt(a, k==='satfat_g'?1:0)}${k==='kcal'?'':'g'}</div></div>`; };
-  const tr = w.training, r = w.recovery, wt = w.weight;
+  const tr = w.training, r = w.recovery, wt = w.weight, latestWeek = !SUMMARY.length || w.end >= SUMMARY[SUMMARY.length-1].date;
   const dW = wt.avg!=null && wt.prev_avg!=null ? (wt.avg - wt.prev_avg) : null;
   let h = `<h1>Week of ${dm(w.start)} – ${dm(w.end)}</h1>
     <div><span class="chip">${esc(w.status.complete)} complete</span>${w.status.partial?`<span class="chip partial">${esc(w.status.partial)} partial</span>`:''}${w.status.unlogged?`<span class="chip unlogged">${esc(w.status.unlogged)} unlogged</span>`:''}</div>
-    ${w.focus ? `<h2>Focus for next week</h2><div class="focus">${esc(w.focus)}</div>` : ''}
+    ${w.focus || latestWeek ? `<h2>Focus for next week</h2>${w.focus ? `<div class="focus">${esc(w.focus)}</div>` : ''}${latestWeek ? '<div id="advice-top"></div>' : ''}` : ''}
     <div class="wk-grid">${hitTile('kcal','Calories')}${hitTile('protein_g','Protein')}${hitTile('satfat_g','Saturated fat')}${hitTile('fibre_g','Fibre')}</div>
     <div class="wk-grid">
       <div class="t"><div class="lab">Weight, week average</div><div class="v">${wt.avg??'–'}</div><div class="s">${dW!=null?`${dW>0?'+':''}${dW.toFixed(1)} kg vs previous week`:'no comparison'}</div></div>
@@ -842,7 +850,7 @@ async function renderWeek(start){
       return `<tr><td><a href="#day" data-date="${esc(d.date)}">${new Date(d.date+'T00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric'})}</a>${d.date===(w.best||{}).date?' <span class="who">best</span>':''}${d.date===(w.worst||{}).date?' <span class="who">worst</span>':''}</td><td>${esc(d.day_type)}${d.status!=='complete'?`, <span class="sub">${esc(d.status)}</span>`:''}</td>` +
         cols.map(([k,,dp]) => { const e = ev[k]; const cl = e&&e.ok===true?'good':e&&e.ok===false?'bad':''; return `<td class="${cl}">${d.totals?fmt(t[k],dp):'–'}${ARROW(e)}</td>`; }).join('') +
         `<td>${d.weight?d.weight.kg:'–'}</td><td>${d.sleep||'–'}</td><td>${d.steps?fmt(d.steps):'–'}</td><td>${esc(d.exercise.join(', ')||'–')}</td></tr>`; }).join('') + `</table>`;
-  $('#week').innerHTML = h;
+  $('#week').innerHTML = h; adviceTop();
   document.querySelectorAll('#week a[data-date]').forEach(a => a.onclick = e => { e.preventDefault(); showTab('day'); renderDay(a.dataset.date); });
 }
 const shiftWeek = n => { const d = new Date(WEEK+'T00:00'); d.setDate(d.getDate()+7*n); renderWeek(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`); };
@@ -877,7 +885,10 @@ function renderTrends(){
     {key:'fibre_g', name:'Fibre g', kind:'min', get: t => t.fibre_min},
     {key:'weight', name:'Morning weight kg (filled = fasted, hollow = not fasted)', kind:'min', get: t => t.weight_kg},
   ];
-  const H = $('#trend').clientHeight || 1040;
+  // the chart draws inside the box's padding, so lay the panels out in that height (clientHeight includes the padding,
+  // which cut the bottom axis's dates off)
+  const tEl = $('#trend'), tCs = getComputedStyle(tEl);
+  const H = (tEl.clientHeight - parseFloat(tCs.paddingTop) - parseFloat(tCs.paddingBottom)) || 1020;
   const n = panels.length, top = 34, gap = 36, h = (H - top - 36 - gap*(n-1)) / n;
   const grids = [], xAxes = [], yAxes = [], series = [], titles = [];
   const ax = {axisLine:{lineStyle:{color:c.rule}}, axisLabel:{color:c.muted,fontSize:11}, splitLine:{lineStyle:{color:c.rule,opacity:.5}}};
@@ -957,22 +968,6 @@ function renderTrends(){
     const i = Array.isArray(idx) ? idx[0] : idx;
     if(i!=null && days[i]){ showTab('day'); renderDay(days[i].date); }
   });
-  renderDayTable(days);
-}
-function renderDayTable(days){
-  const cols = [['kcal','Calories',0,'kcal'],['protein_g','Protein',0,'protein_min'],['carbs_g','Carbs',0,'carbs'],['fat_g','Fat',0,'fat'],['satfat_g','Sat fat',1,'satfat_max'],['fibre_g','Fibre',0,'fibre_min']];
-  const cur = (SUMMARY[SUMMARY.length-1]||{}).targets||{};
-  const tcell = k => { const v = cur[k]; if(v==null) return '–'; return Array.isArray(v)?`${v[0]}–${v[1]}`:k.endsWith('_min')?`≥ ${v}`:k.endsWith('_max')?`≤ ${v}`:v; };
-  let h = `<table class="wk"><tr><th>Date</th><th>Day</th>${cols.map(c=>`<th>${c[1]}</th>`).join('')}<th>Weight</th><th>Training</th></tr>
-    <tr class="tgtrow"><td>Current target</td><td class="sub">training day</td>${cols.map(c=>`<td>${tcell(c[3])}</td>`).join('')}<td>${cur.weight_kg??'–'}</td><td></td></tr>`;
-  for(const d of [...days].reverse()){
-    const t = d.totals||{}, ev = d.eval||{};
-    h += `<tr><td><a href="#day" data-date="${esc(d.date)}">${shortDate(d.date)}</a></td><td>${esc(d.day_type)}${d.status!=='complete'?`, <span class="sub">${esc(d.status)}</span>`:''}</td>` +
-      cols.map(([k,,dp]) => { const e = ev[k]; const cl = e&&e.ok===true?'good':e&&e.ok===false?'bad':''; return `<td class="${cl}">${d.totals?fmt(t[k],dp):'–'}${ARROW(e)}</td>`; }).join('') +
-      `<td>${d.weight?d.weight.kg+(d.weight.fasted===false?'*':''):'–'}</td><td>${esc(d.exercise.map(e=>e.type).join(', ')||'–')}</td></tr>`;
-  }
-  $('#weektable').innerHTML = h + `</table><p class="sub">* not fasted. Green is on target, red is missed, judged against the target that applied that day. Partial days aren't judged.</p>`;
-  document.querySelectorAll('#weektable a').forEach(a => a.onclick = e => { e.preventDefault(); showTab('day'); renderDay(a.dataset.date); });
 }
 
 /* ---------- training ---------- */
@@ -1321,10 +1316,6 @@ async function renderReadiness(){
 async function renderRecovery(){
   REF = REF || await api('/api/reference');
   renderReadiness();
-  api('/api/sleep').then(S => { SLEEP = S; const el = $('#rec-sleep'); if(!S || !S.available || !el) return;
-    const L = S.last;
-    el.innerHTML = `Last night ${esc(mh(L.asleep))} asleep${L.score?`, score ${esc(L.score)}`:''}${S.tonight?`. Tonight: in bed by <b>${esc(S.tonight.in_bed)}</b>`:''}. <a href="#sleep" id="rec-sleep-go">Sleep in detail →</a>`;
-    $('#rec-sleep-go').addEventListener('click', e => { e.preventDefault(); showTab('sleep'); }); }).catch(() => {});
   const c = theme(), days = SUMMARY.filter(d => d.recovery);
   $('#recnote').textContent = days.length < 10 ? `${days.length} nights recorded so far, from past chats. This fills in automatically once the Garmin pull is running.` : '';
   const x = days.map(d=>shortDate(d.date));
@@ -1334,23 +1325,19 @@ async function renderRecovery(){
   const T = (text,top) => ({text,left:52,top,textStyle:{fontSize:12.5,fontWeight:600,color:c.ink,fontFamily:'Archivo'}});
   const ref = (v, col, label) => ({symbol:'none',silent:true,data:[{yAxis:v}],lineStyle:{color:col,type:'dashed'},label:{formatter:label,color:col,position:'insideEndTop'}});
   chart('recchart').setOption({animation:MOTION,animationDuration:500,textStyle:{fontFamily:'Archivo'},
-    title:[T('Sleep, hours',0),T('Overnight HRV, ms',175),T('Resting heart rate',350)],
-    grid:[{left:52,right:20,top:24,height:128},{left:52,right:20,top:199,height:128},{left:52,right:20,top:374,height:108}],
-    xAxis:[0,1,2].map(i=>({type:'category',gridIndex:i,data:x,...ax,axisLabel:{...ax.axisLabel,show:i===2}})),
-    yAxis:[{type:'value',gridIndex:0,...ax,...niceRange(0, Math.max(9, ...nn(sleep)), 3, true),axisLabel:{...ax.axisLabel,formatter:v=>v+'h'}},
-           {type:'value',gridIndex:1,...ax,...niceRange(Math.min(REF.hrv_baseline_ms, ...nn(hrv)) - 3, Math.max(REF.hrv_baseline_ms, ...nn(hrv)) + 3, 3)},
-           {type:'value',gridIndex:2,...ax,...niceRange(Math.min(REF.rhr_walk_only, ...nn(rhr)) - 2, Math.max(REF.rhr_walk_only, ...nn(rhr)) + 2, 3)}],
+    title:[T('Overnight HRV, ms',0),T('Resting heart rate',175)],
+    grid:[{left:52,right:20,top:24,height:128},{left:52,right:20,top:199,height:118}],
+    xAxis:[0,1].map(i=>({type:'category',gridIndex:i,data:x,...ax,axisLabel:{...ax.axisLabel,show:i===1}})),
+    yAxis:[{type:'value',gridIndex:0,...ax,...niceRange(Math.min(REF.hrv_baseline_ms, ...nn(hrv)) - 3, Math.max(REF.hrv_baseline_ms, ...nn(hrv)) + 3, 3)},
+           {type:'value',gridIndex:1,...ax,...niceRange(Math.min(REF.rhr_walk_only, ...nn(rhr)) - 2, Math.max(REF.rhr_walk_only, ...nn(rhr)) + 2, 3)}],
     tooltip:{trigger:'axis',...tip(c),formatter: ps => { const i = ps[0].dataIndex, d = days[i];
       return `<b>${fmtDate(d.date)}</b><br>Sleep ${hm(sleep[i])}${d.recovery.sleep_score?` · score ${esc(d.recovery.sleep_score)}`:''}<br>HRV ${hrv[i]??'–'} ms${d.recovery.hrv_status?' · '+d.recovery.hrv_status:''}<br>Resting HR ${rhr[i]??'–'}${d.recovery.body_battery?`<br>Body battery +${esc(d.recovery.body_battery)}`:''}${d.recovery.note?`<br><span style="color:${c.muted}">${esc(d.recovery.note)}</span>`:''}`; }},
     axisPointer:{link:[{xAxisIndex:'all'}],lineStyle:{color:c.muted}},
     series:[
-      {type:'bar',name:'Sleep',xAxisIndex:0,yAxisIndex:0,barMaxWidth:24,
-        data:sleep.map(v => v==null?null:{value:+v.toFixed(2),itemStyle:{color:v>=REF.sleep_hours_min?c.good:hatch(c.bad,c.surface),borderRadius:[4,4,0,0]}}),
-        markLine:ref(REF.sleep_hours_min, c.good, 'target 7h30')},
-      {type:'line',name:'HRV',xAxisIndex:1,yAxisIndex:1,data:hrv,connectNulls:true,smooth:.3,symbol:'circle',symbolSize:7,lineStyle:{color:c.accent,width:2},itemStyle:{color:c.accent,...ring(c)},symbolSize:9,
+      {type:'line',name:'HRV',xAxisIndex:0,yAxisIndex:0,data:hrv,connectNulls:true,smooth:.3,symbol:'circle',symbolSize:7,lineStyle:{color:c.accent,width:2},itemStyle:{color:c.accent,...ring(c)},symbolSize:9,
         areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:c.soft},{offset:1,color:'rgba(0,0,0,0)'}])},
         markLine:ref(REF.hrv_baseline_ms, c.accent, `baseline ${esc(REF.hrv_baseline_ms)} ms`)},
-      {type:'line',name:'Resting HR',xAxisIndex:2,yAxisIndex:2,data:rhr,connectNulls:true,smooth:.3,symbol:'circle',symbolSize:7,lineStyle:{color:c.ink,width:2},itemStyle:{color:c.ink,...ring(c)},symbolSize:9,
+      {type:'line',name:'Resting HR',xAxisIndex:1,yAxisIndex:1,data:rhr,connectNulls:true,smooth:.3,symbol:'circle',symbolSize:7,lineStyle:{color:c.ink,width:2},itemStyle:{color:c.ink,...ring(c)},symbolSize:9,
         markLine:ref(REF.rhr_walk_only, c.bad, `${esc(REF.rhr_walk_only)}+ = walk only`)},
     ]});
 }
@@ -1388,13 +1375,12 @@ async function renderGlucoseOverview(){
       {type:'line',name:'Median',data:P.map(p=>p.p50),symbol:'none',smooth:.3,lineStyle:{color:c.ink,width:2},
         markArea:{silent:true,label:{show:false},data:[[{yAxis:lo,itemStyle:{color:c.good,opacity:.08}},{yAxis:hi}]]}}]});
   const M = O.meals;
-  $('#gmeals').innerHTML = M.length ? `<h3 class="g-h3">Meals ranked by spike (last ${esc(O.window)} days)</h3><table class="g-meals"><tr><th>Meal</th><th class="num">Rise</th><th class="num">Peak</th><th class="num">Peak at</th><th class="num">Back down</th></tr>${M.slice(0,15).map(m => `<tr>
+  $('#gmeals').innerHTML = M.length ? `<p class="sub">Each timed meal in the last ${esc(O.window)} days, by how far glucose rose after it.</p><table class="g-meals"><tr><th>Meal</th><th class="num">Rise</th><th class="num">Peak</th><th class="num">Peak at</th><th class="num">Back down</th></tr>${M.slice(0,15).map(m => `<tr>
       <td>${shortDate(m.date)} ${esc(m.time)} ${esc(m.meal)}<br><span class="sub">${esc(m.label)}</span></td><td class="num ${m.rise>=3?'bad':m.rise<=1.5?'good':''}"><b>${m.rise>=0?'+':''}${fmt(m.rise,1)}</b></td>
       <td class="num">${fmt(m.peak,1)}</td><td class="num">${esc(m.peak_min)} min</td><td class="num">${m.back_min!=null?m.back_min+' min':'>2½ h'}</td></tr>`).join('')}</table>`
     : `<p class="sub">Meals logged with a time will be ranked here by how much they raise your glucose.</p>`;
 }
 async function renderBody(){
-  renderGlucoseOverview();
   BODY = BODY || await api('/api/body');
   const c = theme(), s = BODY.scale;
   const fasted = s.filter(p=>p.fasted!==false).map(p=>[p.date,p.kg]);
@@ -1998,8 +1984,10 @@ function foodExtras(F){
       ${W.days.filter(d => d.n).map(d => row(d.day, d, d.n)).join('')}
       ${row('Weekdays', W.weekday, W.n_weekday, 'tot')}${row('Weekends', W.weekend, W.n_weekend, 'tot')}</table></div>`;
   }
-  // glucose by food
-  h += `<h2>Glucose by food</h2>`;
+  // glucose: the 14-day picture (renderGlucoseOverview fills it in), then what raised it, by food or by meal
+  h += `<h2>Glucose</h2><p class="sub" id="gnote"></p><div id="gprofile" class="chart" style="height:260px"></div>
+    <div class="row"><h3>What raised it</h3><span class="seg" id="gseg" role="group" aria-label="Rank"><button data-g="food" aria-pressed="true">By food</button><button data-g="meal" aria-pressed="false">By meal, last 14 days</button></span></div>
+    <div id="gfood">`;
   if(G && G.available){
     h += `<p class="sub">Median rise in glucose after meals that included each food (eaten in at least 2 timed meals). A meal's rise belongs to everything in it, so look for foods that sit high across different meals.</p>
     <div class="ftab-wrap"><table class="ftab"><tr><th>Food</th><th class="num">Meals</th><th class="num">Median rise</th><th class="num">Median peak</th><th class="num">Biggest rise</th></tr>` +
@@ -2007,6 +1995,7 @@ function foodExtras(F){
   } else {
     h += `<p class="sub">Not enough sensor data yet. Wear a CGM (a Libre, synced on the Connections page) and log meals with times, and this ranks your foods by the glucose rise after them.</p>`;
   }
+  h += `</div><div id="gmeals" hidden></div><details class="g-more"><summary>Day by day, last 14 days</summary><div id="gdays"></div></details>`;
   return h;
 }
 
@@ -2061,8 +2050,12 @@ async function renderFood(){
   };
   table();
   $('#fq').addEventListener('input', e => { FQ = e.target.value.trim().toLowerCase(); table(); });
-  el.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => { FWIN = b.dataset.w;
-    el.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', x===b)); table(); }));
+  el.querySelectorAll('.f-ctl .seg button').forEach(b => b.addEventListener('click', () => { FWIN = b.dataset.w;
+    el.querySelectorAll('.f-ctl .seg button').forEach(x => x.setAttribute('aria-pressed', x===b)); table(); }));
+  el.querySelectorAll('#gseg button').forEach(b => b.addEventListener('click', () => {
+    el.querySelectorAll('#gseg button').forEach(x => x.setAttribute('aria-pressed', x===b));
+    $('#gfood').hidden = b.dataset.g !== 'food'; $('#gmeals').hidden = b.dataset.g !== 'meal'; }));
+  renderGlucoseOverview();
 }
 
 /* ---------- blood pressure ---------- */
@@ -2204,19 +2197,15 @@ async function reloadData(){
 function renderTab(t){
   if(t==='day') renderDay(currentDate);
   if(t==='longevity') renderLongevity();
-  if(t==='advice') renderAdvice();
   if(t==='food') renderFood();
-  if(t==='sleep') renderSleep();
+  if(t==='sleep'){ renderSleep(); renderRecovery(); }
   if(t==='experiments') renderExperiments();
-  if(t==='wellbeing') renderWellbeing();
-  if(t==='week') renderWeek(WEEK);
-  if(t==='trends') renderTrends();
+  if(t==='history'){ renderTimeline(); renderWellbeing(); }
+  if(t==='week'){ renderWeek(WEEK); renderTrends(); renderAdvice(); }
   if(t==='training') renderTraining();
-  if(t==='recovery') renderRecovery();
   if(t==='body') renderBody();
-  if(t==='timeline') renderTimeline();
 }
-function renderAll(){ renderTab((location.hash||'#day').slice(1)); }
+function renderAll(){ const t = (location.hash||'#day').slice(1); renderTab(TAB_MOVED[t] || t); }
 /* ---------- profile: first-run setup (name, start date, timezone -> settings.yaml) ---------- */
 let PROFILE = null;
 function showWho(){   // a small profile icon, not the name: the name made the header wrap and pushed the sync status down

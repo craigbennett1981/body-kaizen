@@ -610,3 +610,5 @@ ol.sl-gen{padding-left:20px;line-height:1.5;font-size:14px} ol.sl-gen li{margin:
 .xp-res .xr-d.lean,.xp-res .rng.lean,.xp-res .pt.lean{opacity:.6}
 .xp-course{font-size:13px;margin:6px 0} .xp-course.bad{color:var(--bad)}
 .xp-next,.xp-notes{font-size:13px;margin:6px 0}
+.g-more{margin:10px 0} .g-more summary{cursor:pointer;color:var(--muted);font-size:13px}
+#tab-week .adv-h{margin-top:18px}

@@ -34,15 +34,20 @@ click anything.
 
 <table>
 <tr>
-<td width="33%" valign="top"><img src="docs/img/food.gif" alt="Food: searching, sorting and switching to the last 7 days"><br>
+<td width="50%" valign="top"><img src="docs/img/food.gif" alt="Food: searching, sorting and switching to the last 7 days"><br>
 <b>Know your food.</b> Where this week's saturated fat, protein and fibre came from, plants against 30, swaps from
 foods you already eat, and every food you've logged, searchable and sortable.</td>
-<td width="33%" valign="top"><img src="docs/img/sleep.gif" alt="Sleep: last night, the trend, stages and what goes with better nights"><br>
+<td width="50%" valign="top"><img src="docs/img/sleep.gif" alt="Sleep: last night, the trend, stages and what goes with better nights"><br>
 <b>Sleep better.</b> Last night's stages, your sleep debt, when to be in bed tonight, and which of your own days
 go with the bad nights, with advice from what it finds.</td>
-<td width="33%" valign="top"><img src="docs/img/training.gif" alt="Training: workouts, the muscle map and calories burnt"><br>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="docs/img/training.gif" alt="Training: workouts, the muscle map and calories burnt"><br>
 <b>Train with feedback.</b> Every session with coach notes and heart rate, lifts against last time, a muscle map of
 your hard sets, and calories burnt by activity.</td>
+<td width="50%" valign="top"><img src="docs/img/experiments.gif" alt="Experiments: a running experiment, trying a rule on your history, and a finished result"><br>
+<b>Test what works for you.</b> Try one change, like a 22:30 bedtime or less salt, for a few weeks and see what it
+really does to your sleep, blood pressure or weight, judged against the weeks before.</td>
 </tr>
 </table>
 
@@ -51,15 +56,14 @@ your hard sets, and calories burnt by activity.</td>
 | Tab | What it shows |
 |---|---|
 | **Day** | Every macro paced through the day, readiness, energy balance, and a timeline from sleep to dinner with glucose under each meal |
-| **Food** | Where your saturated fat, protein and fibre come from, plants this week against 30, swaps from foods you already eat, every food you've logged |
-| **Sleep** | Last night's stages, sleep debt, when to be in bed tonight, how regular you are, and what goes with your better and worse nights |
-| **Experiments** | Test one change on yourself, like a 22:30 bedtime or magnesium before bed, for 14 nights: suggested from your own data, tracked night by night and scored against the weeks before. "Try a rule" asks your history first |
-| **Training** | Every session with coach notes and heart rate, lifts against last time, a progression plan, a muscle map and an activity calendar |
-| **Recovery** | Readiness from sleep, HRV and resting heart rate against your own baseline |
-| **Body** | Weight trend, body composition, energy balance against the scale, blood pressure |
-| **Trends** | Each day hit or miss against the targets that applied that day |
+| **Body** | Weight trend, body composition, energy balance against the scale, InBody scans, blood pressure |
+| **Experiments** | Test one change on yourself, like a 22:30 bedtime every night or less salt every day: suggested from your own data, with a daily checklist and reminders, tracked day by day and scored against the weeks before. "Try a rule" and "Look for a relationship" ask your history first |
+| **Food** | Where your saturated fat, protein and fibre come from, plants this week against 30, swaps from foods you already eat, glucose by food and by meal, every food you've logged |
+| **History** | Weight with what explains it (blood tests, scans, target and training changes, off episodes), mood scores and symptoms, and every event |
 | **Longevity** | VO2 max, lipids, HbA1c, grip and more against target bands, with a health score and retest dates |
-| **Advice, Week, Timeline, Wellbeing** | This week's top changes, a week at a glance, weight with what explains it, mood and symptoms |
+| **Sleep & recovery** | Readiness, last night's stages, sleep debt, when to be in bed tonight, HRV and resting heart rate, and what goes with your better and worse nights |
+| **Training** | Every session with coach notes and heart rate, lifts against last time, a progression plan, a muscle map and an activity calendar |
+| **Week** | The week at a glance, what to change next week, every day hit or miss against its targets, habits, new bests, and all the advice from your own data |
 
 Every page in detail, with screenshots: **[docs/features.md](docs/features.md)**. Or open it in the
 **[live demo](https://demo.bodykaizen.app/)**.
