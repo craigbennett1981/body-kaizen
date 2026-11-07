@@ -178,6 +178,12 @@ Below that: how many different plants you ate this week against 30, swaps for yo
 sources from foods you already eat, what each meal supplies on an average day, weekdays against weekends, and,
 with a glucose sensor, your foods ranked by the rise after them.
 
+**Sleep.** Last night's stages, time asleep against your target and Garmin's sleep need, and your sleep debt over 7
+nights. A chart of when you fall asleep and wake shows how regular you are, and weekends against weekdays. It compares
+your own nights by the day before them (a late session, a late meal, caffeine after 2 pm, a stressful or busy day)
+and gives advice from what it finds, with the time to be in bed tonight worked back from your usual alarm. Below that
+is the general advice with the best evidence. The Recovery tab gets a one-line summary that links to it.
+
 **Glucose against every meal.** With a FreeStyle Libre connected, the Day timeline draws the glucose curve with a dot
 on it for each meal (sized by its carbs; hover for the foods), and each timed meal gets its rise, peak and time back
 to baseline. The Body tab adds a 14-day profile and your meals ranked by spike.

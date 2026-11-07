@@ -523,3 +523,14 @@ table.ftab td.bar-cell{width:30%;min-width:80px} table.ftab td.bar-cell .bar{dis
 table.ftab td.bar-cell .bar i{display:block;height:100%;background:var(--accent)} table.ftab tr.tot td{font-weight:600;border-top:2px solid var(--rule)}
 table.ftab td.mostly{text-align:left;white-space:normal;color:var(--muted);font-size:12px;min-width:160px}
 table.ftab.wkd{width:auto;min-width:min(100%,520px)}
+
+/* sleep */
+.wk-grid .t.tn{border-color:var(--good)} .wk-grid .t.tn .v{color:var(--good)}
+.st-legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--muted);margin:4px 0 -4px}
+.st-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+table.sl-f tr.sl-a td{border-bottom:none;padding-bottom:2px} table.sl-f tr.sl-b td{padding-top:0;color:var(--muted)}
+table.sl-f td .good,table.sl-f td .bad{font-size:12px;font-weight:600}
+.sl-adv{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.sl-adv .fs p{margin:6px 0;font-size:13.5px;line-height:1.45} .sl-adv .fs p.do{color:var(--ink);font-weight:600}
+.sl-adv .fs.top{border-color:var(--accent)}
+ol.sl-gen{padding-left:20px;line-height:1.5;font-size:14px} ol.sl-gen li{margin:6px 0}

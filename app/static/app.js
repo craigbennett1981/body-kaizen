@@ -1305,6 +1305,10 @@ async function renderReadiness(){
 async function renderRecovery(){
   REF = REF || await api('/api/reference');
   renderReadiness();
+  api('/api/sleep').then(S => { SLEEP = S; const el = $('#rec-sleep'); if(!S || !S.available || !el) return;
+    const L = S.last;
+    el.innerHTML = `Last night ${esc(mh(L.asleep))} asleep${L.score?`, score ${esc(L.score)}`:''}${S.tonight?`. Tonight: in bed by <b>${esc(S.tonight.in_bed)}</b>`:''}. <a href="#sleep" id="rec-sleep-go">Sleep in detail →</a>`;
+    $('#rec-sleep-go').addEventListener('click', e => { e.preventDefault(); showTab('sleep'); }); }).catch(() => {});
   const c = theme(), days = SUMMARY.filter(d => d.recovery);
   $('#recnote').textContent = days.length < 10 ? `${days.length} nights recorded so far, from past chats. This fills in automatically once the Garmin pull is running.` : '';
   const x = days.map(d=>shortDate(d.date));
@@ -1499,6 +1503,103 @@ async function renderEnergyBalance(){
 /* ---------- food: every food eaten, its macros, how much and how often; the week's biggest sources ---------- */
 let FOODS = null, FSORT = {k:'times', dir:-1}, FQ = '', FWIN = 'all';
 const PE_CLS = v => v==null ? '' : v >= 15 ? 'good' : v >= 8 ? 'warn' : '';   // grams of protein per 100 kcal
+/* ---------- sleep ---------- */
+let SLEEP = null;
+const mh = m => m==null ? '–' : `${Math.floor(Math.round(m)/60)}h ${String(Math.round(m)%60).padStart(2,'0')}m`;
+const clk = m => { if(m==null) return '–'; m = ((Math.round(m) % 1440) + 1440) % 1440; return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`; };
+const SLEEP_COL = {deep:'#3d2fb0', light:'#7a6ae0', rem:'#b3a6ff', awake:'#e0a33a'};
+
+async function renderSleep(){
+  SLEEP = SLEEP || await api('/api/sleep').catch(()=>null);
+  const el = $('#sleep');
+  if(!SLEEP){ el.innerHTML = '<p class="empty">Couldn’t load your sleep.</p>'; return; }
+  if(!SLEEP.available){ el.innerHTML = '<p class="empty">No nights yet. Connect Garmin on the Connections page and sleep with your watch on.</p>'; return; }
+  const S = SLEEP, L = S.last, R = S.recent, G = S.regularity, TN = S.tonight, T = S.target_min;
+  const ok = (v, good) => v==null ? '' : good ? 'good' : 'bad';
+  el.innerHTML = `
+    <p class="sub">Last night is the night you woke up on ${esc(fmtDate(L.date))}. Target ${esc(mh(T))} asleep${R.need?`; Garmin's sleep need lately ${esc(mh(R.need))}`:''}.</p>
+    <div class="wk-grid">
+      <div class="t"><div class="lab">Last night</div><div class="v ${ok(L.asleep, L.asleep >= T)}">${esc(mh(L.asleep))}</div><div class="s">${clk(L.start)}–${clk(L.end)} · ${esc(L.awake ?? '–')} min awake</div></div>
+      <div class="t"><div class="lab">Sleep score</div><div class="v ${ok(L.score, L.score >= 80)}">${esc(L.score ?? '–')}</div><div class="s">HRV ${esc(L.hrv ?? '–')} ms · resting HR ${esc(L.rhr ?? '–')}</div></div>
+      <div class="t"><div class="lab">Last ${esc(S.recent_n)} nights</div><div class="v ${ok(R.asleep, R.asleep >= T)}">${esc(mh(R.asleep))}</div><div class="s">${esc(R.on_target)} of ${esc(S.recent_n)} on target</div></div>
+      <div class="t"><div class="lab">Sleep debt, 7 nights</div><div class="v ${ok(R.debt7, R.debt7 <= 60)}">${R.debt7 > 0 ? esc(mh(R.debt7)) : 'none'}</div><div class="s">under your target</div></div>
+      ${TN ? `<div class="t tn"><div class="lab">Tonight</div><div class="v">${esc(TN.in_bed)}</div><div class="s">in bed, for a ${esc(TN.wake)} wake-up${TN.weekend?' (your weekday time: no weekend lie-in)':''}. Wind down from ${esc(TN.wind_down)}.</div></div>` : ''}
+    </div>
+    <h2>Last night</h2>
+    <p class="sub">Your sleep stages through the night.${L.spo2_low?` Oxygen ${esc(L.spo2_avg ?? '–')}% average, ${esc(L.spo2_low)}% lowest; breathing ${esc(L.resp ?? '–')} a minute.`:''}${L.bb!=null?` Body battery ${esc(L.bb)} on waking.`:''}</p>
+    <div class="st-legend">${['deep','light','rem','awake'].map(k => `<span><i style="background:${SLEEP_COL[k]}"></i>${({deep:'Deep',light:'Light',rem:'REM',awake:'Awake'})[k]} ${esc(L[k] ?? '–')} min</span>`).join('')}</div>
+    <div id="sl-hyp" class="chart" style="height:170px"></div>
+    <h2>Every night, last ${esc(S.nights.length)}</h2>
+    <p class="sub">Time asleep against your target, with Garmin's sleep need and your sleep debt over the 7 nights to each date.</p>
+    <div id="sl-trend" class="chart" style="height:400px"></div>
+    <h2>When you sleep</h2>
+    <p class="sub">Each bar runs from falling asleep to waking. Lately your bedtime is ${esc(G.bed_median ?? '–')} give or take ${esc(G.bed_sd ?? '–')} min, waking ${esc(G.wake_median ?? '–')} give or take ${esc(G.wake_sd ?? '–')} min.${G.social_jetlag_min!=null?` At weekends your sleep runs ${esc(Math.abs(G.social_jetlag_min))} min ${G.social_jetlag_min>=0?'later':'earlier'}.`:''} Weekend mornings in blue.${TN?` Dashed: tonight’s bedtime.`:''}</p>
+    <div id="sl-when" class="chart" style="height:360px"></div>
+    <h2>What goes with your better nights</h2>
+    <p class="sub">Your own ${esc(S.window_n)} nights, split by one thing about the day before. These show what goes together, not what causes what, and a split with fewer than 5 nights on one side is only a lead.</p>
+    <div class="ftab-wrap"><table class="ftab sl-f"><tr><th>The day before</th><th class="num">Nights</th><th class="num">Asleep</th><th class="num">Score</th><th class="num">HRV</th><th class="num">Asleep by</th></tr>
+      ${S.factors.map(f => { const d = (v, good, u='') => v==null ? '' : ` <span class="${Math.abs(v) < (u==='m'?10:2) ? 'sub' : (good(v) ? 'good' : 'bad')}">${v>0?'+':'−'}${Math.abs(v)}${u==='m'?' min':''}</span>`;
+        return `<tr class="sl-a"><td><b>${esc(f.name)}</b><br><span class="sub">${esc(f.yes)}</span>${f.enough?'':' <span class="tag">lead</span>'}</td><td class="num">${esc(f.a.n)}</td>
+          <td class="num">${esc(mh(f.a.asleep))}${d(f.d_asleep, v => v > 0, 'm')}</td><td class="num">${esc(f.a.score ?? '–')}${d(f.d_score, v => v > 0)}</td><td class="num">${esc(f.a.hrv ?? '–')}${d(f.d_hrv, v => v > 0)}</td><td class="num">${clk(f.a.bed)}</td></tr>
+          <tr class="sl-b"><td><span class="sub">${esc(f.no)}</span></td><td class="num">${esc(f.b.n)}</td><td class="num">${esc(mh(f.b.asleep))}</td><td class="num">${esc(f.b.score ?? '–')}</td><td class="num">${esc(f.b.hrv ?? '–')}</td><td class="num">${clk(f.b.bed)}</td></tr>`; }).join('')}
+    </table></div>
+    <h2>What your data says to do</h2>
+    ${S.advice.length ? `<div class="sl-adv">${S.advice.map((a, i) => `<div class="fs${i===0?' top':''}"><h3>${esc(a.title)}</h3><p>${esc(a.why)}</p><p class="do">${esc(a.do)}</p></div>`).join('')}</div>` : '<p class="sub">Nothing stands out: your sleep is on target and regular. Keep doing what you are doing.</p>'}
+    <h2>Sleep habits that work</h2>
+    <p class="sub">The general advice with the best evidence, for everyone. Start with the first two.</p>
+    <ol class="sl-gen">${S.general.map(g => `<li><b>${esc(g.title)}.</b> ${esc(g.text)}</li>`).join('')}</ol>`;
+
+  const c = theme();
+  const ax = {axisLine:{lineStyle:{color:c.rule}},axisLabel:{color:c.muted,fontSize:11},splitLine:{lineStyle:{color:c.rule,opacity:.5}}};
+
+  // hypnogram: one lane per stage, awake at the top
+  const lane = {awake:3, rem:2, light:1, deep:0};
+  if(L.stages && L.stages.length){
+    const lo = Math.min(...L.stages.map(s => s.start)), hi = Math.max(...L.stages.map(s => s.end));
+    chart('sl-hyp').setOption({animation:false,textStyle:{fontFamily:'Archivo'},grid:{left:52,right:20,top:8,bottom:26},
+      xAxis:{type:'value',min:60*Math.floor(lo/60),max:60*Math.ceil(hi/60),...ax,splitLine:{show:true,lineStyle:{color:c.rule,opacity:.35}},axisLabel:{...ax.axisLabel,formatter:clk},interval:60},
+      yAxis:{type:'category',data:['Deep','Light','REM','Awake'],...ax,axisLine:{show:false},axisTick:{show:false},splitLine:{show:false}},
+      tooltip:{...tip(c),formatter: p => `${esc(({deep:'Deep',light:'Light',rem:'REM',awake:'Awake'})[p.data.stage])}<br>${clk(p.data.value[0])}–${clk(p.data.value[1])} · ${p.data.value[1]-p.data.value[0]} min`},
+      series:[{type:'custom',renderItem:(params, api) => { const s = api.value(0), e = api.value(1), y = api.value(2);
+          const a = api.coord([s, y]), b = api.coord([e, y]), h = api.size([0, 1])[1] * .72;
+          return {type:'rect',shape:{x:a[0],y:a[1]-h/2,width:Math.max(1,b[0]-a[0]),height:h},style:{fill:SLEEP_COL[params.dataIndex!=null?L.stages[params.dataIndex].stage:'light']}}; },
+        encode:{x:[0,1],y:2},data:L.stages.map(s => ({value:[s.start, s.end, lane[s.stage]], stage:s.stage}))}]});
+  } else $('#sl-hyp').innerHTML = '<p class="empty">No stage data for last night.</p>';
+
+  // trend: asleep bars, need line, target line; 7-night debt below
+  const N = S.nights, x = N.map(n => shortDate(n.date));
+  const debt7 = N.map((n, i) => { const w = N.slice(Math.max(0, i - 6), i + 1); return w.reduce((a, r) => a + (T - r.asleep), 0) / 60; });
+  chart('sl-trend').setOption({animation:MOTION,animationDuration:400,textStyle:{fontFamily:'Archivo'},
+    title:[{text:'Asleep, hours',left:52,top:0,textStyle:{fontSize:12.5,fontWeight:600,color:c.ink}},{text:'Sleep debt over 7 nights, hours',left:52,top:238,textStyle:{fontSize:12.5,fontWeight:600,color:c.ink}}],
+    grid:[{left:52,right:20,top:24,height:190},{left:52,right:20,top:262,height:86}],
+    xAxis:[0,1].map(i => ({type:'category',gridIndex:i,data:x,...ax,axisLabel:{...ax.axisLabel,show:i===1}})),
+    yAxis:[{type:'value',gridIndex:0,...ax,...niceRange(0, Math.max(9, ...N.map(n => n.asleep/60)), 3, true),axisLabel:{...ax.axisLabel,formatter:v=>v+'h'}},
+           {type:'value',gridIndex:1,...ax,...niceRange(Math.min(0, ...debt7), Math.max(1, ...debt7), 2),axisLabel:{...ax.axisLabel,formatter:v=>v+'h'}}],
+    axisPointer:{link:[{xAxisIndex:'all'}],lineStyle:{color:c.muted}},
+    tooltip:{trigger:'axis',...tip(c),formatter: ps => { const n = N[ps[0].dataIndex];
+      return `<b>${esc(fmtDate(n.date))}</b><br>Asleep ${esc(mh(n.asleep))} (${clk(n.start)}–${clk(n.end)})${n.score?`<br>Score ${esc(n.score)}`:''}${n.need?`<br>Garmin's need ${esc(mh(n.need))}`:''}${n.hrv?`<br>HRV ${esc(n.hrv)} ms`:''}<br>7-night debt ${esc(mh(Math.max(0, debt7[ps[0].dataIndex]*60)))}`; }},
+    series:[
+      {type:'bar',xAxisIndex:0,yAxisIndex:0,barMaxWidth:16,data:N.map(n => ({value:+(n.asleep/60).toFixed(2),itemStyle:{color:n.asleep>=T?c.good:hatch(c.bad,c.surface),borderRadius:[3,3,0,0]}})),
+        markLine:{symbol:'none',silent:true,data:[{yAxis:T/60}],lineStyle:{color:c.good,type:'dashed'},label:{formatter:`target ${mh(T)}`,color:c.good,position:'insideEndTop'}}},
+      {type:'line',name:'Need',xAxisIndex:0,yAxisIndex:0,data:N.map(n => n.need ? +(n.need/60).toFixed(2) : null),connectNulls:true,symbol:'none',lineStyle:{color:c.accent,width:1.5,type:'dotted'}},
+      {type:'line',name:'Debt',xAxisIndex:1,yAxisIndex:1,data:debt7.map(v => +v.toFixed(1)),symbol:'none',smooth:.3,lineStyle:{color:c.bad,width:2},
+        areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(200,55,45,.25)'},{offset:1,color:'rgba(0,0,0,0)'}])},
+        markLine:{symbol:'none',silent:true,data:[{yAxis:0}],lineStyle:{color:c.muted,type:'solid',opacity:.6},label:{show:false}}}]});
+
+  // when: floating bars from sleep start to wake, minutes from the wake day's midnight (negative = before midnight)
+  const base = 60 * Math.floor((Math.min(...N.map(n => n.start), TN ? hmToMin(TN.in_bed) : 0) - 20) / 60);
+  const top = 60 * Math.ceil((Math.max(...N.map(n => n.end)) + 20) / 60) - base;
+  const bedLine = TN ? {markLine:{symbol:'none',silent:true,data:[{yAxis:hmToMin(TN.in_bed) - base}],lineStyle:{color:c.good,type:'dashed'},label:{formatter:`in bed by ${TN.in_bed}`,color:c.good,position:'insideEndTop'}}} : {};
+  chart('sl-when').setOption({animation:MOTION,animationDuration:400,textStyle:{fontFamily:'Archivo'},grid:{left:52,right:20,top:12,bottom:30},
+    xAxis:{type:'category',data:x,...ax},
+    yAxis:{type:'value',inverse:true,min:0,max:top,interval:60,...ax,axisLabel:{...ax.axisLabel,formatter: v => clk(v + base)}},
+    tooltip:{trigger:'axis',...tip(c),formatter: ps => { const n = N[ps[0].dataIndex]; return `<b>${esc(fmtDate(n.date))}</b><br>Asleep ${clk(n.start)} to ${clk(n.end)}<br>${esc(mh(n.asleep))} asleep`; }},
+    series:[{type:'bar',stack:'w',silent:true,itemStyle:{color:'transparent'},data:N.map(n => n.start - base)},
+      {type:'bar',stack:'w',barMaxWidth:14,data:N.map(n => ({value:n.end - n.start,itemStyle:{color:n.weekend_morning?c.accent:c.muted,opacity:n.weekend_morning?.9:.55,borderRadius:3}})),...bedLine}]});
+}
+// '22:20' -> minutes from the wake day's midnight, so evening times are negative
+const hmToMin = s => { const [h, m] = s.split(':').map(Number); const v = h*60 + m; return v >= 12*60 ? v - 1440 : v; };
+
 function foodExtras(F){
   const P = F.plants, W = F.weekdays, S = F.slots, G = F.glucose, T = (W && W.targets) || {};
   let h = '';
@@ -1738,7 +1839,7 @@ async function alertToasts(){
   for(const a of al) if(!a.id.startsWith('lab-')) toast(`alert:${esc(a.id)}:${esc(a.since)}`, 'warn', a.title, `${esc(a.text)} ${esc(a.todo)}`);
 }
 async function reloadData(){
-  SUMMARY = await api('/api/summary'); HS = null; TRAIN = null; FOODS = null;  WO = null; BODY = null; REF = null; READY = null; renderAll();
+  SUMMARY = await api('/api/summary'); HS = null; TRAIN = null; FOODS = null; SLEEP = null;  WO = null; BODY = null; REF = null; READY = null; renderAll();
 }
 
 /* ---------- boot ---------- */
@@ -1747,6 +1848,7 @@ function renderTab(t){
   if(t==='longevity') renderLongevity();
   if(t==='advice') renderAdvice();
   if(t==='food') renderFood();
+  if(t==='sleep') renderSleep();
   if(t==='wellbeing') renderWellbeing();
   if(t==='week') renderWeek(WEEK);
   if(t==='trends') renderTrends();
