@@ -16,7 +16,7 @@ tracked as your own n-of-one experiment, in plain files you own.
   <a href="docs/features.md"><b>Every page, explained</b></a>
 </p>
 
-![A tour of the dashboard on demo data: Day, Food, Sleep, Training, Body and Longevity](docs/img/tour.gif)
+[![The Body Kaizen dashboard on demo data. Click to open the live demo.](docs/img/demo-preview.png)](https://demo.bodykaizen.app/)
 
 You tell an AI assistant like Claude what you ate, send it a photo of a label or a screenshot of your scale, and
 it writes everything into your own private git repository. Body Kaizen works out the macros, pulls in your

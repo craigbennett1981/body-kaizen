@@ -28,7 +28,7 @@ class Docs(unittest.TestCase):
         sys.path.insert(0, str(ROOT / "tools"))
         import importlib; media = importlib.import_module("readme_media")
         used = README + FEATURES
-        for f in [s[0] for s in media.SHOTS] + list(media.GIFS):
+        for f in [s[0] for s in media.SHOTS] + list(media.GIFS) + [media.PREVIEW[0]]:
             with self.subTest(image=f):
                 self.assertIn(f"img/{f}", used, f"{f} is generated but nothing shows it")
 

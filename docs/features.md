@@ -4,6 +4,8 @@ Every tab of the dashboard, what it shows and how to read it. Screenshots are fr
 person). To click around yourself, open the [live demo](https://demo.bodykaizen.app/). The screenshots are made
 from the demo by `tools/readme_media.py`, so they show the current code.
 
+![A tour of the dashboard on demo data: Day, Food, Sleep, Training, Body and Longevity](img/tour.gif)
+
 - [A day with Body Kaizen](#a-day-with-body-kaizen)
 - [Day](#day) · [Food](#food) · [Sleep](#sleep) · [Training](#training) · [Recovery](#recovery) · [Body](#body) ·
   [Trends](#trends) · [Longevity](#longevity) · [Everything else](#everything-else)
