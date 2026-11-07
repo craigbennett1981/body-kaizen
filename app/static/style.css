@@ -558,5 +558,5 @@ ol.sl-gen{padding-left:20px;line-height:1.5;font-size:14px} ol.sl-gen li{margin:
 .stg-b{display:flex;align-items:center;gap:6px} .stg-b i{display:block;height:8px;border-radius:4px;min-width:2px} .stg-b b{font-size:12px}
 .wk-grid .t .v.warn{color:var(--warn)}
 .m .lab:has(.eb-h){display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.m .lab .eb-h{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+.m .lab .eb-h{font-size:13px;color:var(--muted)}
 .m .val-row .eb-side{margin-left:auto;text-align:right;align-items:flex-end}
