@@ -105,7 +105,26 @@ files the dashboard does, so its answers match what you see.
 
 ## Quick start
 
-You need Python 3.10 or newer, on macOS, Linux or Windows.
+**Install in one line.** No Python needed: the installer fetches its own (with [uv](https://docs.astral.sh/uv/)),
+installs Body Kaizen with the Garmin and LibreLinkUp syncs, starts it at login, adds a **Body Kaizen** launcher, and
+opens the dashboard in your browser, signed in. The first page asks where to keep your data.
+
+```bash
+# macOS or Linux, in Terminal
+curl -fsSL https://raw.githubusercontent.com/craigbennett1981/body-kaizen/main/install/install.sh | sh
+```
+
+```powershell
+# Windows, in PowerShell
+powershell -ExecutionPolicy ByPass -c "irm https://raw.githubusercontent.com/craigbennett1981/body-kaizen/main/install/install.ps1 | iex"
+```
+
+Run it again to update. The launcher (in Applications on a Mac, the Start menu on Windows, the applications menu on
+Linux) opens the dashboard signed in, in any browser. To remove it, add `-s -- --uninstall` after `sh` (on Windows,
+set `$env:BK_UNINSTALL=1` first): your data folder is left alone. Read the scripts first if you like:
+[install.sh](install/install.sh), [install.ps1](install/install.ps1).
+
+**Or run it from the code**, to try it or work on it. You need Python 3.10 or newer, on macOS, Linux or Windows.
 
 **1. Try it with demo data** (90 days of made-up data for a fictional person, Sam):
 

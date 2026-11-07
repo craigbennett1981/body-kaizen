@@ -58,8 +58,9 @@ SIGNIN_PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><met
 body{margin:0;min-height:100vh;display:grid;place-items:center;background:#111318;color:#EBEEF5;font:16px/1.5 system-ui,sans-serif}
 main{max-width:520px;padding:28px} h1{font-size:24px;margin:0 0 12px} p{color:#AEB5C2} code{background:#1E222B;padding:2px 7px;border-radius:6px;color:#EBEEF5}
 </style></head><body><main><h1>Body Kaizen is running, but this browser isn't signed in</h1>
-<p>Only the account that runs the dashboard can open it. On that account, run <code>body-kaizen open</code>
-(or <code>python -m body_kaizen open</code> from the code folder) and it opens this browser signed in.</p>
+<p>Only the account that runs the dashboard can open it. On that account, click <b>Body Kaizen</b> in your
+Applications folder or Start menu, or run <code>body-kaizen open</code> (<code>python -m body_kaizen open</code> from
+the code folder), and it opens this browser signed in.</p>
 <p>It's once per browser: you stay signed in across restarts.</p></main></body></html>"""
 MAX_BODY = 10_000
 CSP = ("default-src 'self'; script-src 'self'{nonce}; style-src 'self' 'unsafe-inline'; img-src 'self' data:; "

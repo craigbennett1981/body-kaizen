@@ -58,6 +58,57 @@ jobs:
           curl -fsS -b /tmp/jar http://127.0.0.1:8790/app.js > /dev/null
           /tmp/bk/bin/body-kaizen init /tmp/bk-data && test -f /tmp/bk-data/targets.yaml
 
+  installer:
+    # The one-line installers, on each system: install this commit with uv, then serve the demo and check the
+    # sign-in handshake and the launcher. (No login service on a CI machine: BK_NO_SERVICE.)
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - name: Install (macOS, Linux)
+        if: runner.os != 'Windows'
+        env: {BK_SOURCE: ., BK_NO_SERVICE: "1"}
+        run: sh install/install.sh
+      - name: Install (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env: {BK_SOURCE: ., BK_NO_SERVICE: "1"}
+        run: ./install/install.ps1
+      - name: Serve, sign in, check the launcher, uninstall (macOS, Linux)
+        if: runner.os != 'Windows'
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"   # where the installer put uv
+          BK="$(uv tool dir --bin)/body-kaizen"
+          "$BK" demo --port 8792 > /tmp/bk.log 2>&1 &
+          for i in $(seq 1 60); do curl -s -o /dev/null http://127.0.0.1:8792/ && break; sleep 1; done
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8792/api/summary)" = 401
+          curl -fsS -c /tmp/jar -o /dev/null "$("$BK" open --print --port 8792)"
+          curl -fsS -b /tmp/jar -o /dev/null http://127.0.0.1:8792/api/summary
+          if [ "$RUNNER_OS" = macOS ]; then test -x "$HOME/Applications/Body Kaizen.app/Contents/MacOS/body-kaizen"; else test -f "$HOME/.local/share/applications/body-kaizen.desktop"; fi
+          sh install/install.sh --uninstall
+          ! command -v body-kaizen >/dev/null 2>&1 || ! test -e "$BK"
+      - name: Serve, sign in, check the launcher, uninstall (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $env:Path = "$env:USERPROFILE\.local\bin;$env:Path"   # where the installer put uv
+          $bk = Join-Path (uv tool dir --bin).Trim() 'body-kaizen.exe'
+          Start-Process $bk -ArgumentList 'demo','--port','8792' -WindowStyle Hidden
+          for ($i = 0; $i -lt 60; $i++) { try { Invoke-WebRequest http://127.0.0.1:8792/ -UseBasicParsing -TimeoutSec 2 | Out-Null; break } catch { if ($_.Exception.Response) { break } }; Start-Sleep 1 }
+          $r = try { Invoke-WebRequest http://127.0.0.1:8792/api/summary -UseBasicParsing; 200 } catch { [int]$_.Exception.Response.StatusCode }
+          if ($r -ne 401) { throw "signed out: expected 401, got $r" }
+          $url = (& $bk open --print --port 8792).Trim()
+          $s = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+          Invoke-WebRequest $url -WebSession $s -UseBasicParsing | Out-Null   # follows the redirect, keeping the cookie
+          Invoke-WebRequest http://127.0.0.1:8792/api/summary -WebSession $s -UseBasicParsing | Out-Null
+          if (-not (Test-Path (Join-Path ([Environment]::GetFolderPath('Programs')) 'Body Kaizen.lnk'))) { throw 'no Start menu shortcut' }
+          Get-Process body-kaizen -ErrorAction SilentlyContinue | Stop-Process -Force
+          $env:BK_UNINSTALL = '1'; ./install/install.ps1
+          if (Test-Path $bk) { throw 'still installed after uninstall' }
+
   static-demo:
     # The live demo is the real pages on exported demo data. Export it and click through every tab in a browser:
     # a route or parameter the export doesn't cover fails here, before it can break the demo.
