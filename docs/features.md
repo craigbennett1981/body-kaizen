@@ -208,7 +208,9 @@ sentence ("grip 47/45").
 
 - **How your numbers are judged**, linked at the foot of every page: each target, band and score and the guideline
   or study it comes from ([docs/thresholds.md](thresholds.md)).
-- **Set up from the browser:** on first run the dashboard asks where to keep your data, and **Connections** logs
-  you in to Garmin and LibreLinkUp.
+- **Set up from the browser:** the one-line installer opens the dashboard, which asks where to keep your data, and
+  **Connections** logs you in to Garmin and LibreLinkUp.
+- **Signed in, no password:** only your account on the computer can open the dashboard. The **Body Kaizen**
+  launcher signs in any browser, once; other accounts get a "not signed in" page and none of your data.
 
 ![First run: choose where your data lives](img/setup.png)

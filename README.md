@@ -105,9 +105,7 @@ files the dashboard does, so its answers match what you see.
 
 ## Quick start
 
-**Install in one line.** No Python needed: the installer fetches its own (with [uv](https://docs.astral.sh/uv/)),
-installs Body Kaizen with the Garmin and LibreLinkUp syncs, starts it at login, adds a **Body Kaizen** launcher, and
-opens the dashboard in your browser, signed in. The first page asks where to keep your data.
+**1. Install.** One line, and no Python needed (the installer brings its own):
 
 ```bash
 # macOS or Linux, in Terminal
@@ -119,70 +117,73 @@ curl -fsSL https://raw.githubusercontent.com/craigbennett1981/body-kaizen/main/i
 powershell -ExecutionPolicy ByPass -c "irm https://raw.githubusercontent.com/craigbennett1981/body-kaizen/main/install/install.ps1 | iex"
 ```
 
-Run it again to update. The launcher (in Applications on a Mac, the Start menu on Windows, the applications menu on
-Linux) opens the dashboard signed in, in any browser. To remove it, add `-s -- --uninstall` after `sh` (on Windows,
-set `$env:BK_UNINSTALL=1` first): your data folder is left alone. Read the scripts first if you like:
-[install.sh](install/install.sh), [install.ps1](install/install.ps1).
+It installs Body Kaizen with the Garmin and LibreLinkUp syncs, starts it whenever you log in, adds a **Body Kaizen**
+launcher, and opens the dashboard in your browser. Want a look first? Try the [live demo](https://demo.bodykaizen.app/).
 
-**Or run it from the code**, to try it or work on it. You need Python 3.10 or newer, on macOS, Linux or Windows.
-
-**1. Try it with demo data** (90 days of made-up data for a fictional person, Sam):
-
-```bash
-git clone https://github.com/craigbennett1981/body-kaizen.git && cd body-kaizen
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-FT_NO_SYNC=1 FT_DATA=demo .venv/bin/python app/server.py      # opens http://127.0.0.1:8765 in your browser
-```
-
-It opens your browser signed in: only your account on this computer can open the dashboard (see
-[Security](SECURITY.md)). In another browser, or after clearing cookies, run `.venv/bin/python -m body_kaizen open`
-(`body-kaizen open` if you installed the package) and it signs that browser in too.
-
-On Windows, write `.venv\Scripts\python` for `.venv/bin/python`, and set variables with `set FT_DATA=...` (or
-`$env:FT_DATA="..."` in PowerShell).
-
-**2. Start your own.** Run `.venv/bin/python app/server.py` without `FT_DATA`. The first page asks where to keep
-your data, with your computer's own folder picker, creates the folder from the starter files (as a git repository if
-you tick the box) and asks for your name, start date and timezone. Then set your targets in `targets.yaml` and your
-defaults (the milk in your tea, what "1 scoop" means) in `settings.yaml`: see [docs/data-folder.md](docs/data-folder.md).
+**2. Choose your data folder.** The first page asks where to keep your data (as a private git repository if you tick
+the box), then your name, start date and timezone. Set your targets and defaults later in `targets.yaml` and
+`settings.yaml`: see [docs/data-folder.md](docs/data-folder.md).
 
 **3. Connect your AI assistant.** Copy [docs/CLAUDE.example.md](docs/CLAUDE.example.md) into your data folder as
 `CLAUDE.md`, open the folder in Claude Code, and send your first meal. For a Claude project (to log from your phone)
 or another assistant, see [docs/logging-with-claude.md](docs/logging-with-claude.md).
 
 **4. Connect your watch and glucose sensor** (optional) under **Connections** at the foot of the dashboard: your
-Garmin login (with its two-step code), and a LibreLinkUp follower account for a FreeStyle Libre
-([how to set that up](docs/integrations.md#abbott-librelinkup-continuous-glucose)). The syncs need their libraries:
-`scripts/setup_mac.sh` installs them, or `.venv/bin/pip install -e '.[all]'`.
+Garmin login, and a LibreLinkUp follower account for a FreeStyle Libre
+([how to set that up](docs/integrations.md#abbott-librelinkup-continuous-glucose)).
 
-**5. Keep it running.** On a Mac, `scripts/setup_mac.sh` installs a background service that starts the dashboard at
-login and runs the scheduled syncs (`--uninstall` removes it), then opens the dashboard signed in. Elsewhere, start
-the server with your own service manager, and open it once with `python -m body_kaizen open`.
+**Signing in.** Only your account on this computer can open the dashboard. There's no password: the installer signs
+your browser in, and the **Body Kaizen** launcher (Applications on a Mac, the Start menu on Windows, the applications
+menu on Linux) signs in any other browser, once. It works by a secret key in `~/.body-kaizen` that only your
+account can read; other accounts on the computer see a "not signed in" page and none of your data. More in
+[SECURITY.md](SECURITY.md).
+
+**Update or remove.** Run the install line again to update. To remove Body Kaizen, add `-s -- --uninstall` after
+`sh` (on Windows, run `$env:BK_UNINSTALL=1` first). Your data folder is never touched. The installers are short:
+[install.sh](install/install.sh), [install.ps1](install/install.ps1).
 
 <details>
-<summary><b>Install as a package</b> (<code>pipx install body-kaizen</code>)</summary>
+<summary><b>Run it from the code</b> (to work on it, or try the demo data locally)</summary>
+
+You need Python 3.10 or newer; the Garmin sync needs 3.12 (`.venv/bin/pip install -e '.[all]'` adds the syncs).
 
 ```bash
-pipx install body-kaizen         # add [garmin], [libre] or [all] for the syncs
-body-kaizen demo                 # the demo data, served from a temporary copy
-body-kaizen                      # your own: the first page sets up your data folder (or --data DIR, or FT_DATA)
-body-kaizen open                 # open the running dashboard signed in, in another browser or after clearing cookies
+git clone https://github.com/craigbennett1981/body-kaizen.git && cd body-kaizen
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+FT_NO_SYNC=1 FT_DATA=demo .venv/bin/python app/server.py      # the demo data; opens your browser, signed in
+.venv/bin/python app/server.py                                # your own: the first page sets up your data folder
 ```
 
-The scripts are subcommands there: `body-kaizen compute`, `body-kaizen garmin-login`, `body-kaizen libre-pull` and
-so on (`body-kaizen --help` lists them). You don't get `setup_mac.sh` or the docs, but nothing else is missing.
+On a Mac, `scripts/setup_mac.sh` runs it from the clone as a background service at login (`--uninstall` removes it).
+To sign in another browser, run `.venv/bin/python -m body_kaizen open`. On Windows, write `.venv\Scripts\python`
+for `.venv/bin/python`, and set variables with `$env:FT_DATA="..."` in PowerShell.
 </details>
 
 <details>
-<summary><b>Make a data folder by hand</b></summary>
+<summary><b>Install it as a package yourself</b> (<code>pipx install body-kaizen</code>)</summary>
 
 ```bash
-cp -r demo ~/body-kaizen-data && cd ~/body-kaizen-data
-rm -rf days/* imports/* measurements/*                       # keep the reference files, drop the demo person
-sed -i.bak '/^profile:/,/^timezone:/d' settings.yaml            # forget Sam: you'll be asked for your own details
-git init && git add . && git commit -m "Start my data"
+pipx install 'body-kaizen[all]'  # the syncs need Python 3.12
+body-kaizen                      # start it: the first page sets up your data folder (or --data DIR)
+body-kaizen demo                 # the demo data, from a temporary copy
+body-kaizen open                 # sign in another browser
+```
+
+The scripts are subcommands: `body-kaizen compute`, `body-kaizen garmin-login`, `body-kaizen libre-pull` and so on
+(`body-kaizen --help` lists them). Start it at login with your own service manager.
+</details>
+
+<details>
+<summary><b>Make a data folder from the command line</b></summary>
+
+```bash
+body-kaizen init ~/body-kaizen-data                            # or: python -m body_kaizen init, from the code
+cd ~/body-kaizen-data && git init && git add . && git commit -m "Start my data"
 gh repo create body-kaizen-data --private --source . --push     # --private is the important part
 ```
+
+The folder is private to your account, starts with the reference files (targets, foods, markers) and none of the
+demo person's data.
 </details>
 
 ## How it works
