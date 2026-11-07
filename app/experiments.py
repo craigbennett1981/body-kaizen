@@ -29,6 +29,7 @@ RESAMPLES = 2000
 RAMP_DAYS = 3            # period experiments: days left out at the start while an effect builds
 MIN_READINGS = 7         # period experiments: readings needed on each side
 PERIOD_KEPT = 0.75       # period experiments: share of days kept for a verdict
+TREND_DAYS = 60          # period experiments: days before the start used to check for a trend already under way
 BLOCK = 3                # period experiments: resample runs of days, since one day's reading is close to the next
 TABLE_NIGHTS = 120       # history sent to the browser for "Try a rule"
 
@@ -400,10 +401,13 @@ def evaluate_period(e, drows, today, cat, comb, conds, outs, base_info):
             diff = st.mean(a) - st.mean(b)
             r.update(diff=round(diff, 1), lo=round(lo, 1), hi=round(hi, 1), verdict="better" if gl > 0 else "worse" if gh < 0 else "unclear")
             # was it already heading this way? the baseline's own trend, carried forward to the middle of the period
-            bx = [(d - start).days for d in base_days if by.get(d.isoformat(), {}).get(var) is not None]
+            # (fitted over a longer stretch than the baseline: a slope from a few weeks of noisy readings is mostly noise)
+            tdays = [start - dt.timedelta(days=i) for i in range(max(bdays, TREND_DAYS), 0, -1)]
+            tb = [(d, by[d.isoformat()][var]) for d in tdays if by.get(d.isoformat(), {}).get(var) is not None]
+            bx = [(d - start).days for d, _ in tb]; by_ = [v for _, v in tb]
             if len(bx) >= MIN_READINGS and len(set(bx)) > 1:
-                mx_, my_ = st.mean(bx), st.mean(b)
-                slope = sum((x - mx_) * (y - my_) for x, y in zip(bx, b)) / sum((x - mx_) ** 2 for x in bx)
+                mx_, my_ = st.mean(bx), st.mean(by_)
+                slope = sum((x - mx_) * (y - my_) for x, y in zip(bx, by_)) / sum((x - mx_) ** 2 for x in bx)
                 ax = [(d - start).days for d in window if d <= today and by.get(d.isoformat(), {}).get(var) is not None]
                 drift = slope * (st.mean(ax) - mx_)
                 if diff and drift * diff > 0 and abs(drift) >= .3 * abs(diff):
@@ -639,7 +643,7 @@ def build():
     for e in exps:
         try: starts.append(dt.date.fromisoformat(str(e.get("start"))))
         except ValueError: pass
-    first = min(starts, default=today) - dt.timedelta(days=BASELINE_DAYS + 2)
+    first = min(starts, default=today) - dt.timedelta(days=max(BASELINE_DAYS, TREND_DAYS) + 2)
     span = max(TABLE_NIGHTS, (today - first).days + 2)
     rows = table(span)
     drows = daily_table(span)
