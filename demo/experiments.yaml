@@ -1,0 +1,15 @@
+experiments:
+- id: bedtime
+  title: Asleep by 23:00
+  start: '2026-09-13'
+  days: 14
+  rule: {bedtime_by: '23:00'}
+  outcomes: [asleep, sleep_score, hrv, rhr]
+  hypothesis: A regular bedtime before 23:00 gives longer sleep and a better HRV.
+- id: session-by-19
+  title: Training finished by 19:00
+  start: '2026-10-14'
+  days: 14
+  rule: {session_end_by: '19:00'}
+  outcomes: [asleep, sleep_score, hrv]
+  hypothesis: Finishing training by 19:00 protects that night's sleep.

@@ -280,3 +280,36 @@ class FixedClock(unittest.TestCase):
         finally:
             if old is None: os.environ.pop("FT_NOW", None)
             else: os.environ["FT_NOW"] = old
+
+
+class Experiments(unittest.TestCase):
+    def test_rules(self):
+        import experiments as X
+        row = {"start": -100, "before": {"session_end": 18 * 60, "last_meal": 21 * 60, "caffeine": [(15 * 60, 45)],
+                                         "satfat": 18, "steps": 9000}}
+        self.assertTrue(X.kept(row, {"bedtime_by": "22:30"}))            # asleep 22:20
+        self.assertFalse(X.kept(row, {"bedtime_by": "22:00"}))
+        self.assertTrue(X.kept(row, {"session_end_by": "19:00"}))
+        self.assertFalse(X.kept(row, {"last_meal_by": "20:30"}))
+        self.assertFalse(X.kept(row, {"caffeine_cutoff": "14:00"}))
+        self.assertTrue(X.kept(row, {"sat_fat_max": 20, "steps_min": 7000}))
+        self.assertEqual(X.rule_text({"bedtime_by": "22:30", "steps_min": 7000}), "Asleep by 22:30 and 7,000 steps or more")
+
+    def test_compare_needs_clear_evidence(self):
+        import experiments as X
+        base = [{"asleep": 400 + (i % 5) * 10} for i in range(20)]
+        same = [{"asleep": 400 + (i % 5) * 10} for i in range(10)]
+        more = [{"asleep": 470 + (i % 5) * 10} for i in range(10)]
+        self.assertEqual(X.compare(same, base, "asleep")["verdict"], "unclear")
+        self.assertEqual(X.compare(more, base, "asleep")["verdict"], "better")
+        self.assertEqual(X.compare(more[:3], base, "asleep")["verdict"], "too early")
+        r = X.compare(more, base, "asleep"); self.assertLess(r["lo"], r["diff"]); self.assertLess(r["diff"], r["hi"])
+
+    def test_demo_experiments(self):
+        import experiments as X
+        B = X.build()
+        self.assertEqual(len(B["experiments"]), 2)
+        for e in B["experiments"]:
+            self.assertEqual(len(e["calendar"]), e["days"])
+            self.assertIn(e["verdict"], ("running", "planned", "worked", "no effect", "worse", "inconclusive"))
+            self.assertEqual(e["kept"] + e["missed"], sum(c["state"] in ("kept", "missed") for c in e["calendar"]))

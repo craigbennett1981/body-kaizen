@@ -1519,6 +1519,59 @@ async function renderEnergyBalance(){
 /* ---------- food: every food eaten, its macros, how much and how often; the week's biggest sources ---------- */
 let FOODS = null, FSORT = {k:'times', dir:-1}, FQ = '', FWIN = 'all';
 const PE_CLS = v => v==null ? '' : v >= 15 ? 'good' : v >= 8 ? 'warn' : '';   // grams of protein per 100 kcal
+/* ---------- experiments ---------- */
+let XP = null;
+const XP_PILL = {running:['run','Running'], planned:['plan','Planned'], worked:['good','It worked'], 'no effect':['none','No clear effect'],
+                 worse:['bad','Made it worse'], inconclusive:['none','Not enough nights']};
+const xpVal = (v, unit) => v == null ? '–' : unit === 'min' ? mh(v) : `${fmt(v, 1)}${unit ? ' ' + unit : ''}`;
+const xpDiff = (v, unit) => v == null ? '' : `${v > 0 ? '+' : v < 0 ? '−' : '±'}${unit === 'min' ? Math.round(Math.abs(v)) + ' min' : fmt(Math.abs(v), 1) + (unit ? ' ' + unit : '')}`;
+
+function xpResults(E){
+  return `<div class="xp-res">${E.results.map(r => {
+    if(r.diff == null) return `<div class="xr"><span class="xr-l">${esc(r.label)}</span><span class="sub">${r.verdict === 'too early' ? `needs ${XP.min_nights}+ nights kept (${r.n} so far)` : '–'}</span></div>`;
+    const span = Math.max(Math.abs(r.lo), Math.abs(r.hi), 1) * 1.15, pos = v => 50 + v / span * 50;
+    const cls = r.verdict === 'better' ? 'g' : r.verdict === 'worse' ? 'b' : 'q';
+    return `<div class="xr" title="${esc(r.label)}: ${xpVal(r.trial, r.unit)} on ${r.n} kept nights against ${xpVal(r.base, r.unit)} on ${r.n_base} baseline nights. 90% range for the difference: ${xpDiff(r.lo, r.unit)} to ${xpDiff(r.hi, r.unit)}. ${r.better_if === 'higher' ? 'Higher' : 'Lower'} is better.">
+      <span class="xr-l">${esc(r.label)}</span>
+      <span class="xr-v"><span class="sub">${xpVal(r.base, r.unit)} →</span> <b>${xpVal(r.trial, r.unit)}</b></span>
+      <span class="xr-bar"><i class="z"></i><i class="rng ${cls}" style="left:${pos(r.lo)}%;width:${Math.max(1, pos(r.hi) - pos(r.lo))}%"></i><i class="pt ${cls}" style="left:${pos(r.diff)}%"></i></span>
+      <span class="xr-d ${cls}">${xpDiff(r.diff, r.unit)} <span class="sub">${r.verdict === 'better' ? 'better' : r.verdict === 'worse' ? 'worse' : 'unclear'}</span></span></div>`; }).join('')}</div>`;
+}
+
+function xpCard(E){
+  const [pc, pl] = XP_PILL[E.verdict] || ['none', E.verdict];
+  const cal = E.calendar.map(c => `<i class="xc ${c.state.replace(' ', '-')}" title="${esc(shortDate(c.date))}: ${c.state === 'future' ? 'to come' : c.state === 'no data' ? 'no sleep data' : c.state === 'kept' ? 'kept to the rule' : 'missed the rule'}${c.bed ? ', asleep ' + c.bed : ''}"></i>`).join('');
+  const kept = E.nights_so_far ? `Kept to the rule on <b>${esc(E.kept)} of ${esc(E.nights_so_far)}</b> nights so far${E.share_kept != null ? ` (${Math.round(E.share_kept * 100)}%)` : ''}.` : '';
+  return `<div class="xp xp-${pc}">
+    <div class="xp-top"><h3>${esc(E.title)}</h3><span class="xp-pill">${esc(pl)}</span></div>
+    <p class="xp-rule"><b>Rule:</b> ${esc(E.rule_text)} · ${esc(shortDate(E.start))} to ${esc(shortDate(E.end))} (${esc(E.days)} nights)${E.hypothesis ? `<br><span class="sub">${esc(E.hypothesis)}</span>` : ''}</p>
+    <div class="xp-cal" aria-label="Nights of the experiment">${cal}</div>
+    <p class="xp-v"><b>${esc(E.verdict_text)}</b> ${kept} Compared with ${esc(E.baseline.nights)} nights before it started.</p>
+    ${xpResults(E)}${E.notes ? `<p class="sub">${esc(E.notes)}</p>` : ''}</div>`;
+}
+
+async function renderExperiments(){
+  XP = XP || await api('/api/experiments').catch(() => null);
+  const el = $('#experiments');
+  if(!XP){ el.innerHTML = '<p class="empty">Couldn’t load your experiments.</p>'; return; }
+  const live = XP.experiments.filter(e => ['running', 'planned'].includes(e.verdict)), past = XP.experiments.filter(e => !['running', 'planned'].includes(e.verdict));
+  el.innerHTML = `<p class="sub">Test one change on yourself and see what it does to your own sleep and recovery. Each experiment is a rule kept for a set number of nights, compared with the weeks before it. To start one, tell your assistant, for example "start the ${esc((XP.suggestions[0] || {}).name || 'bedtime')} experiment".</p>
+    ${live.length ? `<h2>Running now</h2>${live.map(xpCard).join('')}` : '<h2>Running now</h2><p class="sub">No experiment running. Pick one below.</p>'}
+    ${XP.suggestions.length ? `<h2>Worth testing</h2>
+      <p class="sub">Patterns your own nights already show, and the test that would settle each one. The evidence so far compares nights that happened to differ; a test where you change one thing on purpose is much stronger.</p>
+      <div class="xs-grid">${XP.suggestions.map(s => `<div class="fs xs"><h3>${esc(s.title)}</h3><p>${esc(s.why)}</p><p class="sub">${esc(s.hypothesis)}</p>
+        <p class="xs-go">Tell your assistant: <b>“start the ${esc(s.name)} experiment”</b></p>
+        <details><summary>or add it to experiments.yaml yourself</summary><pre>${esc(s.yaml)}</pre></details></div>`).join('')}</div>` : ''}
+    ${past.length ? `<h2>Finished</h2>${past.map(xpCard).join('')}` : ''}
+    <h2>How it's judged</h2>
+    <ul class="sub xp-how">
+      <li>Nights are counted by the morning you wake up. The rule is checked against that night's bedtime and the day before it (training, meals, caffeine); the outcomes are that night's sleep and the next morning's HRV and resting heart rate.</li>
+      <li>Only nights that kept to the rule are compared with the baseline: every night in the ${esc(28)} days before the start.</li>
+      <li>The bar shows the difference and a 90% range for it, from resampling those nights. It only counts as better or worse when the whole range is on one side of zero; otherwise it's unclear.</li>
+      <li>A finished experiment needs ${Math.round(XP.enough_kept * 100)}% of nights kept, and at least ${esc(XP.min_nights)}, to give a verdict. One person, one experiment: treat a result as strong evidence for you, not proof for everyone, and repeat it if it matters.</li>
+    </ul>`;
+}
+
 /* ---------- sleep ---------- */
 let SLEEP = null;
 const mh = m => m==null ? '–' : `${Math.floor(Math.round(m)/60)}h ${String(Math.round(m)%60).padStart(2,'0')}m`;
@@ -1915,7 +1968,7 @@ async function alertToasts(){
   for(const a of al) if(!a.id.startsWith('lab-')) toast(`alert:${esc(a.id)}:${esc(a.since)}`, 'warn', a.title, `${esc(a.text)} ${esc(a.todo)}`);
 }
 async function reloadData(){
-  SUMMARY = await api('/api/summary'); HS = null; TRAIN = null; FOODS = null; SLEEP = null;  WO = null; BODY = null; REF = null; READY = null; renderAll();
+  SUMMARY = await api('/api/summary'); HS = null; TRAIN = null; FOODS = null; SLEEP = null; XP = null;  WO = null; BODY = null; REF = null; READY = null; renderAll();
 }
 
 /* ---------- boot ---------- */
@@ -1925,6 +1978,7 @@ function renderTab(t){
   if(t==='advice') renderAdvice();
   if(t==='food') renderFood();
   if(t==='sleep') renderSleep();
+  if(t==='experiments') renderExperiments();
   if(t==='wellbeing') renderWellbeing();
   if(t==='week') renderWeek(WEEK);
   if(t==='trends') renderTrends();

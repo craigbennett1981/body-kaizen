@@ -7,7 +7,7 @@ from the demo by `tools/readme_media.py`, so they show the current code.
 ![A tour of the dashboard on demo data: Day, Food, Sleep, Training, Body and Longevity](img/tour.gif)
 
 - [A day with Body Kaizen](#a-day-with-body-kaizen)
-- [Day](#day) · [Food](#food) · [Sleep](#sleep) · [Training](#training) · [Recovery](#recovery) · [Body](#body) ·
+- [Day](#day) · [Food](#food) · [Sleep](#sleep) · [Experiments](#experiments) · [Training](#training) · [Recovery](#recovery) · [Body](#body) ·
   [Trends](#trends) · [Longevity](#longevity) · [Everything else](#everything-else)
 
 ## A day with Body Kaizen
@@ -92,6 +92,19 @@ baseline. The Body tab adds a 14-day profile and your meals ranked by spike.
 ![Sleep stages: shares against typical ranges, patterns in plain words, and minutes of each stage every night](img/sleep-stages.png)
 
 ![Your nights split by the day before, each with a verdict and the difference in sleep, score, HRV and bedtime](img/sleep-factors.png)
+
+## Experiments
+
+Test one change on yourself and see what it does to your own sleep and recovery.
+
+- **Worth testing:** patterns your nights already show (late sessions, late meals, caffeine, bedtime), each with
+  the evidence so far and the test that would settle it. Tell your assistant "start the bedtime experiment" and
+  it adds it to `experiments.yaml`.
+- **Running now:** the rule, a square for each night (kept, missed or still to come), and an early read on each
+  outcome against the weeks before.
+- **Finished:** a verdict per experiment: it worked, no clear effect, made it worse, or not enough nights kept.
+  Each outcome shows the difference with a 90% range from resampling, and only counts as better or worse when the
+  whole range is on one side of zero.
 
 ## Training
 

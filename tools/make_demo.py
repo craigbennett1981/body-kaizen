@@ -440,6 +440,14 @@ def main():
         {"date": "2026-09-05", "test": "hr_cap_run", "speed_kmh": 9.0, "cap_bpm": 145, "km": 3.9, "minutes": 26},
         {"date": "2026-10-10", "test": "hr_cap_run", "speed_kmh": 9.0, "cap_bpm": 145, "km": 4.6, "minutes": 31}]), encoding="utf-8")
     (M / "episodes.yaml").write_text(yaml_dump([{"start": "2026-09-02", "end": "2026-09-04", "what": "cold: sore throat, low energy"}]), encoding="utf-8")
+    # two experiments, dated from the end: one finished, one running (the Experiments tab)
+    (OUT / "experiments.yaml").write_text(yaml_dump({"experiments": [
+        {"id": "bedtime", "title": "Asleep by 23:00", "start": (END - dt.timedelta(days=40)).isoformat(), "days": 14,
+         "rule": {"bedtime_by": "23:00"}, "outcomes": ["asleep", "sleep_score", "hrv", "rhr"],
+         "hypothesis": "A regular bedtime before 23:00 gives longer sleep and a better HRV."},
+        {"id": "session-by-19", "title": "Training finished by 19:00", "start": (END - dt.timedelta(days=9)).isoformat(), "days": 14,
+         "rule": {"session_end_by": "19:00"}, "outcomes": ["asleep", "sleep_score", "hrv"],
+         "hypothesis": "Finishing training by 19:00 protects that night's sleep."}]}), encoding="utf-8")
     (M / "supplements.yaml").write_text(yaml_dump([{"name": "Vitamin D3", "frequency": "daily", "started": "2026-10-05"}]), encoding="utf-8")
     # totals for every day
     r = subprocess.run([sys.executable, str(CODE / "scripts" / "compute.py")], env={**os.environ, "FT_DATA": str(OUT)}, capture_output=True, text=True)

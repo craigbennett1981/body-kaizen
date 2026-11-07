@@ -223,9 +223,42 @@ In your data folder:
 | `measurements/` | blood tests, InBody scans, functional tests, episodes, supplements |
 | `imports/` | raw responses from Garmin, LibreLinkUp and Hevy |
 | `events.yaml`, `todo.yaml` | timeline events; your to-do list |
+| `experiments.yaml` | n-of-1 experiments for the Experiments tab (below) |
 
 In the code: `foods/starter.yaml` (starter food list), `scripts/` (`nutrition.py` matcher, `compute.py` totals, syncs and
 imports), `app/` (dashboard).
+
+### experiments.yaml
+
+An experiment is a rule kept for a number of nights, and the outcomes it should move. Nights are keyed by the
+morning you wake up: the rule is checked against that night's bedtime and the day before it.
+
+```yaml
+experiments:
+  - id: bedtime                 # short, unique
+    title: Asleep by 22:30
+    start: 2026-11-08           # the first evening; the first night counted is the one you wake from on the 9th
+    days: 14                    # nights
+    rule: {bedtime_by: "22:30"} # one or more of the rules below; all must hold for a night to count as kept
+    outcomes: [asleep, sleep_score, hrv]   # default; also rhr, deep, rem, awake
+    hypothesis: An earlier bedtime gives longer sleep and better recovery.   # optional
+    baseline_days: 28           # optional: nights before the start to compare with (default 28)
+    status: stopped             # optional: only to end one early; otherwise worked out from the dates
+    notes: ...                  # optional
+```
+
+| rule | kept when |
+|---|---|
+| `bedtime_by: "HH:MM"` | asleep by that time (from the watch) |
+| `session_end_by: "HH:MM"` | any session that day ended by then (rest days count as kept) |
+| `last_meal_by: "HH:MM"` | the last timed food or drink was before then |
+| `caffeine_cutoff: "HH:MM"` | under 20 mg of caffeine logged after then |
+| `sat_fat_max: G` | saturated fat that day at or under G grams |
+| `steps_min: N` | at least N steps that day |
+
+Kept nights are compared with the baseline nights; each outcome gets the difference and a 90% range from
+resampling, and only counts as better or worse when the whole range is on one side of zero. A finished experiment
+needs 60% of nights kept (and at least 5) for a verdict.
 
 ### settings.yaml
 

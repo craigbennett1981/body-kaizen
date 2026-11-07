@@ -75,11 +75,28 @@ verdict against the full-day targets.
 | Started or stopped a supplement | `measurements/supplements.yaml` | |
 | Life events (new gym, travel, new scale) | `events.yaml` | |
 | A to-do | `todo.yaml` | |
+| "Start the bedtime experiment", "stop the experiment" | `experiments.yaml` | See below |
 | A target change ("protein 160 from Monday") | new dated block in `targets.yaml` | Never edit an old block: that would rewrite past days |
 | A brand change ("new milk from today") | `eras:` in `settings.yaml` | |
 | A habit ("my tea always has low-fat milk") | `food:` defaults in `settings.yaml` | |
 
 **Never store** ID numbers, dates of birth, addresses or doctors' names from reports and screenshots.
+
+### Experiments
+
+The Experiments tab runs n-of-1 tests: a rule kept for a set number of nights (usually 14), compared with the weeks
+before. Its "Worth testing" list suggests tests from the person's own data, each with a ready entry.
+
+- **Starting one** ("start the bedtime experiment"): add the entry to `experiments.yaml` (format in SCHEMA.md),
+  with `start` set to today if it begins tonight. Only one experiment at a time changes one thing: if another is
+  running, ask whether to stop it first. Confirm the rule and the end date in your reply.
+- **While it runs:** when you log the evening or close the day, say whether today kept to the rule, and how many
+  nights are left. Don't nag on a missed night: say it plainly and move on.
+- **Stopping early:** set `status: stopped`. Never edit the dates or the rule of one that has started: that would
+  change what it's measuring.
+- **Reading the result:** report the Experiments tab's verdict and numbers as they are. "No clear effect" and "not
+  enough nights" are real answers; don't dress them up as a win. One person's result is strong evidence for them,
+  not proof for everyone.
 
 ## 4. When food doesn't match
 
