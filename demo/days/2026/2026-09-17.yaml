@@ -76,5 +76,6 @@ meals:
     parsed:
     - {item: guava, g: 149}
 totals: {kcal: 1935, protein_g: 151.7, carbs_g: 244.3, fat_g: 39.6, satfat_g: 13.1, fibre_g: 32.2, sodium_mg: 1105, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+habits: {screens_off: '21:52'}
 energy: {total: 2292, active: 559, bmr: 1733, source: garmin}
 intensity_min: {moderate: 0, vigorous: 0, source: garmin}

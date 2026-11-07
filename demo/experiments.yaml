@@ -1,3 +1,5 @@
+habits:
+  screens_off: {type: time, label: Screens off}
 experiments:
 - id: bedtime
   title: Asleep by 23:00

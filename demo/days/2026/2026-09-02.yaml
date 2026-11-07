@@ -76,6 +76,7 @@ meals:
     parsed:
     - {item: pear, g: 170}
 totals: {kcal: 1681, protein_g: 139.0, carbs_g: 215.5, fat_g: 29.9, satfat_g: 6.1, fibre_g: 29.3, sodium_mg: 1674, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+habits: {screens_off: '22:37'}
 symptoms:
 - {what: sore throat, severity: 2}
 - {what: fatigue, severity: 2}

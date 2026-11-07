@@ -283,33 +283,64 @@ class FixedClock(unittest.TestCase):
 
 
 class Experiments(unittest.TestCase):
-    def test_rules(self):
+    def setUp(self):
         import experiments as X
-        row = {"start": -100, "before": {"session_end": 18 * 60, "last_meal": 21 * 60, "caffeine": [(15 * 60, 45)],
-                                         "satfat": 18, "steps": 9000}}
-        self.assertTrue(X.kept(row, {"bedtime_by": "22:30"}))            # asleep 22:20
-        self.assertFalse(X.kept(row, {"bedtime_by": "22:00"}))
-        self.assertTrue(X.kept(row, {"session_end_by": "19:00"}))
-        self.assertFalse(X.kept(row, {"last_meal_by": "20:30"}))
-        self.assertFalse(X.kept(row, {"caffeine_cutoff": "14:00"}))
-        self.assertTrue(X.kept(row, {"sat_fat_max": 20, "steps_min": 7000}))
-        self.assertEqual(X.rule_text({"bedtime_by": "22:30", "steps_min": 7000}), "Asleep by 22:30 and 7,000 steps or more")
+        self.X = X
+        self.cat = X.catalogue({"screens_off": {"type": "time"}})
+
+    def test_rules(self):
+        X, cat = self.X, self.cat
+        row = {"night.bedtime": -100, "day.session_end": 18 * 60, "day.last_meal": 21 * 60, "day.caffeine_last": 15 * 60,
+               "day.satfat": 18, "day.steps": 9000, "habit.screens_off": 21 * 60 + 15, "food.creatine": True}
+        def ok(rule):
+            comb, conds, outs, errs = X.check({"start": "2026-11-01", "rule": rule}, cat)
+            self.assertEqual(errs, [], rule); return X.kept(row, comb, conds, cat)
+        self.assertTrue(ok({"bedtime_by": "22:30"}))                      # asleep 22:20
+        self.assertFalse(ok({"bedtime_by": "22:00"}))
+        self.assertTrue(ok({"session_end_by": "19:00"}))
+        self.assertFalse(ok({"last_meal_by": "20:30"}))
+        self.assertFalse(ok({"caffeine_cutoff": "14:00"}))
+        self.assertTrue(ok({"all": [{"var": "day.satfat", "op": "<=", "value": 20}, {"var": "day.steps", "op": ">=", "value": 7000}]}))
+        self.assertTrue(ok({"all": [{"var": "habit.screens_off", "op": "<=", "value": "21:30"}, {"var": "food.creatine", "op": "=", "value": True}]}))
+        self.assertTrue(ok({"any": [{"var": "day.satfat", "op": ">", "value": 30}, {"var": "night.bedtime", "op": "<=", "value": "22:30"}]}))
+        # a time that didn't happen keeps a "by" rule; a missing number can't be judged
+        self.assertTrue(X.kept({"night.bedtime": -100}, "all", [{"var": "day.session_end", "op": "<=", "parsed": 19 * 60}], cat))
+        self.assertIsNone(X.kept({}, "all", [{"var": "day.satfat", "op": "<=", "parsed": 20}], cat))
+
+    def test_anything_else_is_rejected(self):
+        X, cat = self.X, self.cat
+        bad = {"start": "2026-11-01", "days": 90, "rule": {"all": [
+            {"var": "day.protien", "op": ">=", "value": 150}, {"var": "habit.reading", "op": "=", "value": True},
+            {"var": "food.no-such-food", "op": "=", "value": True}, {"var": "day.trained", "op": "<=", "value": 1},
+            {"var": "night.bedtime", "op": "<=", "value": "late"}, {"var": "day.kcal", "op": "~", "value": 1}]},
+            "outcomes": ["day.kcal"]}
+        errs = X.check(bad, cat)[3]
+        self.assertEqual(len(errs), 8, errs)   # six bad conditions, a bad outcome, a bad length
+        self.assertTrue(X.check({"start": "2026-11-01", "rule": {"screens_by": "21:00"}}, cat)[3])   # unknown shorthand
+        self.assertTrue(X.check({"start": "soon", "rule": {"bedtime_by": "22:30"}}, cat)[3])
+
+    def test_wording(self):
+        X, cat = self.X, self.cat
+        comb, conds, _, _ = X.check({"start": "2026-11-01", "rule": {"all": [{"var": "night.bedtime", "op": "<=", "value": "22:30"},
+                                                                              {"var": "day.caffeine_last", "op": "<=", "value": "14:00"}]}}, cat)
+        self.assertEqual(X.rule_text(cat, comb, conds), "Asleep by 22:30 and no caffeine after 14:00")
 
     def test_compare_needs_clear_evidence(self):
-        import experiments as X
-        base = [{"asleep": 400 + (i % 5) * 10} for i in range(20)]
-        same = [{"asleep": 400 + (i % 5) * 10} for i in range(10)]
-        more = [{"asleep": 470 + (i % 5) * 10} for i in range(10)]
-        self.assertEqual(X.compare(same, base, "asleep")["verdict"], "unclear")
-        self.assertEqual(X.compare(more, base, "asleep")["verdict"], "better")
-        self.assertEqual(X.compare(more[:3], base, "asleep")["verdict"], "too early")
-        r = X.compare(more, base, "asleep"); self.assertLess(r["lo"], r["diff"]); self.assertLess(r["diff"], r["hi"])
+        X, cat = self.X, self.cat
+        base = [{"night.asleep": 400 + (i % 5) * 10} for i in range(20)]
+        same = [{"night.asleep": 400 + (i % 5) * 10} for i in range(10)]
+        more = [{"night.asleep": 470 + (i % 5) * 10} for i in range(10)]
+        self.assertEqual(X.compare(same, base, "night.asleep", 1, cat)["verdict"], "unclear")
+        self.assertEqual(X.compare(more, base, "night.asleep", 1, cat)["verdict"], "better")
+        self.assertEqual(X.compare(more[:3], base, "night.asleep", 1, cat)["verdict"], "too early")
+        r = X.compare(more, base, "night.asleep", 1, cat); self.assertLess(r["lo"], r["diff"]); self.assertLess(r["diff"], r["hi"])
 
     def test_demo_experiments(self):
-        import experiments as X
-        B = X.build()
+        B = self.X.build()
         self.assertEqual(len(B["experiments"]), 2)
         for e in B["experiments"]:
+            self.assertNotEqual(e["verdict"], "invalid", e.get("errors"))
             self.assertEqual(len(e["calendar"]), e["days"])
-            self.assertIn(e["verdict"], ("running", "planned", "worked", "no effect", "worse", "inconclusive"))
             self.assertEqual(e["kept"] + e["missed"], sum(c["state"] in ("kept", "missed") for c in e["calendar"]))
+        self.assertIn("habit.screens_off", B["catalogue"]); self.assertIn("habit.screens_off", B["table"]["cols"])
+        self.assertTrue(any(m.get("supplement") for m in B["catalogue"].values()))

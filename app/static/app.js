@@ -1520,57 +1520,140 @@ async function renderEnergyBalance(){
 let FOODS = null, FSORT = {k:'times', dir:-1}, FQ = '', FWIN = 'all';
 const PE_CLS = v => v==null ? '' : v >= 15 ? 'good' : v >= 8 ? 'warn' : '';   // grams of protein per 100 kcal
 /* ---------- experiments ---------- */
-let XP = null;
+let XP = null, XTRY = {var: 'night.bedtime', op: '<=', value: '22:30', outs: ['night.asleep', 'night.score', 'night.hrv']};
 const XP_PILL = {running:['run','Running'], planned:['plan','Planned'], worked:['good','It worked'], 'no effect':['none','No clear effect'],
-                 worse:['bad','Made it worse'], inconclusive:['none','Not enough nights']};
-const xpVal = (v, unit) => v == null ? '–' : unit === 'min' ? mh(v) : `${fmt(v, 1)}${unit ? ' ' + unit : ''}`;
-const xpDiff = (v, unit) => { if(v == null) return ''; const r = unit === 'min' ? Math.round(v) : Math.round(v * 10) / 10;
-  return `${r > 0 ? '+' : r < 0 ? '−' : '±'}${unit === 'min' ? Math.abs(r) + ' min' : fmt(Math.abs(r), 1) + (unit ? ' ' + unit : '')}`; };
+                 worse:['bad','Made it worse'], inconclusive:['none','Not enough nights'], invalid:['bad','Needs fixing']};
+const XP_TIME = k => k === 'time' || k === 'night_time';
+const xpVal = (v, r) => v == null ? '–' : XP_TIME(r.kind) ? clk(v) : r.unit === 'min' ? mh(v) : `${fmt(v, 1)}${r.unit ? ' ' + r.unit : ''}`;
+const xpDiff = (v, r) => { if(v == null) return ''; const t = XP_TIME(r.kind), m = t || r.unit === 'min', x = m ? Math.round(v) : Math.round(v * 10) / 10;
+  if(t) return x === 0 ? 'same time' : `${Math.abs(x)} min ${x > 0 ? 'later' : 'earlier'}`;
+  return `${x > 0 ? '+' : x < 0 ? '−' : '±'}${m ? Math.abs(x) + ' min' : fmt(Math.abs(x), 1) + (r.unit ? ' ' + r.unit : '')}`; };
 
-function xpResults(E){
-  return `<div class="xp-res">${E.results.map(r => {
-    if(r.diff == null) return `<div class="xr"><span class="xr-l">${esc(r.label)}</span><span class="sub">${r.verdict === 'too early' ? `needs ${XP.min_nights}+ nights kept (${r.n} so far)` : '–'}</span></div>`;
+function xpResults(list, aLab, bLab){
+  return `<div class="xp-res">${list.map(r => {
+    if(r.diff == null) return `<div class="xr"><span class="xr-l">${esc(r.label)}</span><span class="sub">${r.verdict === 'too early' ? `needs ${XP.min_nights}+ nights on each side (${r.n} and ${r.n_base})` : '–'}</span></div>`;
     const span = Math.max(Math.abs(r.lo), Math.abs(r.hi), 1) * 1.15, pos = v => 50 + v / span * 50;
     const cls = r.verdict === 'better' ? 'g' : r.verdict === 'worse' ? 'b' : 'q';
-    return `<div class="xr" title="${esc(r.label)}: ${xpVal(r.trial, r.unit)} on ${r.n} kept nights against ${xpVal(r.base, r.unit)} on ${r.n_base} baseline nights. 90% range for the difference: ${xpDiff(r.lo, r.unit)} to ${xpDiff(r.hi, r.unit)}. ${r.better_if === 'higher' ? 'Higher' : 'Lower'} is better.">
+    return `<div class="xr" title="${esc(r.label)}: ${xpVal(r.trial, r)} on ${r.n} ${aLab} against ${xpVal(r.base, r)} on ${r.n_base} ${bLab}. 90% range for the difference: ${xpDiff(r.lo, r)} to ${xpDiff(r.hi, r)}. ${r.better_if === 'higher' ? 'Higher' : 'Lower'} is better.">
       <span class="xr-l">${esc(r.label)}</span>
-      <span class="xr-v"><span class="sub">${xpVal(r.base, r.unit)} →</span> <b>${xpVal(r.trial, r.unit)}</b></span>
+      <span class="xr-v"><span class="sub">${xpVal(r.base, r)} →</span> <b>${xpVal(r.trial, r)}</b></span>
       <span class="xr-bar"><i class="z"></i><i class="rng ${cls}" style="left:${pos(r.lo)}%;width:${Math.max(1, pos(r.hi) - pos(r.lo))}%"></i><i class="pt ${cls}" style="left:${pos(r.diff)}%"></i></span>
-      <span class="xr-d ${cls}">${xpDiff(r.diff, r.unit)} <span class="sub">${r.verdict === 'better' ? 'better' : r.verdict === 'worse' ? 'worse' : 'unclear'}</span></span></div>`; }).join('')}</div>`;
+      <span class="xr-d ${cls}">${xpDiff(r.diff, r)} <span class="sub">${r.verdict === 'better' ? 'better' : r.verdict === 'worse' ? 'worse' : 'unclear'}</span></span></div>`; }).join('')}</div>`;
 }
 
 function xpCard(E){
   const [pc, pl] = XP_PILL[E.verdict] || ['none', E.verdict];
-  const cal = E.calendar.map(c => `<i class="xc ${c.state.replace(' ', '-')}" title="${esc(shortDate(c.date))}: ${c.state === 'future' ? 'to come' : c.state === 'no data' ? 'no sleep data' : c.state === 'kept' ? 'kept to the rule' : 'missed the rule'}${c.bed ? ', asleep ' + c.bed : ''}"></i>`).join('');
-  const kept = E.nights_so_far ? `Kept to the rule on <b>${esc(E.kept)} of ${esc(E.nights_so_far)}</b> nights${E.verdict === 'running' ? ' so far' : ''}${E.share_kept != null ? ` (${Math.round(E.share_kept * 100)}%)` : ''}.` : '';
+  if(E.verdict === 'invalid') return `<div class="xp xp-bad"><div class="xp-top"><h3>${esc(E.title || E.id)}</h3><span class="xp-pill">${esc(pl)}</span></div>
+    <p class="xp-v">This experiment can't be scored until it's fixed in <code>experiments.yaml</code>:</p><ul class="xp-err">${E.errors.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+    <p class="sub">What it can use is listed under "What you can test" below.</p></div>`;
+  const cal = E.calendar.map(c => `<i class="xc ${c.state.replace(' ', '-')}" title="${esc(shortDate(c.date))}: ${c.state === 'future' ? 'to come' : c.state === 'no data' ? 'no data to judge' : c.state === 'kept' ? 'kept to the rule' : 'missed the rule'}${c.bed ? ', asleep ' + c.bed : ''}"></i>`).join('');
+  const judged = E.kept + E.missed;
+  const kept = judged ? `Kept to the rule on <b>${esc(E.kept)} of ${esc(judged)}</b> nights${E.verdict === 'running' ? ' so far' : ''}${E.share_kept != null ? ` (${Math.round(E.share_kept * 100)}%)` : ''}.` : '';
   return `<div class="xp xp-${pc}">
     <div class="xp-top"><h3>${esc(E.title)}</h3><span class="xp-pill">${esc(pl)}</span></div>
     <p class="xp-rule"><b>Rule:</b> ${esc(E.rule_text)} · ${esc(shortDate(E.start))} to ${esc(shortDate(E.end))} (${esc(E.days)} nights)${E.hypothesis ? `<br><span class="sub">${esc(E.hypothesis)}</span>` : ''}</p>
     <div class="xp-cal" aria-label="Nights of the experiment">${cal}</div>
     <p class="xp-v"><b>${esc(E.verdict_text)}</b> ${kept} Compared with ${esc(E.baseline.nights)} nights before it started.</p>
-    ${xpResults(E)}${E.notes ? `<p class="sub">${esc(E.notes)}</p>` : ''}</div>`;
+    ${xpResults(E.results, 'kept nights', 'baseline nights')}${E.notes ? `<p class="sub">${esc(E.notes)}</p>` : ''}</div>`;
+}
+
+// ---- Try a rule: the same split and resampling as experiments.py, in the browser, over XP.table ----
+function xpRand(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const xpMean = a => a.reduce((s, x) => s + x, 0) / a.length;
+function xpBoot(a, b){
+  const r = xpRand(7), n = 1000, d = [];
+  const draw = xs => { let s = 0; for(let i = 0; i < xs.length; i++) s += xs[Math.floor(r() * xs.length)]; return s / xs.length; };
+  for(let i = 0; i < n; i++) d.push(draw(a) - draw(b));
+  d.sort((x, y) => x - y); return [d[Math.floor(.05 * n)], d[Math.floor(.95 * n) - 1]];
+}
+function xpParse(meta, v){
+  if(XP_TIME(meta.kind)){ if(!/^\d{1,2}:\d{2}$/.test(v)) return null; const [h, m] = v.split(':').map(Number), x = h * 60 + m; return meta.kind === 'night_time' && x >= 720 ? x - 1440 : x; }
+  if(meta.kind === 'bool') return v === 'true' || v === true;
+  const x = parseFloat(v); return isNaN(x) ? null : x;
+}
+function xpHolds(v, meta, key, op, x){
+  if(meta.kind === 'bool'){ const b = !!v; return op === '=' ? b === x : b !== x; }
+  if(v == null) return XP.absent_keeps.includes(key) && (op === '<=' || op === '<') ? true : null;
+  return {'<=': v <= x, '>=': v >= x, '<': v < x, '>': v > x, '=': v === x, '!=': v !== x}[op];
+}
+function xpTry(){
+  const T = XP.table, cat = XP.catalogue, meta = cat[XTRY.var], x = xpParse(meta, XTRY.value), el = $('#xtry-out');
+  if(x == null){ el.innerHTML = `<p class="sub">Enter a ${XP_TIME(meta.kind) ? 'time like 22:30' : 'number'}.</p>`; return; }
+  const col = T.cols[XTRY.var] || T.dates.map(() => null), yes = [], no = [];
+  T.dates.forEach((d, i) => { const h = xpHolds(col[i], meta, XTRY.var, XTRY.op, x); if(h === true) yes.push(i); else if(h === false) no.push(i); });
+  const res = XTRY.outs.map(o => { const m = cat[o], c = T.cols[o] || [], a = yes.map(i => c[i]).filter(v => v != null), b = no.map(i => c[i]).filter(v => v != null);
+    const sign = m.better || 1, r = {key: o, label: m.label, kind: m.kind, unit: m.kind === 'min' ? 'min' : m.unit, better_if: sign > 0 ? 'higher' : 'lower', n: a.length, n_base: b.length,
+      trial: a.length ? xpMean(a) : null, base: b.length ? xpMean(b) : null};
+    if(a.length < XP.min_nights || b.length < XP.min_nights){ r.verdict = 'too early'; return r; }
+    const [lo, hi] = xpBoot(a, b), [gl, gh] = sign > 0 ? [lo, hi] : [-hi, -lo];
+    return {...r, diff: xpMean(a) - xpMean(b), lo, hi, verdict: gl > 0 ? 'better' : gh < 0 ? 'worse' : 'unclear'}; });
+  const val = meta.kind === 'bool' ? (x ? 'yes' : 'no') : XTRY.value;
+  const words = XP_TIME(meta.kind) ? {'<=': 'by', '<': 'before', '>=': 'at or after', '>': 'after'} : {'<=': 'at most', '<': 'under', '>=': 'at least', '>': 'over'};
+  const lab = meta.label.charAt(0).toLowerCase() + meta.label.slice(1);
+  const phrase = meta.kind === 'bool' ? (((XTRY.op === '=') === x) ? lab : `no ${lab.replace(/^had /, '')}`)
+    : XTRY.var === 'night.bedtime' ? `asleep ${words[XTRY.op]} ${val}` : `${lab} ${words[XTRY.op]} ${val}${meta.unit ? ' ' + meta.unit : ''}`;
+  const yaml = `- id: ${XTRY.var.split('.').pop().replace(/_/g, '-')}-test\n  title: ${phrase.charAt(0).toUpperCase() + phrase.slice(1)}\n  start: ${todayISO()}\n  days: ${XP.default_days}\n  rule:\n    all:\n      - {var: ${XTRY.var}, op: "${XTRY.op}", value: ${meta.kind === 'bool' ? x : XP_TIME(meta.kind) ? `"${XTRY.value}"` : x}}\n  outcomes: [${XTRY.outs.join(', ')}]`;
+  el.innerHTML = `<p class="xp-v">In your last ${esc(T.dates.length)} nights, the rule held on <b>${yes.length}</b> and didn't on <b>${no.length}</b>${T.dates.length - yes.length - no.length ? ` (${T.dates.length - yes.length - no.length} with no data)` : ''}. Nights when it held, against nights when it didn't:</p>
+    ${xpResults(res, 'nights when it held', 'nights when it didn\'t')}
+    <p class="sub">These are nights that happened to differ, so other things may differ too (a late session is often a busy day). To test it properly, run it as an experiment.</p>
+    <div class="xtry-go"><button id="xtry-copy">Copy as an experiment</button><span class="sub" id="xtry-msg">or tell your assistant: "start an experiment: ${esc(phrase)}, for ${esc(XP.default_days)} nights"</span></div>
+    <pre class="xtry-yaml" hidden>${esc(yaml)}</pre>`;
+  $('#xtry-copy').onclick = () => { const pre = el.querySelector('.xtry-yaml'); pre.hidden = false;
+    (navigator.clipboard ? navigator.clipboard.writeText(yaml) : Promise.reject()).then(() => { $('#xtry-msg').textContent = 'Copied: paste it into experiments.yaml, or give it to your assistant.'; })
+      .catch(() => { $('#xtry-msg').textContent = 'Copy the entry below into experiments.yaml.'; }); };
+}
+function xpTryForm(){
+  const cat = XP.catalogue, T = XP.table, groups = {};
+  Object.entries(cat).forEach(([k, m]) => { if(k.startsWith('food.') && !m.supplement && !T.cols[k]) return;   // foods you've actually had
+    if(k.startsWith('food.') && m.supplement && !T.cols[k]) return; (groups[m.group] = groups[m.group] || []).push([k, m]); });
+  const order = ['Night', 'Food the day before', 'Activity the day before', 'Your habits', 'Supplements', 'Foods'];
+  const opts = order.filter(g => groups[g]).map(g => `<optgroup label="${esc(g)}">${groups[g].sort((a, b) => a[1].label.localeCompare(b[1].label)).map(([k, m]) => `<option value="${esc(k)}"${k === XTRY.var ? ' selected' : ''}>${esc(m.label)}</option>`).join('')}</optgroup>`).join('');
+  const meta = cat[XTRY.var], ops = meta.kind === 'bool' ? ['=', '!='] : ['<=', '>=', '<', '>'];
+  if(!ops.includes(XTRY.op)) XTRY.op = ops[0];
+  const valIn = meta.kind === 'bool' ? `<select id="xtry-val"><option value="true"${XTRY.value === 'true' ? ' selected' : ''}>yes</option><option value="false"${XTRY.value === 'false' ? ' selected' : ''}>no</option></select>`
+    : `<input id="xtry-val" value="${esc(XTRY.value)}" size="7" placeholder="${XP_TIME(meta.kind) ? '22:30' : '20'}" aria-label="Value">${meta.unit ? ` <span class="sub">${esc(meta.unit)}</span>` : ''}`;
+  const outs = Object.entries(cat).filter(([, m]) => m.outcome).map(([k, m]) => `<label><input type="checkbox" value="${esc(k)}"${XTRY.outs.includes(k) ? ' checked' : ''}> ${esc(m.label)}</label>`).join('');
+  $('#xtry').innerHTML = `<div class="xtry-row"><select id="xtry-var" aria-label="Variable">${opts}</select>
+      <select id="xtry-op" aria-label="Comparison">${ops.map(o => `<option${o === XTRY.op ? ' selected' : ''}>${o}</option>`).join('')}</select>${valIn}</div>
+    <div class="xtry-outs"><span class="sub">Outcomes:</span> ${outs}</div><div id="xtry-out"></div>`;
+  $('#xtry-var').onchange = e => { XTRY.var = e.target.value; const k = cat[XTRY.var].kind; XTRY.value = k === 'bool' ? 'true' : XP_TIME(k) ? '22:30' : ''; xpTryForm(); };
+  $('#xtry-op').onchange = e => { XTRY.op = e.target.value; xpTry(); };
+  $('#xtry-val').oninput = $('#xtry-val').onchange = e => { XTRY.value = e.target.value; xpTry(); };
+  $('#xtry').querySelectorAll('.xtry-outs input').forEach(c => c.onchange = () => { XTRY.outs = [...$('#xtry').querySelectorAll('.xtry-outs input:checked')].map(x => x.value); xpTry(); });
+  xpTry();
 }
 
 async function renderExperiments(){
   XP = XP || await api('/api/experiments').catch(() => null);
   const el = $('#experiments');
   if(!XP){ el.innerHTML = '<p class="empty">Couldn’t load your experiments.</p>'; return; }
-  const live = XP.experiments.filter(e => ['running', 'planned'].includes(e.verdict)), past = XP.experiments.filter(e => !['running', 'planned'].includes(e.verdict));
-  el.innerHTML = `<p class="sub">Test one change on yourself and see what it does to your own sleep and recovery. Each experiment is a rule kept for a set number of nights, compared with the weeks before it. To start one, tell your assistant, for example "start the ${esc((XP.suggestions[0] || {}).name || 'bedtime')} experiment".</p>
-    ${live.length ? `<h2>Running now</h2>${live.map(xpCard).join('')}` : '<h2>Running now</h2><p class="sub">No experiment running. Pick one below.</p>'}
+  const live = XP.experiments.filter(e => ['running', 'planned', 'invalid'].includes(e.verdict)), past = XP.experiments.filter(e => !['running', 'planned', 'invalid'].includes(e.verdict));
+  const cat = XP.catalogue, groups = {};
+  Object.entries(cat).forEach(([k, m]) => { if(k.startsWith('food.') && !m.supplement) return; (groups[m.group] = groups[m.group] || []).push([k, m]); });
+  const kinds = {time: 'a time', night_time: 'a time', num: 'a number', min: 'minutes', bool: 'yes or no'};
+  el.innerHTML = `<p class="sub">Test one change on yourself and see what it does to your own sleep and recovery. Each experiment is a rule kept for a set number of nights (${esc(XP.default_days)} unless you choose), compared with the weeks before it. To start one, tell your assistant, for example "start the ${esc((XP.suggestions[0] || {}).name || 'bedtime')} experiment".</p>
+    <h2>Running now</h2>${live.length ? live.map(xpCard).join('') : '<p class="sub">No experiment running. Pick one below, or try a rule of your own.</p>'}
     ${XP.suggestions.length ? `<h2>Worth testing</h2>
       <p class="sub">Patterns your own nights already show, and the test that would settle each one. The evidence so far compares nights that happened to differ; a test where you change one thing on purpose is much stronger.</p>
       <div class="xs-grid">${XP.suggestions.map(s => `<div class="fs xs"><h3>${esc(s.title)}</h3><p>${esc(s.why)}</p><p class="sub">${esc(s.hypothesis)}</p>
         <p class="xs-go">Tell your assistant: <b>“start the ${esc(s.name)} experiment”</b></p>
         <details><summary>or add it to experiments.yaml yourself</summary><pre>${esc(s.yaml)}</pre></details></div>`).join('')}</div>` : ''}
+    <h2>Try a rule</h2>
+    <p class="sub">Ask your history a question: how did your nights go when this held, against when it didn't? Nothing is saved.</p>
+    <div id="xtry" class="xp"></div>
     ${past.length ? `<h2>Finished</h2>${past.map(xpCard).join('')}` : ''}
+    <h2>What you can test</h2>
+    <p class="sub">Experiments can only use these; anything else is flagged, not ignored. "The day before" is the day you went to bed on. Supplements and foods count if you logged them that day (log supplements like food: "5 g creatine"). Habits are things no device records, like when your screens went off: declare them in experiments.yaml and tell your assistant each day ("screens off at 21:40").</p>
+    <div class="xcat">${['Night', 'Food the day before', 'Activity the day before', 'Your habits', 'Supplements'].filter(g => groups[g] || g === 'Your habits').map(g => `<div class="fs"><h3>${esc(g)}</h3>${(groups[g] || []).map(([k, m]) => `<div class="xcat-r"><code>${esc(k)}</code><span>${esc(m.label)}${m.unit ? ` (${esc(m.unit)})` : ''} · ${kinds[m.kind]}${m.outcome ? ' · outcome' : ''}</span></div>`).join('') || '<p class="sub">None declared yet. For example, in experiments.yaml:<br><code>habits: {screens_off: {type: time, label: screens off}}</code></p>'}</div>`).join('')}
+      <div class="fs"><h3>Foods</h3><p class="sub">Any food in your list, as <code>food.&lt;key&gt;</code>: whether you had it that day.</p></div></div>
     <h2>How it's judged</h2>
     <ul class="sub xp-how">
-      <li>Nights are counted by the morning you wake up. The rule is checked against that night's bedtime and the day before it (training, meals, caffeine); the outcomes are that night's sleep and the next morning's HRV and resting heart rate.</li>
-      <li>Only nights that kept to the rule are compared with the baseline: every night in the ${esc(28)} days before the start.</li>
+      <li>Nights are counted by the morning you wake up. The rule is checked against that night's bedtime and the day before it; the outcomes are that night's sleep and the next morning's HRV and resting heart rate.</li>
+      <li>Only nights that kept to the rule are compared with the baseline: every night in the ${esc(XP.baseline_days)} days before the start. A night with no data for the rule is left out, not counted either way.</li>
       <li>The bar shows the difference and a 90% range for it, from resampling those nights. It only counts as better or worse when the whole range is on one side of zero; otherwise it's unclear.</li>
       <li>A finished experiment needs ${Math.round(XP.enough_kept * 100)}% of nights kept, and at least ${esc(XP.min_nights)}, to give a verdict. One person, one experiment: treat a result as strong evidence for you, not proof for everyone, and repeat it if it matters.</li>
     </ul>`;
+  xpTryForm();
 }
 
 /* ---------- sleep ---------- */

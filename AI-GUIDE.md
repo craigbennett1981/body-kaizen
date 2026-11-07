@@ -84,19 +84,28 @@ verdict against the full-day targets.
 
 ### Experiments
 
-The Experiments tab runs n-of-1 tests: a rule kept for a set number of nights (usually 14), compared with the weeks
-before. Its "Worth testing" list suggests tests from the person's own data, each with a ready entry.
+The Experiments tab runs n-of-1 tests: a rule kept for a set number of nights (14 unless the person says), compared
+with the weeks before. Its "Worth testing" list suggests tests from the person's own data, each with a ready entry,
+and "Try a rule" lets them question their history first.
 
-- **Starting one** ("start the bedtime experiment"): add the entry to `experiments.yaml` (format in SCHEMA.md),
-  with `start` set to today if it begins tonight. Only one experiment at a time changes one thing: if another is
-  running, ask whether to stop it first. Confirm the rule and the end date in your reply.
+- **Starting one** ("start the bedtime experiment", "test screens off by 21:30 for 3 weeks"): add the entry to
+  `experiments.yaml`, using only the variables in SCHEMA.md (anything else is flagged on the tab and not scored).
+  Set `start` to today if it begins tonight, and `days` to what they asked for. One experiment at a time changes one
+  thing: if another is running, ask whether to stop it first. Confirm the rule and the end date in your reply, then
+  check the tab doesn't show it as "Needs fixing".
+- **Habits no device records** (screens off, a walk after dinner, reading): declare the habit under `habits:` in
+  `experiments.yaml`, then log it in that day's file under `habits:` whenever they mention it ("screens off at
+  21:40" → `habits: {screens_off: "21:40"}`). If a running experiment needs a habit, ask about it in the evening.
+- **Supplements** are logged like food, with a time ("08:00 5g creatine", "magnesium at 21:30"). If one isn't in the
+  food list, add it to `foods.yaml` with its label values and `supplement: true`. Ongoing courses (started, paused)
+  still go in `measurements/supplements.yaml` as well.
 - **While it runs:** when you log the evening or close the day, say whether today kept to the rule, and how many
   nights are left. Don't nag on a missed night: say it plainly and move on.
 - **Stopping early:** set `status: stopped`. Never edit the dates or the rule of one that has started: that would
   change what it's measuring.
-- **Reading the result:** report the Experiments tab's verdict and numbers as they are. "No clear effect" and "not
-  enough nights" are real answers; don't dress them up as a win. One person's result is strong evidence for them,
-  not proof for everyone.
+- **Reading the result:** report the tab's verdict and numbers as they are. "No clear effect" and "not enough
+  nights" are real answers; don't dress them up as a win. One person's result is strong evidence for them, not proof
+  for everyone.
 
 ## 4. When food doesn't match
 

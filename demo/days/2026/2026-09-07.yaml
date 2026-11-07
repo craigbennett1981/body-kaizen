@@ -120,5 +120,6 @@ meals:
     parsed:
     - {item: nuts-mixed, g: 26}
 totals: {kcal: 2131, protein_g: 161.6, carbs_g: 225.2, fat_g: 67.4, satfat_g: 17.9, fibre_g: 36.3, sodium_mg: 1121, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+habits: {screens_off: '21:42'}
 energy: {total: 2491, active: 753, bmr: 1738, source: garmin}
 intensity_min: {moderate: 68, vigorous: 0, source: garmin}

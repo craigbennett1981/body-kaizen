@@ -97,6 +97,7 @@ meals:
     - {item: granola, g: 54}
     - {item: milk-lowfat, ml: 150}
 totals: {kcal: 2266, protein_g: 174.9, carbs_g: 267.2, fat_g: 55.2, satfat_g: 18.3, fibre_g: 30.0, sodium_mg: 1551, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+habits: {screens_off: '22:47'}
 energy: {total: 2841, active: 1106, bmr: 1735, source: garmin}
 intensity_min: {moderate: 0, vigorous: 62, source: garmin}
 fitness: {vo2max: 45.7, source: garmin}

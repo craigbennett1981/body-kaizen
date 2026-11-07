@@ -109,5 +109,6 @@ meals:
     parsed:
     - {item: kiwi, n: 1}
 totals: {kcal: 1929, protein_g: 138.3, carbs_g: 190.8, fat_g: 67.8, satfat_g: 18.9, fibre_g: 24.1, sodium_mg: 1449, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+habits: {screens_off: '21:21'}
 energy: {total: 2722, active: 968, bmr: 1754, source: garmin}
 intensity_min: {moderate: 54, vigorous: 0, source: garmin}

@@ -86,6 +86,7 @@ meals:
     parsed:
     - {item: apple, g: 158}
 totals: {kcal: 1705, protein_g: 118.2, carbs_g: 193.5, fat_g: 53.3, satfat_g: 12.1, fibre_g: 23.5, sodium_mg: 828, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+habits: {screens_off: '21:51'}
 symptoms:
 - {what: sore throat, severity: 2}
 - {what: fatigue, severity: 2}

@@ -33,6 +33,7 @@ recovery:                   # morning Garmin check, optional
   awake_min: 0
 
 feel: {overall: 4, mood: 4, energy: 4, gut: 3, stress: 2, note: "flat after lunch"}   # 1–5 (stress: 5 = very stressed), all optional
+habits: {screens_off: "21:40", walk_after_dinner: true}   # habits declared in experiments.yaml, from chat
 
 symptoms:                   # health issues reported that day, any number
   - {what: headache, severity: 1, time: "15:00", note: "after screen-heavy day"}   # severity 1 mild, 2 moderate, 3 severe
@@ -231,34 +232,51 @@ imports), `app/` (dashboard).
 ### experiments.yaml
 
 An experiment is a rule kept for a number of nights, and the outcomes it should move. Nights are keyed by the
-morning you wake up: the rule is checked against that night's bedtime and the day before it.
+morning you wake up: `night.*` is that night's sleep and the morning's HRV and resting heart rate; `day.*`, `food.*`
+and `habit.*` are the day before it (the day you went to bed on).
 
 ```yaml
+habits:                         # things no device records, logged in day files (below); declare them to test them
+  screens_off: {type: time, label: Screens off}        # type: time | bool | num | min
+  walk_after_dinner: {type: bool}
 experiments:
-  - id: bedtime                 # short, unique
-    title: Asleep by 22:30
+  - id: screens                 # short, unique
+    title: Screens off by 21:30
     start: 2026-11-08           # the first evening; the first night counted is the one you wake from on the 9th
-    days: 14                    # nights
-    rule: {bedtime_by: "22:30"} # one or more of the rules below; all must hold for a night to count as kept
-    outcomes: [asleep, sleep_score, hrv]   # default; also rhr, deep, rem, awake
-    hypothesis: An earlier bedtime gives longer sleep and better recovery.   # optional
-    baseline_days: 28           # optional: nights before the start to compare with (default 28)
+    days: 14                    # nights, 3 to 60; 14 if left out
+    rule:
+      all:                      # or any:
+        - {var: habit.screens_off, op: "<=", value: "21:30"}
+        - {var: day.caffeine_last, op: "<=", value: "14:00"}
+    outcomes: [night.asleep, night.score, night.hrv]   # the default; {var: night.awake, better: lower} to say which way is good
+    hypothesis: Screens off earlier helps me fall asleep sooner.   # optional
+    baseline_days: 28           # optional: nights before the start to compare with
     status: stopped             # optional: only to end one early; otherwise worked out from the dates
-    notes: ...                  # optional
 ```
 
-| rule | kept when |
+Operators: `<=`, `>=`, `<`, `>`, `=`, `!=` (yes/no variables take `=` or `!=` with `true` or `false`). Times are
+`"HH:MM"`. The first shorthand still works: `rule: {bedtime_by: "22:30"}`, `session_end_by`, `last_meal_by`,
+`caffeine_cutoff`, `sat_fat_max`, `steps_min`.
+
+| variable | what it is |
 |---|---|
-| `bedtime_by: "HH:MM"` | asleep by that time (from the watch) |
-| `session_end_by: "HH:MM"` | any session that day ended by then (rest days count as kept) |
-| `last_meal_by: "HH:MM"` | the last timed food or drink was before then |
-| `caffeine_cutoff: "HH:MM"` | under 20 mg of caffeine logged after then |
-| `sat_fat_max: G` | saturated fat that day at or under G grams |
-| `steps_min: N` | at least N steps that day |
+| `night.bedtime`, `night.wake` | asleep at, woke at (times; outcomes: earlier bedtime counts as better) |
+| `night.asleep`, `night.deep`, `night.rem`, `night.awake` | minutes asleep, in deep and REM sleep, awake in the night |
+| `night.score`, `night.hrv`, `night.rhr`, `night.battery` | sleep score, overnight HRV, resting heart rate, body battery on waking |
+| `day.kcal`, `day.protein`, `day.carbs`, `day.fat`, `day.satfat`, `day.fibre`, `day.sodium`, `day.caffeine` | the day's totals |
+| `day.caffeine_last`, `day.first_meal`, `day.last_meal` | times: last food or drink with 20 mg+ caffeine, first and last timed food |
+| `day.dinner_kcal`, `day.dinner_carbs` | dinner's calories and carbs |
+| `day.trained`, `day.session_end`, `day.steps`, `day.stress` | trained (yes/no), when the last session ended, steps, average stress |
+| `food.<key>` | yes/no: had that food or supplement (any key in your food list) |
+| `habit.<name>` | a habit declared above |
+
+Only `night.*` variables can be outcomes. A time that didn't happen (no training, no caffeine, no timed food) keeps
+a "by" rule (`<=` or `<`). A night with no value for the rule is left out, not counted either way. Unknown
+variables, operators or values are listed on the Experiments tab and that experiment isn't scored.
 
 Kept nights are compared with the baseline nights; each outcome gets the difference and a 90% range from
 resampling, and only counts as better or worse when the whole range is on one side of zero. A finished experiment
-needs 60% of nights kept (and at least 5) for a verdict.
+needs 60% of judged nights kept (and at least 5) for a verdict.
 
 ### settings.yaml
 

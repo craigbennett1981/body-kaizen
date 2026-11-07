@@ -102,6 +102,13 @@ Test one change on yourself and see what it does to your own sleep and recovery.
   it adds it to `experiments.yaml`.
 - **Running now:** the rule, a square for each night (kept, missed or still to come), and an early read on each
   outcome against the weeks before.
+- **Try a rule:** pick any variable, a comparison and a value ("asleep by 22:30", "dinner carbs under 60 g", "had
+  magnesium") and see how your nights went when it held against when it didn't, with a button to turn it into an
+  experiment. Nothing is saved.
+- **What you can test:** the full list of variables: the night's sleep, the day before's food, timings, training,
+  steps and stress, any food or supplement you log, and habits no device records (like when your screens went off),
+  which your assistant logs from chat. Anything outside the list is flagged, not silently ignored. Length is 14
+  nights unless you choose otherwise (3 to 60).
 - **Finished:** a verdict per experiment: it worked, no clear effect, made it worse, or not enough nights kept.
   Each outcome shows the difference with a 90% range from resampling, and only counts as better or worse when the
   whole range is on one side of zero.

@@ -53,7 +53,7 @@ your hard sets, and calories burnt by activity.</td>
 | **Day** | Every macro paced through the day, readiness, energy balance, and a timeline from sleep to dinner with glucose under each meal |
 | **Food** | Where your saturated fat, protein and fibre come from, plants this week against 30, swaps from foods you already eat, every food you've logged |
 | **Sleep** | Last night's stages, sleep debt, when to be in bed tonight, how regular you are, and what goes with your better and worse nights |
-| **Experiments** | Test one change on yourself, like a 22:30 bedtime for 14 nights: suggested from your own data, tracked night by night, and scored against the weeks before |
+| **Experiments** | Test one change on yourself, like a 22:30 bedtime or magnesium before bed, for 14 nights: suggested from your own data, tracked night by night and scored against the weeks before. "Try a rule" asks your history first |
 | **Training** | Every session with coach notes and heart rate, lifts against last time, a progression plan, a muscle map and an activity calendar |
 | **Recovery** | Readiness from sleep, HRV and resting heart rate against your own baseline |
 | **Body** | Weight trend, body composition, energy balance against the scale, blood pressure |
