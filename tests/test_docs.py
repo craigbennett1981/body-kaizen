@@ -34,15 +34,19 @@ class Docs(unittest.TestCase):
 
 
 class IntegrationRequests(unittest.TestCase):
-    def test_requests_open_the_integration_form(self):
-        """Every "ask for an integration" link opens the form, not a blank issue (blank issues are turned off)."""
+    def test_requests_reach_the_integration_form(self):
+        """Every "ask for an integration" link leads to the form, never a blank issue. From the dashboard the link opens
+        the form directly. From pages read on github.com it goes to the template list instead: GitHub reloads a
+        new-issue page opened by a click inside github.com and drops ?template= on the way, landing on a blank issue."""
         form = ROOT / ".github" / "ISSUE_TEMPLATE" / "integration_request.yml"
         self.assertTrue(form.exists())
-        for f in (ROOT / "README.md", ROOT / "docs" / "integrations.md", ROOT / "app" / "static" / "connections.html"):
-            links = re.findall(r"https://github\.com/craigbennett1981/body-kaizen/issues/new[^\s)\"']*", f.read_text(encoding="utf-8"))
+        link = r"https://github\.com/craigbennett1981/body-kaizen/issues/new[^\s)\"']*"
+        for f, want in ((ROOT / "README.md", "/issues/new/choose"), (ROOT / "docs" / "integrations.md", "/issues/new/choose"),
+                        (ROOT / "app" / "static" / "connections.html", f"/issues/new?template={form.name}")):
+            links = re.findall(link, f.read_text(encoding="utf-8"))
             with self.subTest(file=f.name):
                 self.assertTrue(links, "no link to ask for an integration")
-                for l in links: self.assertIn(f"template={form.name}", l)
+                for l in links: self.assertTrue(l.endswith(want), l)
 
 
 if __name__ == "__main__":

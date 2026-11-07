@@ -237,7 +237,7 @@ Abbott, used at your own risk, and they can break when those services change. Se
 having, starting with a kitchen scale.
 
 **Use something that isn't here?** Oura, Withings, Apple Health, Strava, another CGM or gym app: if it would be
-useful to you, [ask for it on GitHub](https://github.com/craigbennett1981/body-kaizen/issues/new?template=integration_request.yml): there's a short form for what it is and what you'd want from it. Requests
+useful to you, [ask for it on GitHub](https://github.com/craigbennett1981/body-kaizen/issues/new/choose) (choose "Integration request"): there's a short form for what it is and what you'd want from it. Requests
 shape what gets built next.
 
 ## Keeping your data private in git
