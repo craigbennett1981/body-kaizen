@@ -238,3 +238,31 @@ class FoodsPage(unittest.TestCase):
         self.assertEqual(len(F["weekdays"]["days"]), 7)
         for s in F["swaps"]:
             for c in s["swaps"]: self.assertGreater(c["saves_sf"], 0)
+
+
+class SleepPage(unittest.TestCase):
+    def test_builds_from_the_demo_folder(self):
+        import sleep
+        S = sleep.build()
+        self.assertTrue(S["available"])
+        L = S["last"]
+        self.assertLess(L["start"], L["end"])
+        self.assertTrue(all(n["asleep"] > 0 for n in S["nights"]))
+        for f in S["factors"]:
+            self.assertGreater(f["a"]["n"], 0); self.assertGreater(f["b"]["n"], 0)
+        self.assertTrue(S["general"])
+        G = S["stages"]
+        if G["available"]:
+            self.assertAlmostEqual(sum(G["pct"].values()), 100, delta=3)   # deep + light + REM share of time asleep
+            self.assertTrue(all(p["title"] and p["text"] for p in G["patterns"]))
+            self.assertEqual(sum(h["count"] for h in G["wake"]["by_hour"]), sum(h["count"] for h in G["wake"]["by_hours_in"]))
+        T = S["tonight"]
+        if T: self.assertRegex(T["in_bed"], r"^\d\d:\d\d$")
+
+    def test_tonight_works_back_from_the_weekday_wake_time(self):
+        import sleep
+        rows = [{"start": -60, "end": 6 * 60, "awake": 20, "weekend_morning": False}] * 5 + \
+               [{"start": 0, "end": 8 * 60, "awake": 20, "weekend_morning": True}] * 2
+        T = sleep.tonight(rows, 450, rows)
+        self.assertEqual(T["wake"], "06:00")
+        self.assertEqual(T["in_bed"], "21:55")   # 06:00 - 7h30 - 20 min awake - 15 min to fall asleep
