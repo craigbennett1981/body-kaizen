@@ -125,7 +125,7 @@ def factors(rows):
                f"{round(med_steps):,} steps or more", "fewer steps"),
         _split(rows, "Stressful day", lambda r: None if b(r)["stress"] is None else b(r)["stress"] > med_stress,
                "stress above your usual", "calmer day"),
-        _split(rows, "Weekend", lambda r: r["weekend_morning"], "Saturday and Sunday mornings", "weekday mornings"),
+        _split(rows, "Weekend", lambda r: r["weekend_morning"], "Saturday and Sunday mornings, when you can lie in", "weekday mornings"),
     ]
     return [f for f in fs if f]
 

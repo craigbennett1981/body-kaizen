@@ -1535,14 +1535,9 @@ async function renderSleep(){
     <h2>When you sleep</h2>
     <p class="sub">Each bar runs from falling asleep to waking. Lately your bedtime is ${esc(G.bed_median ?? '–')} give or take ${esc(G.bed_sd ?? '–')} min, waking ${esc(G.wake_median ?? '–')} give or take ${esc(G.wake_sd ?? '–')} min.${G.social_jetlag_min!=null?` At weekends your sleep runs ${esc(Math.abs(G.social_jetlag_min))} min ${G.social_jetlag_min>=0?'later':'earlier'}.`:''} Weekend mornings in blue.${TN?` Dashed: tonight’s bedtime.`:''}</p>
     <div id="sl-when" class="chart" style="height:360px"></div>
-    <h2>What goes with your better nights</h2>
-    <p class="sub">Your own ${esc(S.window_n)} nights, split by one thing about the day before. These show what goes together, not what causes what, and a split with fewer than 5 nights on one side is only a lead.</p>
-    <div class="ftab-wrap"><table class="ftab sl-f"><tr><th>The day before</th><th class="num">Nights</th><th class="num">Asleep</th><th class="num">Score</th><th class="num">HRV</th><th class="num">Asleep by</th></tr>
-      ${S.factors.map(f => { const d = (v, good, u='') => v==null ? '' : ` <span class="${Math.abs(v) < (u==='m'?10:2) ? 'sub' : (good(v) ? 'good' : 'bad')}">${v>0?'+':'−'}${Math.abs(v)}${u==='m'?' min':''}</span>`;
-        return `<tr class="sl-a"><td><b>${esc(f.name)}</b><br><span class="sub">${esc(f.yes)}</span>${f.enough?'':' <span class="tag">lead</span>'}</td><td class="num">${esc(f.a.n)}</td>
-          <td class="num">${esc(mh(f.a.asleep))}${d(f.d_asleep, v => v > 0, 'm')}</td><td class="num">${esc(f.a.score ?? '–')}${d(f.d_score, v => v > 0)}</td><td class="num">${esc(f.a.hrv ?? '–')}${d(f.d_hrv, v => v > 0)}</td><td class="num">${clk(f.a.bed)}</td></tr>
-          <tr class="sl-b"><td><span class="sub">${esc(f.no)}</span></td><td class="num">${esc(f.b.n)}</td><td class="num">${esc(mh(f.b.asleep))}</td><td class="num">${esc(f.b.score ?? '–')}</td><td class="num">${esc(f.b.hrv ?? '–')}</td><td class="num">${clk(f.b.bed)}</td></tr>`; }).join('')}
-    </table></div>
+    <h2>What goes with better and worse nights</h2>
+    <p class="sub">Each row compares your nights after that kind of day with the rest of your ${esc(S.window_n)} nights. Bars show the difference: green is better, red is worse. Hover a row for the numbers. These show what goes together, not proof of cause.</p>
+    <div class="sl-fx">${sleepFactors(S.factors)}</div>
     <h2>What your data says to do</h2>
     ${S.advice.length ? `<div class="sl-adv">${S.advice.map((a, i) => `<div class="fs${i===0?' top':''}"><h3>${esc(a.title)}</h3><p>${esc(a.why)}</p><p class="do">${esc(a.do)}</p></div>`).join('')}</div>` : '<p class="sub">Nothing stands out: your sleep is on target and regular. Keep doing what you are doing.</p>'}
     <h2>Sleep habits that work</h2>
@@ -1596,6 +1591,33 @@ async function renderSleep(){
     tooltip:{trigger:'axis',...tip(c),formatter: ps => { const n = N[ps[0].dataIndex]; return `<b>${esc(fmtDate(n.date))}</b><br>Asleep ${clk(n.start)} to ${clk(n.end)}<br>${esc(mh(n.asleep))} asleep`; }},
     series:[{type:'bar',stack:'w',silent:true,itemStyle:{color:'transparent'},data:N.map(n => n.start - base)},
       {type:'bar',stack:'w',barMaxWidth:14,data:N.map(n => ({value:n.end - n.start,itemStyle:{color:n.weekend_morning?c.accent:c.muted,opacity:n.weekend_morning?.9:.55,borderRadius:3}})),...bedLine}]});
+}
+// One row per factor: a verdict, then the difference on four measures as small bars around zero.
+function sleepFactors(F){
+  const verdict = f => {
+    if(!f.enough) return ['few', 'Too few nights to tell'];
+    const bad = (f.d_score ?? 0) <= -3 || (f.d_asleep ?? 0) <= -15, good = (f.d_score ?? 0) >= 3 || (f.d_asleep ?? 0) >= 15;
+    return bad && !good ? ['bad', 'Worse nights'] : good && !bad ? ['good', 'Better nights'] : bad && good ? ['mixed', 'Mixed'] : ['none', 'No real difference'];
+  };
+  const rank = {bad:0, mixed:1, good:2, none:3, few:4};
+  const rows = F.map(f => ({f, v: verdict(f), dbed: f.a.bed != null && f.b.bed != null ? Math.round(f.a.bed - f.b.bed) : null}))
+    .sort((x, y) => rank[x.v[0]] - rank[y.v[0]] || Math.abs(y.f.d_score ?? 0) - Math.abs(x.f.d_score ?? 0));
+  // each measure: its value, what counts as noise, the scale for a full bar, whether higher is better, and how to say it
+  const M = [
+    {lab:'Sleep', get:r => r.f.d_asleep, noise:10, full:45, up:true, say:v => `${Math.abs(v)} min ${v>0?'more':'less'}`},
+    {lab:'Score', get:r => r.f.d_score, noise:2, full:10, up:true, say:v => `${v>0?'+':'−'}${Math.abs(v)}`},
+    {lab:'HRV', get:r => r.f.d_hrv, noise:2, full:8, up:true, say:v => `${v>0?'+':'−'}${Math.abs(v)} ms`},
+    {lab:'Asleep', get:r => r.dbed, noise:10, full:60, up:false, say:v => `${Math.abs(v)} min ${v>0?'later':'earlier'}`},
+  ];
+  const cell = (m, r) => { const v = m.get(r);
+    if(v == null) return `<div class="fx-m"><span class="fx-l">${m.lab}</span><span class="sub">–</span></div>`;
+    const quiet = Math.abs(v) < m.noise, good = (v > 0) === m.up, w = Math.min(50, Math.abs(v) / m.full * 50);
+    const cls = quiet ? 'q' : good ? 'g' : 'b';
+    return `<div class="fx-m"><span class="fx-l">${m.lab}</span><span class="fx-bar"><i class="${cls}" style="${v>0?'left:50%':'right:50%'};width:${quiet?Math.max(w,1.5):w}%"></i></span><span class="fx-v ${cls}">${quiet ? 'same' : m.say(v)}</span></div>`; };
+  return rows.map(r => { const f = r.f;
+    const t = `${f.yes}: ${f.a.n} nights, ${mh(f.a.asleep)} asleep, score ${f.a.score ?? '–'}, HRV ${f.a.hrv ?? '–'} ms, asleep by ${clk(f.a.bed)}\n${f.no}: ${f.b.n} nights, ${mh(f.b.asleep)} asleep, score ${f.b.score ?? '–'}, HRV ${f.b.hrv ?? '–'} ms, asleep by ${clk(f.b.bed)}`;
+    return `<div class="fx-row fx-${r.v[0]}" title="${esc(t)}"><div class="fx-name"><b>${esc(f.name)}</b><span class="sub">${esc(f.yes)} · ${esc(f.a.n)} vs ${esc(f.b.n)} nights</span></div>
+      <span class="fx-pill">${esc(r.v[1])}</span><div class="fx-ms">${M.map(m => cell(m, r)).join('')}</div></div>`; }).join('');
 }
 // '22:20' -> minutes from the wake day's midnight, so evening times are negative
 const hmToMin = s => { const [h, m] = s.split(':').map(Number); const v = h*60 + m; return v >= 12*60 ? v - 1440 : v; };
