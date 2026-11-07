@@ -52,6 +52,30 @@
 - **Synced raw files are trimmed.** The Garmin sync drops personal and location fields (names, email, profile details, location and
   GPS tracks) before saving its raw responses.
 
+## Encryption: what protects your data where
+
+Body Kaizen doesn't encrypt your data files itself, on purpose. The dashboard and your AI assistant both need to
+read and write them, so the key would have to sit unlocked on the same computer whenever you use it: anything that
+could read the files could read the key too. You'd lose plain YAML your assistant can edit, readable git history and
+files you can open anywhere, for very little protection. Each place your data lives has a better answer:
+
+| Where | The risk | What covers it |
+|---|---|---|
+| Your computer, switched off or locked | Lost or stolen laptop | **Full-disk encryption**: FileVault on macOS (check with `fdesetup status`), BitLocker on Windows, LUKS on Linux. With it on, nothing on the disk can be read without your login. |
+| Your computer, while you're logged in | Another account on the same computer | Your home folder's permissions (macOS keeps other accounts out of it by default; on Linux check it isn't world-readable with `ls -ld ~`), and the dashboard's sign-in above. |
+| Your computer, while you're logged in | Software running as you | Nothing a local tool can do: it can read whatever you can. Keep your own account free of software you don't trust. |
+| Backups | A backup drive lost or copied | Turn on encryption for the backup: "Encrypt backups" in Time Machine, or the equivalent in your backup tool. |
+| Your git remote (GitHub or similar) | Someone gets into the repository, or the host itself | Keep it **private**, protect the account with two-factor sign-in, or encrypt what's pushed (below). A self-hosted remote (a NAS on your own network) keeps it off third-party servers. |
+
+**Encrypting what you push.** If the copy on a git host worries you, [git-crypt](https://github.com/AGWA/git-crypt)
+encrypts chosen files in the repository while leaving them plain on your computer, so the dashboard, your assistant
+and git work as before. A sensible split is the health data (`days/`, `measurements/`, `imports/`) encrypted, and
+the settings files (`targets.yaml`, `settings.yaml`, `meals.yaml`) readable. The cost: every place that checks out
+the repository needs the key. On your own computer that's a one-off `git-crypt unlock`; an AI assistant that clones
+the repository from the host (in the cloud rather than on your computer) would see only encrypted files unless you
+gave it the key, which defeats the point. Diffs on the host's website are unreadable too. Keep the key somewhere safe
+and separate (a password manager): without it the pushed copy can't be read, even by you.
+
 ## Things to watch
 
 - If you keep your data folder in git, make sure the remote repository is **private** before you push.
