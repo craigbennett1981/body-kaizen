@@ -36,12 +36,19 @@ class WriteProtection(unittest.TestCase):
         cls.srv.terminate(); cls.srv.wait(timeout=10); cls.tmp.cleanup()
 
     def req(self, method="POST", path="/api/todo/toggle?id=nope", host=None, **headers):
-        c = http.client.HTTPConnection("127.0.0.1", self.port, timeout=10)
         h = {"Host": host or f"127.0.0.1:{self.port}", "Cookie": self.cookie, **headers}
         h = {k: v for k, v in h.items() if v is not None}
         body = h.pop("body", "{}")
-        c.request(method, path, body=body.encode() if body is not None else None, headers=h)
-        r = c.getresponse(); out = (r.status, r.read(), dict(r.getheaders())); c.close(); return out
+        # Windows runners now and then reset a loopback connection partway through a large reply (/api/summary).
+        # A read changes nothing, so try a GET once more; a write is never repeated.
+        for attempt in (1, 2):
+            c = http.client.HTTPConnection("127.0.0.1", self.port, timeout=10)
+            try:
+                c.request(method, path, body=body.encode() if body is not None else None, headers=h)
+                r = c.getresponse(); return (r.status, r.read(), dict(r.getheaders()))
+            except ConnectionResetError:
+                if method != "GET" or attempt == 2: raise
+            finally: c.close()
 
     def good(self, **over):
         h = {"Origin": self.origin, "Sec-Fetch-Site": "same-origin", "Content-Type": "application/json", "X-BK-Token": self.token}
