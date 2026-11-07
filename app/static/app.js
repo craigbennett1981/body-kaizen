@@ -885,7 +885,10 @@ function renderTrends(){
     {key:'fibre_g', name:'Fibre g', kind:'min', get: t => t.fibre_min},
     {key:'weight', name:'Morning weight kg (filled = fasted, hollow = not fasted)', kind:'min', get: t => t.weight_kg},
   ];
-  const H = $('#trend').clientHeight || 1040;
+  // the chart draws inside the box's padding, so lay the panels out in that height (clientHeight includes the padding,
+  // which cut the bottom axis's dates off)
+  const tEl = $('#trend'), tCs = getComputedStyle(tEl);
+  const H = (tEl.clientHeight - parseFloat(tCs.paddingTop) - parseFloat(tCs.paddingBottom)) || 1020;
   const n = panels.length, top = 34, gap = 36, h = (H - top - 36 - gap*(n-1)) / n;
   const grids = [], xAxes = [], yAxes = [], series = [], titles = [];
   const ax = {axisLine:{lineStyle:{color:c.rule}}, axisLabel:{color:c.muted,fontSize:11}, splitLine:{lineStyle:{color:c.rule,opacity:.5}}};
