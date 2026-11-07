@@ -121,12 +121,14 @@ It installs Body Kaizen with the Garmin and LibreLinkUp syncs, starts it wheneve
 launcher, and opens the dashboard in your browser. Want a look first? Try the [live demo](https://demo.bodykaizen.app/).
 
 **2. Choose your data folder.** The first page asks where to keep your data (as a private git repository if you tick
-the box), then your name, start date and timezone. Set your targets and defaults later in `targets.yaml` and
-`settings.yaml`: see [docs/data-folder.md](docs/data-folder.md).
+the box), then your name, start date, timezone and units: metric (kg, km, g, ml) or imperial (lb, mi, oz, fl oz).
+Change any of them later from the profile icon. Set your targets and defaults in `targets.yaml` and `settings.yaml`:
+see [docs/data-folder.md](docs/data-folder.md).
 
-**3. Connect your AI assistant.** Copy [docs/CLAUDE.example.md](docs/CLAUDE.example.md) into your data folder as
-`CLAUDE.md`, open the folder in Claude Code, and send your first meal. For a Claude project (to log from your phone)
-or another assistant, see [docs/logging-with-claude.md](docs/logging-with-claude.md).
+**3. Connect your AI assistant.** The dashboard then shows a prompt to copy: paste it into Claude Code, opened on
+your data folder, and it reads the guide, writes your `CLAUDE.md` and asks about your training, habits and goals.
+The same prompt is under the profile icon any time. To log from your phone through a Claude project, or with another
+assistant, see [docs/logging-with-claude.md](docs/logging-with-claude.md) and [docs/CLAUDE.example.md](docs/CLAUDE.example.md).
 
 **4. Connect your watch and glucose sensor** (optional) under **Connections** at the foot of the dashboard: your
 Garmin login, and a LibreLinkUp follower account for a FreeStyle Libre

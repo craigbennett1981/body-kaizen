@@ -34,6 +34,7 @@ import energybalance  # noqa: E402
 import foods  # noqa: E402
 import sleep  # noqa: E402
 import experiments  # noqa: E402
+import assistant  # noqa: E402
 
 STATIC = pathlib.Path(__file__).resolve().parent / "static"
 HOST = os.environ.get("FT_HOST", "127.0.0.1")   # localhost only — never exposed to the network
@@ -123,6 +124,7 @@ ROUTES = {
     "/api/workout": lambda q: workouts.detail(q.get("date", [""])[0], q.get("i", ["0"])[0]),
     "/api/pace": lambda q: pace.build(q.get("date", [data.bkenv.today().isoformat()])[0], q.get("now", [None])[0]),   # now=HH:MM for tests and screenshots
     "/api/profile": lambda q: profile_info(),
+    "/api/assistant": lambda q: assistant.build(),   # the set-up prompt for an AI assistant (after first-run setup, and from Profile)
     # The page's write token again, for a tab left open across a server restart. Only a signed-in browser gets it,
     # and only a page on this dashboard's own address can read the reply (Host check, no CORS headers).
     "/api/session": lambda q: {"token": SESSION_TOKEN},
@@ -170,6 +172,7 @@ def _maybe_reload():
 def profile_info():
     B = data.bkenv; p = B.profile(); s = B.settings()
     return {"name": p.get("name"), "start_date": str(p["start_date"]) if p.get("start_date") else None, "timezone": s.get("timezone"),
+            "units": B.units(),
             "needs_setup": not (p.get("name") and p.get("start_date") and s.get("timezone")),
             "suggested": {"start_date": B.first_day() or B.today().isoformat(), "timezone": B.local_tz_name()}}
 
@@ -182,7 +185,9 @@ def save_setup(body):
     except ValueError: return "Enter the start date as YYYY-MM-DD."
     try: ZoneInfo(tzn)
     except Exception: return f"Unknown timezone: {tzn!r}"
-    data.bkenv.save_profile(name, start, tzn)
+    units = str(body.get("units") or "metric")
+    if units not in data.bkenv.UNITS: return "Units are metric or imperial."
+    data.bkenv.save_profile(name, start, tzn, units)
     return None
 
 class Handler(BaseHTTPRequestHandler):

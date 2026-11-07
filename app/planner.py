@@ -1,6 +1,6 @@
 """Lift planner: next-session targets by double progression, weekly sets per muscle, deload weeks."""
 import datetime as dt, re
-import data
+import data, units
 
 SET = re.compile(r"^([\d.]+)x(\d+)$"); CARRY = re.compile(r"^([\d.]+)kg@(\d+)m$"); HOLD = re.compile(r"^(\d+)s$")
 
@@ -48,9 +48,9 @@ def next_target(lift, sessions, cat, info):
         kg = max(s["kg"] for s in sets); top = [s for s in sets if s["kg"] == kg]
         dlo, dhi = spec.get("distance_range_m", [60, 80])
         if len(top) >= n and min(s["m"] for s in top) >= dhi:
-            return {"target": f"{n} × {_r(kg + spec.get('increment_kg', 5))} kg for {dlo} m", "rule": f"all sets reached {dhi} m: add weight, back to {dlo} m"}
+            return {"target": f"{n} × {units.kg(_r(kg + spec.get('increment_kg', 5)))} for {dlo} m", "rule": f"all sets reached {dhi} m: add weight, back to {dlo} m"}
         m = min(dhi, max(s["m"] for s in top) + spec.get("distance_step_m", 20))
-        return {"target": f"{n} × {kg} kg for {m} m", "rule": f"build distance to {dhi} m before adding weight"}
+        return {"target": f"{n} × {units.kg(kg)} for {m} m", "rule": f"build distance to {dhi} m before adding weight"}
     if "s" in sets[0]:
         t = max(s["s"] for s in sets); tlo, thi = spec.get("time_range_s", [45, 90])
         return {"target": f"{n} × {min(thi, t + spec.get('increment_s', 15))}s", "rule": "add time to the top of the range"}
@@ -59,7 +59,7 @@ def next_target(lift, sessions, cat, info):
         done = any(d >= str(rs["from"]) and sum(1 for x in ss if x.get("kg", 0) >= rs["kg"] and x.get("reps", 0) >= rs["reps"]) >= n
                    for d, ss in sessions)
         if not done:
-            return {"target": f"{n} × {rs['reps']} at {rs['kg']} kg, strict", "rule": rs.get("why", "back-off to rebuild form")}
+            return {"target": f"{n} × {rs['reps']} at {units.kg(rs['kg'])}, strict", "rule": rs.get("why", "back-off to rebuild form")}
     base = ""
     if len(sessions) > 1 and not (rs and date >= str(rs["from"])):   # a one-off lighter session (tired, other machine) shouldn't drag the plan down
         pdate, psets = sessions[-2]
@@ -70,16 +70,16 @@ def next_target(lift, sessions, cat, info):
     kg = max(s["kg"] for s in sets); top = [s for s in sets if s["kg"] == kg]
     reps = [s["reps"] for s in top]
     inc = spec.get("increment_kg", 2.5)
-    at = lambda w: "bodyweight" if not w else f"{w} kg"
+    at = lambda w: "bodyweight" if not w else units.kg(w)
     if len(top) >= n and min(reps) >= hi:
-        return {"target": f"{n} × {lo} at {at(_r(kg + inc))}{' + belt' if not kg else ''}", "rule": f"hit {hi} reps on every set: add {inc} kg, back to {lo}{base}"}
+        return {"target": f"{n} × {lo} at {at(_r(kg + inc))}{' + belt' if not kg else ''}", "rule": f"hit {hi} reps on every set: add {units.kg(inc)}, back to {lo}{base}"}
     if min(reps) < lo:
         return {"target": f"{n} × {lo} at {at(kg)}", "rule": f"below {lo} reps last time: hold the weight until {lo} is solid{base}"}
     goal = min(hi, max(reps) + 1)
     note = " (last log had fewer than 3 sets at this weight)" if partial or len(top) < n else ""
     if not kg:   # bodyweight: build total reps
-        return {"target": f"{n} sets, beat {sum(reps)} total reps ({'/'.join(str(r) for r in reps)} last time)", "rule": f"add reps until {n} × {hi}, then add {inc} kg with a belt{base}"}
-    return {"target": f"{n} × {goal} at {at(kg)}", "rule": f"add a rep per set until {hi}, then add {inc} kg{note}{base}"}
+        return {"target": f"{n} sets, beat {sum(reps)} total reps ({'/'.join(str(r) for r in reps)} last time)", "rule": f"add reps until {n} × {hi}, then add {units.kg(inc)} with a belt{base}"}
+    return {"target": f"{n} × {goal} at {at(kg)}", "rule": f"add a rep per set until {hi}, then add {units.kg(inc)}{note}{base}"}
 
 def weekly_sets(weeks=4, today=None):
     cat = _cat()["lifts"]; today = today or data.bkenv.today()

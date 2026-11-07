@@ -183,7 +183,9 @@ def energy():
             k, is_est = session_energy(e, est)
             if k is None: continue
             bits = []
-            if e.get("distance_km"): bits.append(f"{e['distance_km']} km")
+            if e.get("distance_km"):
+                import units   # here, not at the top: units imports data
+                bits.append(units.km(e["distance_km"]))
             if e.get("distance_m"): bits.append(f"{e['distance_m']} m")
             if e.get("time"): bits.append(str(e["time"]))
             if e.get("duration_min"): bits.append(f"{e['duration_min']} min")

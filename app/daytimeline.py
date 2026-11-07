@@ -1,6 +1,6 @@
 """Everything logged on one day, placed at its clock time: sleep, training, food, BP, symptoms, glucose."""
 import datetime as dt, json
-import data
+import data, units
 
 STAGE = {0: "deep", 1: "light", 2: "rem", 3: "awake"}
 STAGE_LABEL = {"deep": "Deep", "light": "Light", "rem": "REM", "awake": "Awake"}
@@ -65,7 +65,7 @@ def build(day):
         if not st: continue
         dur = e.get("duration_min") or (e.get("duration_s") or 0) // 60 or (50 if e.get("type") == "gym" else 30)
         bits = []
-        if e.get("distance_km"): bits.append(f"{e['distance_km']} km")
+        if e.get("distance_km"): bits.append(units.km(e["distance_km"]))
         if (e.get("hr") or {}).get("avg"): bits.append(f"HR {e['hr']['avg']}")
         if e.get("lifts"): bits.append(f"{len(e['lifts'])} lifts")
         kact, kgar = (e.get("kcal") or {}).get("active"), bool(e.get("garmin_id"))

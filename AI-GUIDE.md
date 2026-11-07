@@ -20,6 +20,9 @@ disagree, theirs wins.
   `FT_DATA=<data folder> python <code folder>/scripts/compute.py 2026-10-23`
 - Before logging, read the data folder's `settings.yaml` (profile, timezone, input defaults, brand `eras`),
   `targets.yaml`, `meals.yaml` and, if present, `foods.yaml` and `overrides.yaml`.
+- **Units:** files are always metric (g, ml, kg, km), whatever the person uses. If `settings.yaml` has
+  `units: imperial`, convert what they send ("6 oz chicken" → 170 g, "8 fl oz milk" → 237 ml, "174 lb" → 78.9 kg)
+  and reply with weights and distances in pounds, miles, ounces and fluid ounces. Macros stay in grams either way.
 - "Today" and item times are in the timezone in `settings.yaml`, not yours. When they don't give a time, use
   the time their message was sent.
 

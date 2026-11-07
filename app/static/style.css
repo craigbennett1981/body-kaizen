@@ -410,11 +410,12 @@ table.wo-lifts td:first-child{text-transform:none}
 /* first-run setup / profile */
 .brand .who{display:inline-flex;align-items:center;vertical-align:middle;color:var(--muted);background:none;border:0;padding:4px;margin-left:4px;border-radius:6px;cursor:pointer}
 .brand .who:hover,.brand .who:focus-visible{color:var(--ink);background:var(--surface,rgba(127,127,127,.12))}
-dialog#setup{border:1px solid var(--rule);border-radius:14px;background:var(--surface);color:var(--ink);padding:24px 26px;width:min(440px,92vw)}
-dialog#setup::backdrop{background:rgba(0,0,0,.55)}
+dialog#setup,dialog#assistant{border:1px solid var(--rule);border-radius:14px;background:var(--surface);color:var(--ink);padding:24px 26px;width:min(440px,92vw)}
+dialog#assistant{width:min(640px,94vw)}
+dialog#setup::backdrop,dialog#assistant::backdrop{background:rgba(0,0,0,.55)}
 #setupform h2{margin:0 0 6px} #setupform .sub{margin:0 0 16px;font-size:13.5px}
 #setupform label{display:grid;gap:5px;margin:0 0 14px;font-size:14px;font-weight:600}
-#setupform input{font:inherit;font-weight:400;padding:8px 10px;border-radius:8px;border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
+#setupform input,#setupform select{font:inherit;font-weight:400;padding:8px 10px;border-radius:8px;border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
 #setupform small{font-weight:400;color:var(--muted);font-size:12.5px}
 #setupform .err{color:var(--bad);min-height:1.2em;margin:0 0 8px;font-size:13.5px}
 #setupform .row{display:flex;gap:10px;justify-content:flex-end}
@@ -612,3 +613,10 @@ ol.sl-gen{padding-left:20px;line-height:1.5;font-size:14px} ol.sl-gen li{margin:
 .xp-next,.xp-notes{font-size:13px;margin:6px 0}
 .g-more{margin:10px 0} .g-more summary{cursor:pointer;color:var(--muted);font-size:13px}
 #tab-week .adv-h{margin-top:18px}
+.ai-steps{padding-left:20px;line-height:1.55;font-size:14px} .ai-steps li{margin:6px 0}
+#assistant pre{white-space:pre-wrap;font-size:12px;max-height:260px;overflow:auto;background:var(--bg);padding:10px;border-radius:8px;border:1px solid var(--rule)}
+.ai-copy{align-items:center;gap:10px} button.link{background:none;border:0;color:var(--accent);cursor:pointer;margin-right:auto;padding-left:0}
+#assistant h2{margin:0 0 6px} #assistant .sub{font-size:13.5px} #assistant .row{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+#assistant button{font:inherit;padding:8px 16px;border-radius:8px;border:1px solid var(--rule);background:transparent;color:var(--ink);cursor:pointer}
+#assistant button.primary{background:var(--accent);border-color:var(--accent);color:#fff} #assistant .ai-copy{justify-content:flex-start}
+#setupform button.link{border:0;padding-left:0;color:var(--accent)}

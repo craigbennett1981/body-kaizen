@@ -313,6 +313,7 @@ habits from 21:00, an evening reading from 21:30, and a bedtime rule 45 minutes 
 ```yaml
 profile: {name: Sam, start_date: 2026-07-26}   # asked for on first open; click your name in the header to change
 timezone: Europe/London                         # IANA name; detected on first open
+units: metric                                   # metric (default) or imperial: how weights, distances and portions are shown; files stay metric
 food: {weights_are: cooked, egg: boiled}        # input defaults
 eras:                                           # which food a generic name means on each date (a brand change)
   milk-lowfat:
