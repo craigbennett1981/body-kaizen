@@ -8,6 +8,23 @@ const fmt = (v, d=0) => v==null ? '–' : Number(v).toLocaleString('en-GB',{maxi
 const fmtDate = s => new Date(s+'T00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
 const shortDate = s => new Date(s+'T00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});
 const pace = s => `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}`;
+// Units: the person's choice (settings.yaml `units`), for weights, distances and portions only. Files stay metric,
+// and macros stay in grams, as on nutrition labels everywhere.
+let UNITS = 'metric';
+const IMP = () => UNITS === 'imperial', LB = 2.20462, MI = 0.621371;
+const U = {
+  wv: kg => kg==null ? null : IMP() ? +(kg*LB).toFixed(2) : kg,                     // a body or lift weight, as a number
+  wu: () => IMP() ? 'lb' : 'kg',
+  w: (kg, dp=1) => kg==null ? '–' : `${fmt(U.wv(kg), dp)} ${U.wu()}`,
+  dv: km => km==null ? null : IMP() ? +(km*MI).toFixed(2) : km,
+  du: () => IMP() ? 'mi' : 'km',
+  km: (km, dp=2) => km==null ? '–' : `${fmt(U.dv(km), dp)} ${U.du()}`,
+  pv: sPerKm => sPerKm==null ? null : IMP() ? sPerKm/MI : sPerKm,                     // pace, seconds per km or per mile
+  pu: () => IMP() ? '/mi' : '/km',
+  g: g => g==null ? '–' : IMP() ? `${fmt(g/28.3495, 1)} oz` : `${fmt(g)} g`,           // a food portion
+  ml: ml => ml==null ? '–' : IMP() ? `${fmt(ml/29.5735, 1)} fl oz` : `${fmt(ml)} ml`,
+  sets: x => IMP() ? String(x).replace(/^(\d+(?:\.\d+)?)x/, (_, kg) => `${fmt(kg*LB, 0)}x`) : String(x),   // "60x10" -> "132x10"
+};
 const toSecs = t => { const p = String(t).split(':').map(Number); return p.length===3 ? p[0]*3600+p[1]*60+p[2] : p[0]*60+p[1]; };
 let SUMMARY = [], charts = {};
 
@@ -172,7 +189,7 @@ async function renderDay(date){
     for(const it of items){
       const ps = it.parsed||[]; const sum = {k:0,p:0,c:0,f:0,sf:0,fib:0}; let low=false;
       ps.forEach(c => { for(const k in sum) sum[k]+= (c.macros||{})[k]||0; if(c.conf==='low') low=true; });
-      const what = ps.filter(c=>c.item!=='creatine').map(c => `${esc(c.name)}${c.g!=null?` ${c.g}g`:c.ml!=null?` ${c.ml}ml`:c.n!=null?` ×${c.n}`:c.kcal!=null?` (${c.kcal} kcal)`:''}`).join(' + ');
+      const what = ps.filter(c=>c.item!=='creatine').map(c => `${esc(c.name)}${c.g!=null?` ${U.g(c.g)}`:c.ml!=null?` ${U.ml(c.ml)}`:c.n!=null?` ×${c.n}`:c.kcal!=null?` (${c.kcal} kcal)`:''}`).join(' + ');
       meals += `<tr><td>${it.time?`<span class="it-time">${esc(String(it.time).slice(0,5))}</span>`:''}${what||'<em>unresolved</em>'}<span class="raw">${esc(it.raw)}${it.after?` · after ${esc(it.after)}`:''}</span></td>
         ${shareTd(sum.k,'kcal',0,low?'low':'')}${shareTd(sum.p,'protein_min',1)}${shareTd(sum.c,'carbs',0)}${shareTd(sum.f,'fat',1)}${shareTd(sum.sf,'satfat_max',1)}${shareTd(sum.fib,'fibre_min',1)}</tr>`;
     }
@@ -183,21 +200,21 @@ async function renderDay(date){
   side += ex.length ? ex.map(e => {
     const bits = [];
     if(e.mode) bits.push(e.mode);
-    if(e.distance_km) bits.push(`${esc(e.distance_km)} km`);
+    if(e.distance_km) bits.push(U.km(e.distance_km));
     if(e.distance_m) bits.push(`${esc(e.distance_m)} m`);
     if(e.time) bits.push(e.time);
-    if(e.distance_km && e.time) bits.push(pace(toSecs(e.time)/e.distance_km)+'/km');
+    if(e.distance_km && e.time) bits.push(pace(U.pv(toSecs(e.time)/e.distance_km))+U.pu());
     if(e.duration_min) bits.push(`${esc(e.duration_min)} min`);
     if(e.hr&&e.hr.avg) bits.push(`HR ${esc(e.hr.avg)}${e.hr.max?'/'+e.hr.max:''}`);
     if(e.kcal&&e.kcal.total) bits.push(`${esc(e.kcal.total)} kcal`);
-    if(e.load_kg) bits.push(`${esc(e.load_kg)} kg pack`);
+    if(e.load_kg) bits.push(`${U.w(e.load_kg)} pack`);
     const lifts = (e.lifts||[]).map(l => { const pr = (d.prs||{})[l.ex];
-      return `<tr${pr?' class="pr"':''}><td>${esc(l.ex.replace(/-/g,' '))}${pr?` <span class="pr-star" title="Personal best: ${esc(pr.kg)} kg${pr.reps?' × '+pr.reps:pr.metres?' for '+pr.metres+' m':''}" aria-label="personal best">★</span>`:''}${l.note?`<div class="lift-note">💬 ${esc(l.note)}</div>`:''}</td><td>${(l.sets||[]).map(x=>String(x).replace(/^0x/,'bw×')).join(', ')}</td></tr>`; }).join('');
+      return `<tr${pr?' class="pr"':''}><td>${esc(l.ex.replace(/-/g,' '))}${pr?` <span class="pr-star" title="Personal best: ${U.w(pr.kg)}${pr.reps?' × '+pr.reps:pr.metres?' for '+pr.metres+' m':''}" aria-label="personal best">★</span>`:''}${l.note?`<div class="lift-note">💬 ${esc(l.note)}</div>`:''}</td><td>${(l.sets||[]).map(x=>U.sets(x).replace(/^0x/,'bw×')).join(', ')}</td></tr>`; }).join('');
     const nPr = (e.lifts||[]).filter(l => (d.prs||{})[l.ex]).length;
     return `<div class="session"><b>${esc(e.type)}${e.effort?', '+esc(e.effort):''}</b> <span class="sub">${bits.join(' · ')}${nPr?` · <span class="pr-star">★</span> ${nPr} personal best${nPr>1?'s':''}`:''}</span>${e.note?`<div class="sub">${esc(e.note)}</div>`:''}${coachList(e.coach)}${lifts?`<table>${lifts}</table>`:''}</div>`;
   }).join('') : `<p class="empty">No training recorded.</p>`;
   const kv = [];
-  if(d.weight) kv.push(['Weight', `${esc(d.weight.kg)} kg${d.weight.fasted===false?' (not fasted)':''}${d.weight.bf_pct?`, ${esc(d.weight.bf_pct)}% fat`:''}`]);
+  if(d.weight) kv.push(['Weight', `${U.w(d.weight.kg)}${d.weight.fasted===false?' (not fasted)':''}${d.weight.bf_pct?`, ${esc(d.weight.bf_pct)}% fat`:''}`]);
   ((d.vitals||{}).bp||[]).forEach(b => kv.push([`BP ${b.time||''}`, `${esc(b.sys)}/${esc(b.dia)}${b.pulse?`, pulse ${esc(b.pulse)}`:''}`]));
   if(d.steps) kv.push(['Steps', fmt(d.steps)]);
   side += `<h2>Body</h2>` + (kv.length ? `<dl class="kv">${kv.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>` : `<p class="empty">Nothing recorded.</p>`);
@@ -786,7 +803,7 @@ const TL_KIND = {lab:['Blood test','#2a78d6'], scan:['Scan','#1baf7a'], episode:
 async function renderTimeline(){
   const ev = await api('/api/timeline').catch(()=>[]); const c = theme();
   const col = k => (TL_KIND[k]||[])[1] || c.muted;
-  const w = SUMMARY.filter(d => d.weight && d.weight.fasted !== false).map(d => [d.date, d.weight.kg]);
+  const w = SUMMARY.filter(d => d.weight && d.weight.fasted !== false).map(d => [d.date, U.wv(d.weight.kg)]);
   const avg = w.map(([d], i) => { const t = new Date(d) - 6*864e5; const win = w.slice(0, i+1).filter(([dd]) => new Date(dd) >= t).map(p=>p[1]); return [d, +(win.reduce((a,b)=>a+b,0)/win.length).toFixed(2)]; });
   const start = w.length ? w[0][0] : null;
   const marks = ev.filter(e => start && e.date >= start && e.kind !== 'episode');
@@ -795,11 +812,11 @@ async function renderTimeline(){
   const plus1 = d => new Date(new Date(d+'T00:00').getTime()+864e5).toISOString().slice(0,10);
   if(w.length) chart('tlchart').setOption({animation:MOTION,textStyle:{fontFamily:'Archivo'},grid:{left:48,right:24,top:24,bottom:28},
     xAxis:{type:'time',...ax,splitLine:{show:false},axisLabel:{...ax.axisLabel,formatter:v=>new Date(v).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}},
-    yAxis:{type:'value',scale:true,...ax,name:'kg',nameTextStyle:{color:c.muted,fontSize:11}},
+    yAxis:{type:'value',scale:true,...ax,name:U.wu(),nameTextStyle:{color:c.muted,fontSize:11}},
     tooltip:{trigger:'axis',...tip(c),formatter:ps=>{ const p = ps.find(x=>x.seriesName==='7-day average')||ps[0]; const d = String(p.value[0]).slice(0,10);
       const here = ev.filter(e => e.date===d || (e.end && e.date<=d && d<=e.end));
       const day = (w.find(x => String(x[0]).slice(0,10)===d)||[])[1];
-      return `<b>${fmtDate(d)}</b>${day!=null?`<br>Weigh-in ${fmt(day,2)} kg`:''}<br>7-day average ${fmt(p.value[1],1)} kg${here.map(e=>`<br><span style="color:${col(e.kind)}">●</span> ${esc(e.what)}${e.kind==='episode'?': '+esc(e.detail):''}`).join('')}`; }},
+      return `<b>${fmtDate(d)}</b>${day!=null?`<br>Weigh-in ${fmt(day,2)} ${U.wu()}`:''}<br>7-day average ${fmt(p.value[1],1)} ${U.wu()}${here.map(e=>`<br><span style="color:${col(e.kind)}">●</span> ${esc(e.what)}${e.kind==='episode'?': '+esc(e.detail):''}`).join('')}`; }},
     series:[{type:'scatter',name:'Daily',data:w,symbolSize:6,itemStyle:{color:c.accent,opacity:.85,borderColor:c.surface,borderWidth:1},silent:true},
       {type:'line',name:'7-day average',data:avg,showSymbol:false,lineStyle:{color:c.ink,width:2},
       markLine:{symbol:'none',label:{show:false},data:marks.map(e=>({xAxis:e.date,name:e.what,lineStyle:{color:col(e.kind),type:e.kind==='target'?'dashed':'solid',width:1.5}})),
@@ -828,8 +845,8 @@ async function renderWeek(start){
     ${w.focus || latestWeek ? `<h2>Focus for next week</h2>${w.focus ? `<div class="focus">${esc(w.focus)}</div>` : ''}${latestWeek ? '<div id="advice-top"></div>' : ''}` : ''}
     <div class="wk-grid">${hitTile('kcal','Calories')}${hitTile('protein_g','Protein')}${hitTile('satfat_g','Saturated fat')}${hitTile('fibre_g','Fibre')}</div>
     <div class="wk-grid">
-      <div class="t"><div class="lab">Weight, week average</div><div class="v">${wt.avg??'–'}</div><div class="s">${dW!=null?`${dW>0?'+':''}${dW.toFixed(1)} kg vs previous week`:'no comparison'}</div></div>
-      <div class="t"><div class="lab">Sessions</div><div class="v">${Object.values(tr.sessions).reduce((a,b)=>a+b,0)}</div><div class="s">${Object.entries(tr.sessions).map(([k,v])=>`${v} ${k}`).join(', ')||'none'}${tr.run_km?` · ${esc(tr.run_km)} km run`:''}</div></div>
+      <div class="t"><div class="lab">Weight, week average</div><div class="v">${wt.avg!=null?fmt(U.wv(wt.avg),1):'–'}</div><div class="s">${dW!=null?`${dW>0?'+':''}${fmt(U.wv(dW),1)} ${U.wu()} vs previous week`:'no comparison'}</div></div>
+      <div class="t"><div class="lab">Sessions</div><div class="v">${Object.values(tr.sessions).reduce((a,b)=>a+b,0)}</div><div class="s">${Object.entries(tr.sessions).map(([k,v])=>`${v} ${k}`).join(', ')||'none'}${tr.run_km?` · ${U.km(tr.run_km, 1)} run`:''}</div></div>
       <div class="t"><div class="lab">Sleep average</div><div class="v ${r.sleep_avg_h==null?'':r.sleep_avg_h>=7.5?'good':'bad'}">${r.sleep_avg_h!=null?hm(r.sleep_avg_h):'–'}</div><div class="s">${r.nights?`${esc(r.nights_ok)}/${esc(r.nights)} nights ≥ 7h30`:'no watch data'}</div></div>
       <div class="t"><div class="lab">HRV · resting HR</div><div class="v">${r.hrv_avg??'–'} · ${r.rhr_avg??'–'}</div><div class="s">steps ${r.steps_avg!=null?fmt(r.steps_avg):'–'} a day</div></div>
     </div>`;
@@ -844,13 +861,13 @@ async function renderWeek(start){
     h += `<h2>Last 12 weeks</h2><p class="sub">Each square is a day: green met, hatched red missed, pale no data. ${shortDate(G[0].date)} to ${shortDate(G[G.length-1].date)}.</p>
       <div class="hm">${H.names.map(([k, lab]) => `<span class="lab">${lab} <span class="pct">${pct(k)!=null?pct(k)+'%':''}</span></span>${cells(k)}`).join('')}</div>`;
   }
-  if(tr.prs.length) h += `<h2>New bests</h2><ul class="notes">${tr.prs.map(p => `<li class="n-good"><span class="ic">✓</span><span>${p.lift.replace(/-/g,' ')}: ${esc(p.kg)} kg${p.reps?' × '+p.reps:p.metres?' for '+p.metres+' m':''} <span class="who">${shortDate(p.date)}</span></span></li>`).join('')}</ul>`;
+  if(tr.prs.length) h += `<h2>New bests</h2><ul class="notes">${tr.prs.map(p => `<li class="n-good"><span class="ic">✓</span><span>${p.lift.replace(/-/g,' ')}: ${U.w(p.kg)}${p.reps?' × '+p.reps:p.metres?' for '+p.metres+' m':''} <span class="who">${shortDate(p.date)}</span></span></li>`).join('')}</ul>`;
   const cols = [['kcal','Calories',0],['protein_g','Protein',0],['satfat_g','Sat fat',1],['fibre_g','Fibre',0]];
   h += `<h2>Days</h2><table class="wk"><tr><th>Day</th><th>Type</th>${cols.map(c=>`<th>${c[1]}</th>`).join('')}<th>Weight</th><th>Sleep</th><th>Steps</th><th>Training</th></tr>` +
     w.days.map(d => { const t = d.totals||{}, ev = d.eval||{};
       return `<tr><td><a href="#day" data-date="${esc(d.date)}">${new Date(d.date+'T00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric'})}</a>${d.date===(w.best||{}).date?' <span class="who">best</span>':''}${d.date===(w.worst||{}).date?' <span class="who">worst</span>':''}</td><td>${esc(d.day_type)}${d.status!=='complete'?`, <span class="sub">${esc(d.status)}</span>`:''}</td>` +
         cols.map(([k,,dp]) => { const e = ev[k]; const cl = e&&e.ok===true?'good':e&&e.ok===false?'bad':''; return `<td class="${cl}">${d.totals?fmt(t[k],dp):'–'}${ARROW(e)}</td>`; }).join('') +
-        `<td>${d.weight?d.weight.kg:'–'}</td><td>${d.sleep||'–'}</td><td>${d.steps?fmt(d.steps):'–'}</td><td>${esc(d.exercise.join(', ')||'–')}</td></tr>`; }).join('') + `</table>`;
+        `<td>${d.weight?fmt(U.wv(d.weight.kg),1):'–'}</td><td>${d.sleep||'–'}</td><td>${d.steps?fmt(d.steps):'–'}</td><td>${esc(d.exercise.join(', ')||'–')}</td></tr>`; }).join('') + `</table>`;
   $('#week').innerHTML = h; adviceTop();
   document.querySelectorAll('#week a[data-date]').forEach(a => a.onclick = e => { e.preventDefault(); showTab('day'); renderDay(a.dataset.date); });
 }
@@ -884,7 +901,7 @@ function renderTrends(){
     {key:'carbs_g', name:'Carbs g', kind:'band', get: t => t.carbs},
     {key:'fat_g', name:'Fat g, saturated fat line', kind:'band', get: t => t.fat, sat:true},
     {key:'fibre_g', name:'Fibre g', kind:'min', get: t => t.fibre_min},
-    {key:'weight', name:'Morning weight kg (filled = fasted, hollow = not fasted)', kind:'min', get: t => t.weight_kg},
+    {key:'weight', name:`Morning weight ${U.wu()} (filled = fasted, hollow = not fasted)`, kind:'min', get: t => U.wv(t.weight_kg)},
   ];
   // the chart draws inside the box's padding, so lay the panels out in that height (clientHeight includes the padding,
   // which cut the bottom axis's dates off)
@@ -902,7 +919,7 @@ function renderTrends(){
       left:52,top:t-21,textStyle:{fontSize:12.5,fontWeight:600,color:c.ink,fontFamily:'Archivo'}});
     xAxes.push({type:'category',gridIndex:i,data:x,...ax,axisLabel:{...ax.axisLabel,show:i===n-1},axisTick:{show:false}});
     // y-axis always wide enough to include the target
-    const vals = days.flatMap(d => p.key==='weight' ? [(d.weight||{}).kg] : p.key==='kcal' ? [(d.totals||{}).kcal, d.burn] : [(d.totals||{})[p.key]]).filter(v => v!=null);
+    const vals = days.flatMap(d => p.key==='weight' ? [U.wv((d.weight||{}).kg)] : p.key==='kcal' ? [(d.totals||{}).kcal, d.burn] : [(d.totals||{})[p.key]]).filter(v => v!=null);
     const tv = [...ts.applied, ...ts.ref].flatMap(v => v==null?[]:Array.isArray(v)?v:[v]);
     const lo = Math.min(...vals, ...tv), hi = Math.max(...vals, ...tv);
     yAxes.push({type:'value',gridIndex:i,...ax, ...(p.key==='weight' ? niceRange(lo-0.2, hi+0.2, 3) : niceRange(0, hi, 4, true))});
@@ -921,9 +938,9 @@ function renderTrends(){
     }
     if(p.key==='weight'){
       series.push({type:'line',xAxisIndex:i,yAxisIndex:i,name:'Fasted',connectNulls:true,symbol:'circle',symbolSize:9,lineStyle:{color:c.accent,width:2},itemStyle:{color:c.accent,...ring(c)},z:6,
-        data:days.map(d => d.weight && d.weight.fasted!==false ? d.weight.kg : null)});
+        data:days.map(d => d.weight && d.weight.fasted!==false ? U.wv(d.weight.kg) : null)});
       series.push({type:'scatter',xAxisIndex:i,yAxisIndex:i,name:'Not fasted',symbolSize:9,itemStyle:{color:c.surface,borderColor:c.accent,borderWidth:2},z:6,
-        data:days.map(d => d.weight && d.weight.fasted===false ? d.weight.kg : null)});
+        data:days.map(d => d.weight && d.weight.fasted===false ? U.wv(d.weight.kg) : null)});
       return;
     }
     series.push({type:'bar',xAxisIndex:i,yAxisIndex:i,barMaxWidth:24,barCategoryGap:'28%',z:3,name:p.name,
@@ -962,8 +979,8 @@ function renderTrends(){
             const today = todayISO();
             const burn = d.burn!=null ? `<br><span style="color:#eb6834">●</span> burnt ${fmt(d.burn)} kcal (Garmin${d.date===today?', so far':''})${d.date!==today?` · balance <b>${t.kcal-d.burn>=0?'+':''}${fmt(t.kcal-d.burn)}</b>`:''}` : '';
             return `${fmt(t.kcal)}${a('kcal')} kcal eaten (target ${bandTxt(g.kcal)||'–'})${burn}<br>protein ${fmt(t.protein_g)}${a('protein_g')} (≥ ${g.protein_min??'–'}) · carbs ${fmt(t.carbs_g)}${a('carbs_g')} · fat ${fmt(t.fat_g)}${a('fat_g')} · sat ${fmt(t.satfat_g,1)}${a('satfat_g')}${g.satfat_max?' (≤ '+g.satfat_max+')':''} · fibre ${fmt(t.fibre_g)}${a('fibre_g')}`; })():'No food logged') +
-          (d.weight?`<br>${esc(d.weight.kg)} kg${d.weight.fasted===false?' (not fasted)':''} · target ${esc(g.weight_kg)}`:'') +
-          (d.exercise.length?`<br>${esc(d.exercise.map(e=>e.type+(e.distance_km?' '+e.distance_km+' km':'')).join(', '))}`:''); }}});
+          (d.weight?`<br>${U.w(d.weight.kg)}${d.weight.fasted===false?' (not fasted)':''} · target ${U.w(g.weight_kg)}`:'') +
+          (d.exercise.length?`<br>${esc(d.exercise.map(e=>e.type+(e.distance_km?' '+U.km(e.distance_km):'')).join(', '))}`:''); }}});
   ch.getZr().on('click', ev => {
     const idx = ch.convertFromPixel({xAxisIndex:0}, [ev.offsetX, ev.offsetY]);
     const i = Array.isArray(idx) ? idx[0] : idx;
@@ -1000,7 +1017,7 @@ async function renderWorkouts(){
   const list = WO.slice(0, 24);
   if(!WO_SEL) WO_SEL = `${list[0].date}|${list[0].idx}`;
   el.innerHTML = list.map(w => { const k = `${esc(w.date)}|${esc(w.idx)}`, d = new Date(w.date+'T00:00');
-    const stat = w.type==='gym' ? `${esc(w.sets)} sets` : w.distance_km ? `${esc(w.distance_km)} km` : w.duration_min ? `${esc(w.duration_min)} min` : '';
+    const stat = w.type==='gym' ? `${esc(w.sets)} sets` : w.distance_km ? U.km(w.distance_km) : w.duration_min ? `${esc(w.duration_min)} min` : '';
     return `<button role="tab" aria-selected="${k===WO_SEL}" data-k="${k}"><span class="wd">${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}</span>
       <span class="wn">${WO_IC[w.type]||'•'} ${esc(w.name)}</span><span class="ws">${stat}${w.garmin?' · <span title="Garmin data">⌚</span>':''}</span></button>`; }).join('');
   el.querySelectorAll('button').forEach(b => b.onclick = () => { WO_SEL = b.dataset.k; renderWorkouts().then(() => { if(MMODE==='session') renderMuscles(); }); });
@@ -1011,8 +1028,8 @@ async function renderWorkouts(){
   const tile = (lab, v, sub='') => `<div class="t"><div class="lab">${lab}</div><div class="v">${v}</div>${sub?`<div class="s">${sub}</div>`:''}</div>`;
   const delta = (cur, prev, unit='', dp=0) => prev==null||cur==null ? '' : `<span class="${cur>prev?'good':cur<prev?'bad':''}">${cur>prev?'▲':cur<prev?'▼':'▬'} ${cur-prev>0?'+':''}${fmt(cur-prev,dp)}${unit}</span> vs ${shortDate(P.date)}`;
   const tiles = [];
-  if(S.type==='gym') tiles.push(tile('Sets · volume', `${esc(S.sets)} · ${fmt(S.volume)}<small> kg</small>`, P ? delta(S.volume, P.volume, ' kg') : ''));
-  if(D.time || S.distance_km) tiles.push(tile('Distance · time', `${S.distance_km??'–'}<small> km</small> · ${D.time||'–'}`, D.time && S.distance_km ? `${pace(toSecs(D.time)/S.distance_km)} /km${D.cadence?` · cadence ${esc(D.cadence)}`:''}` : ''));
+  if(S.type==='gym') tiles.push(tile('Sets · volume', `${esc(S.sets)} · ${fmt(U.wv(S.volume))}<small> ${U.wu()}</small>`, P ? delta(U.wv(S.volume), U.wv(P.volume), ' '+U.wu()) : ''));
+  if(D.time || S.distance_km) tiles.push(tile('Distance · time', `${S.distance_km!=null?fmt(U.dv(S.distance_km),2):'–'}<small> ${U.du()}</small> · ${D.time||'–'}`, D.time && S.distance_km ? `${pace(U.pv(toSecs(D.time)/S.distance_km))} ${U.pu()}${D.cadence?` · cadence ${esc(D.cadence)}`:''}` : ''));
   tiles.push(tile('Duration', S.duration_min!=null?`${esc(S.duration_min)}<small> min</small>`:'–', D.trace?'':(S.garmin?'':'no watch data')));
   tiles.push(tile('Calories', D.kcal&&D.kcal.total?`${fmt(D.kcal.total)}`:'–', D.kcal&&D.kcal.active?`${fmt(D.kcal.active)} active`:''));
   tiles.push(tile('Heart rate', D.hr&&D.hr.avg?`${esc(D.hr.avg)}<small> avg</small> · ${D.hr.max||'–'}<small> max</small>`:'–'));
@@ -1033,7 +1050,7 @@ async function renderWorkouts(){
     h += `<div class="notes-h"><h2 class="h3">Laps</h2><span class="sub">${esc(L.source)} · fastest lap starred</span></div>
       <table class="wo-laps"><tr><th>Lap</th><th>Distance</th><th>Time</th><th>Pace</th><th></th><th>Avg HR</th><th>Max HR</th></tr>` +
       L.laps.map((l, k) => `<tr${l.fastest?' class="pr"':''}><td>${k+1}${l.fastest?' <span class="pr-star" aria-label="fastest lap">★</span>':''}</td>
-        <td>${fmt(l.km,2)} km</td><td>${mm(l.secs)}</td><td><b>${l.pace_s?mm(l.pace_s):'–'}</b><small> /km</small></td>
+        <td>${U.km(l.km)}</td><td>${mm(l.secs)}</td><td><b>${l.pace_s?mm(U.pv(l.pace_s)):'–'}</b><small> ${U.pu()}</small></td>
         <td class="lapbar"><i style="width:${l.pace_s && hi>lo ? 25 + 75*(hi-l.pace_s)/(hi-lo) : 60}%"></i></td>
         <td>${l.hr_avg??'–'}</td><td>${l.hr_max??'–'}</td></tr>`).join('') + `</table>`;
   }
@@ -1044,9 +1061,9 @@ async function renderWorkouts(){
   if(D.lifts.length){
     h += `<table class="wo-lifts"><tr><th>Lift</th><th>Sets</th><th>Volume</th><th>vs last time</th><th>Last time</th></tr>` + D.lifts.map(l => {
       const ch = l.vol_change, e1 = l.e1rm_change;
-      const chTxt = l.prev ? `${ch!=null?`<span class="${ch>0?'good':ch<0?'bad':''}">${ch>0?'▲ +':ch<0?'▼ ':'▬ '}${fmt(ch)} kg</span>`:''}${e1?` <span class="sub">· best set ${e1>0?'+':''}${fmt(e1,1)} kg e1RM</span>`:''}` : '<span class="sub">first time</span>';
-      return `<tr${l.pr?' class="pr"':''}><td>${esc(l.name)}${l.pr?' <span class="pr-star" aria-label="personal best">★</span>':''}${l.note?`<div class="lift-note">💬 ${esc(l.note)}</div>`:''}</td><td class="sets">${(l.sets_raw||[]).map(x=>String(x).replace(/^0x/,'bw×')).join(', ')}</td>
-        <td>${l.metres?`${esc(l.metres)} m`:l.volume?fmt(l.volume):`${(l.sets_raw||[]).reduce((a,x)=>a+(+(String(x).split('x')[1])||0),0)} reps`}</td><td>${chTxt}</td><td class="sub">${l.prev?`${shortDate(l.prev.date)}: ${(l.prev.sets_raw||[]).join(', ')}`:'–'}</td></tr>`; }).join('') + `</table>
+      const chTxt = l.prev ? `${ch!=null?`<span class="${ch>0?'good':ch<0?'bad':''}">${ch>0?'▲ +':ch<0?'▼ ':'▬ '}${fmt(U.wv(ch))} ${U.wu()}</span>`:''}${e1?` <span class="sub">· best set ${e1>0?'+':''}${fmt(U.wv(e1),1)} ${U.wu()} e1RM</span>`:''}` : '<span class="sub">first time</span>';
+      return `<tr${l.pr?' class="pr"':''}><td>${esc(l.name)}${l.pr?' <span class="pr-star" aria-label="personal best">★</span>':''}${l.note?`<div class="lift-note">💬 ${esc(l.note)}</div>`:''}</td><td class="sets">${(l.sets_raw||[]).map(x=>U.sets(x).replace(/^0x/,'bw×')).join(', ')}</td>
+        <td>${l.metres?`${esc(l.metres)} m`:l.volume?fmt(U.wv(l.volume)):`${(l.sets_raw||[]).reduce((a,x)=>a+(+(String(x).split('x')[1])||0),0)} reps`}</td><td>${chTxt}</td><td class="sub">${l.prev?`${shortDate(l.prev.date)}: ${(l.prev.sets_raw||[]).map(U.sets).join(', ')}`:'–'}</td></tr>`; }).join('') + `</table>
       <p class="sub">Volume is weight × reps over all logged sets. ${CIRC?'Sets are matched to heart-rate peaks using the circuit order logged with this session.':"Hevy doesn't record when each set happened, so sets aren't matched to the heart-rate trace. Tell your assistant your circuit order (which lifts you loop together) and it will match them."}</p>`;
   }
   box.innerHTML = h;
@@ -1211,19 +1228,19 @@ function renderLift(name){
   $('#trainnote').textContent = `${name.replace(/-/g,' ')}: ` + (carry ? 'load carried per set.' : 'top set each session, with estimated one-rep max dashed. Gold points are new bests.') + (pts.length < 4 ? ' History before 9 Oct is partial; pasted Hevy workouts fill it in.' : '');
   $('#traintable').innerHTML = '';
   const swapIdx = pts.findIndex(p=>p.epoch==='v2');
-  const vals = [...pts.map(p=>p.kg), ...(carry?[]:pts.map(p=>p.e1rm))];
+  const vals = [...pts.map(p=>U.wv(p.kg)), ...(carry?[]:pts.map(p=>U.wv(p.e1rm)))];
   const ax = {axisLine:{lineStyle:{color:c.rule}},axisLabel:{color:c.muted,fontSize:11},splitLine:{lineStyle:{color:c.rule}}};
   chart('trainchart').setOption({animation:MOTION,animationDuration:500,textStyle:{fontFamily:'Archivo'},
-    legend:{top:0,left:56,textStyle:{color:c.muted},data:carry?[]:['Top set kg','Est. 1RM']},
+    legend:{top:0,left:56,textStyle:{color:c.muted},data:carry?[]:[`Top set ${U.wu()}`,'Est. 1RM']},
     grid:{left:66,right:40,top:40,bottom:34},
     tooltip:{trigger:'axis',...tip(c),formatter: ps => { const p = pts[ps[0].dataIndex];
-      return `<b>${fmtDate(p.date)}</b><br>${esc(p.kg)} kg${p.reps?' × '+p.reps:''}${p.metres?' for '+p.metres+' m':''}${p.reps?'<br>est. 1RM '+p.e1rm+' kg':''}${p.pr?'<br><b>New best</b>':''}${p.epoch?'<br>'+(p.epoch==='v2'?'new':'old')+' machines':''}`; }},
+      return `<b>${fmtDate(p.date)}</b><br>${U.w(p.kg)}${p.reps?' × '+p.reps:''}${p.metres?' for '+p.metres+' m':''}${p.reps?'<br>est. 1RM '+U.w(p.e1rm):''}${p.pr?'<br><b>New best</b>':''}${p.epoch?'<br>'+(p.epoch==='v2'?'new':'old')+' machines':''}`; }},
     xAxis:{type:'category',data:pts.map(p=>shortDate(p.date)),...ax,axisTick:{show:false}},
-    yAxis:{type:'value',...ax,...niceRange(Math.min(...vals)-2, Math.max(...vals)+2, 4),name:'kg',nameLocation:'middle',nameGap:42,nameRotate:90,nameTextStyle:{color:c.muted,fontSize:11}},
+    yAxis:{type:'value',...ax,...niceRange(Math.min(...vals)-2, Math.max(...vals)+2, 4),name:U.wu(),nameLocation:'middle',nameGap:42,nameRotate:90,nameTextStyle:{color:c.muted,fontSize:11}},
     series:[
-      {type:'line',name:'Top set kg',symbol:'circle',data:pts.map(p=>({value:p.kg,symbolSize:p.pr?13:9,itemStyle:{color:p.pr?c.warn:c.accent,...ring(c)}})),lineStyle:{color:c.accent,width:2},
+      {type:'line',name:`Top set ${U.wu()}`,symbol:'circle',data:pts.map(p=>({value:U.wv(p.kg),symbolSize:p.pr?13:9,itemStyle:{color:p.pr?c.warn:c.accent,...ring(c)}})),lineStyle:{color:c.accent,width:2},
         areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:c.soft},{offset:1,color:'rgba(0,0,0,0)'}])},
-        endLabel:{show:true,color:c.ink,fontWeight:600,fontSize:11,formatter:p=>p.value+' kg'},
+        endLabel:{show:true,color:c.ink,fontWeight:600,fontSize:11,formatter:p=>p.value+' '+U.wu()},
         markLine: swapIdx>0 ? {symbol:'none',silent:true,label:{formatter:'new machines',color:c.muted},lineStyle:{color:c.muted,type:'dotted'},data:[{xAxis:swapIdx}]} : undefined},
       ...(carry?[]:[{type:'line',name:'Est. 1RM',data:pts.map(p=>p.e1rm),lineStyle:{color:c.accent,type:'dashed',opacity:.5,width:2},symbol:'none'}])
     ]});
@@ -1252,7 +1269,7 @@ async function renderPlan(){
 function renderLiftTable(){
   const names = liftNames();
   const rows = names.map(n => { const ps = TRAIN.lifts[n]; const best = ps.reduce((a,b)=>b.e1rm>a.e1rm?b:a); const last = ps[ps.length-1];
-    const s = p => `${esc(p.kg)}${p.reps?' × '+p.reps:''}${p.metres?' kg, '+p.metres+' m':''}`;
+    const s = p => `${fmt(U.wv(p.kg),1)}${p.reps?' × '+p.reps:''}${p.metres?' '+U.wu()+', '+p.metres+' m':''}`;
     return `<tr data-lift="${n}" aria-selected="${TVIEW===n}" tabindex="0"><td>${n.replace(/-/g,' ')}</td><td>${s(last)}</td><td>${shortDate(last.date)}</td><td>${s(best)}</td><td>${shortDate(best.date)}</td><td>${ps.length}</td></tr>`; });
   $('#lifttable').innerHTML = `<table><tr><th>Lift</th><th>Latest</th><th>When</th><th>Best</th><th>When</th><th>Sessions</th></tr>${rows.join('')}</table>`;
   document.querySelectorAll('#lifttable tr[data-lift]').forEach(r => {
@@ -1266,19 +1283,19 @@ function renderRuns(){
   const rx = runs.map(r=>shortDate(r.date));
   const rax = {axisLine:{lineStyle:{color:c.rule}},axisLabel:{color:c.muted,fontSize:11},splitLine:{lineStyle:{color:c.rule}}};
   const RT = (text,top) => ({text,left:56,top,textStyle:{fontSize:12.5,fontWeight:600,color:c.ink,fontFamily:'Archivo'}});
-  const paces = runs.map(r=>r.pace), hrs_ = runs.map(r=>r.avg_hr).filter(v=>v!=null);
+  const paces = runs.map(r=>U.pv(r.pace)), hrs_ = runs.map(r=>r.avg_hr).filter(v=>v!=null);
   chart('runchart').setOption({animation:MOTION,animationDuration:500,textStyle:{fontFamily:'Archivo'},
-    title:[RT('Distance, km',0),RT('Pace, min/km (higher is faster)',138),RT('Average heart rate, bpm',310)],
+    title:[RT(`Distance, ${U.du()}`,0),RT(`Pace, min${U.pu()} (higher is faster)`,138),RT('Average heart rate, bpm',310)],
     grid:[{left:56,right:24,top:24,height:90},{left:56,right:24,top:162,height:122},{left:56,right:24,top:334,height:96}],
     xAxis:[0,1,2].map(i=>({type:'category',gridIndex:i,data:rx,...rax,axisLabel:{...rax.axisLabel,show:i===2},axisTick:{show:false}})),
-    yAxis:[{type:'value',gridIndex:0,...rax,...niceRange(0, Math.max(...runs.map(r=>r.km||0)), 2, true)},
+    yAxis:[{type:'value',gridIndex:0,...rax,...niceRange(0, Math.max(...runs.map(r=>U.dv(r.km)||0)), 2, true)},
            {type:'value',gridIndex:1,inverse:true,...rax,...niceRange(Math.min(...paces)-10, Math.max(...paces)+10, 3),axisLabel:{...rax.axisLabel,formatter:v=>pace(v)}},
            {type:'value',gridIndex:2,...rax,...niceRange(Math.min(R.easy_run_avg_hr_max, ...hrs_)-5, Math.max(R.easy_run_avg_hr_max, ...hrs_)+5, 2)}],
     axisPointer:{link:[{xAxisIndex:'all'}],lineStyle:{color:c.muted}},
     tooltip:{trigger:'axis',...tip(c),formatter: ps => { const r = runs[ps[0].dataIndex];
-      return `<b>${fmtDate(r.date)}</b><br>${[r.effort,r.mode].filter(Boolean).join(', ')||'run'}<br>${esc(r.km)} km in ${pace(r.secs)} · ${pace(r.pace)}/km${r.avg_hr?`<br>avg HR ${esc(r.avg_hr)}${r.max_hr?' / max '+r.max_hr:''}`:''}${r.hrr!=null?`<br>recovery HR: dropped ${esc(r.hrr)} bpm in 2 min`:''}${r.temp_c?`<br>${esc(r.temp_c)}°C`:''}`; }},
+      return `<b>${fmtDate(r.date)}</b><br>${[r.effort,r.mode].filter(Boolean).join(', ')||'run'}<br>${U.km(r.km)} in ${pace(r.secs)} · ${pace(U.pv(r.pace))}${U.pu()}${r.avg_hr?`<br>avg HR ${esc(r.avg_hr)}${r.max_hr?' / max '+r.max_hr:''}`:''}${r.hrr!=null?`<br>recovery HR: dropped ${esc(r.hrr)} bpm in 2 min`:''}${r.temp_c?`<br>${esc(r.temp_c)}°C`:''}`; }},
     series:[
-      {type:'bar',name:'Distance',xAxisIndex:0,yAxisIndex:0,data:runs.map(r=>r.km),barMaxWidth:22,itemStyle:{color:'#eb6834',borderRadius:[4,4,0,0]},
+      {type:'bar',name:'Distance',xAxisIndex:0,yAxisIndex:0,data:runs.map(r=>U.dv(r.km)),barMaxWidth:22,itemStyle:{color:'#eb6834',borderRadius:[4,4,0,0]},
         label:{show:runs.length<=30,position:'top',color:c.ink,fontSize:10,formatter:p=>p.value!=null?fmt(p.value,1):''}},
       {type:'line',name:'Pace',xAxisIndex:1,yAxisIndex:1,data:paces,symbol:'circle',symbolSize:9,smooth:.25,lineStyle:{color:c.accent,width:2},itemStyle:{color:c.accent,...ring(c)},
         areaStyle:{origin:'end',color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(0,0,0,0)'},{offset:1,color:c.soft}])}},
@@ -1384,16 +1401,16 @@ async function renderGlucoseOverview(){
 async function renderBody(){
   BODY = BODY || await api('/api/body');
   const c = theme(), s = BODY.scale;
-  const fasted = s.filter(p=>p.fasted!==false).map(p=>[p.date,p.kg]);
+  const fasted = s.filter(p=>p.fasted!==false).map(p=>[p.date,U.wv(p.kg)]);
   const today = SUMMARY.length ? SUMMARY[SUMMARY.length-1].date : (s.length ? s[s.length-1].date : null);
-  const wt = BODY.weight_targets.map(w=>[w.date,w.kg]); if(today && wt.length) wt.push([today, wt[wt.length-1][1]]);
+  const wt = BODY.weight_targets.map(w=>[w.date,U.wv(w.kg)]); if(today && wt.length) wt.push([today, wt[wt.length-1][1]]);
   const start = s.length ? s[0].date : null;
-  const allKg = [...s.map(p=>p.kg), ...wt.map(w=>w[1]), ...BODY.inbody.filter(b=>start && b.date>=start).map(b=>b.weight_kg)];
+  const allKg = [...s.map(p=>U.wv(p.kg)), ...wt.map(w=>w[1]), ...BODY.inbody.filter(b=>start && b.date>=start).map(b=>U.wv(b.weight_kg))];
   const bf = s.filter(p=>p.bf_pct).map(p=>[p.date,p.bf_pct]);
   const ax = {axisLine:{lineStyle:{color:c.rule}},axisLabel:{color:c.muted,fontSize:11},splitLine:{lineStyle:{color:c.rule,opacity:.5}}};
   const xr = {type:'time',min:start,max:today,...ax};
   chart('bodychart').setOption({animation:MOTION,animationDuration:500,textStyle:{fontFamily:'Archivo'},
-    title:[{text:'Weight, kg',left:52,top:0,textStyle:{fontSize:12.5,fontWeight:600,color:c.ink}},{text:'Body fat %, home scale',left:52,top:300,textStyle:{fontSize:12.5,fontWeight:600,color:c.ink}}],
+    title:[{text:`Weight, ${U.wu()}`,left:52,top:0,textStyle:{fontSize:12.5,fontWeight:600,color:c.ink}},{text:'Body fat %, home scale',left:52,top:300,textStyle:{fontSize:12.5,fontWeight:600,color:c.ink}}],
     legend:{top:0,right:20,textStyle:{color:c.muted},data:['7-day trend','Fasted','Not fasted','Target','InBody']},
     grid:[{left:52,right:96,top:30,height:240},{left:52,right:96,top:326,height:70}],
     xAxis:[{...xr,gridIndex:0,axisLabel:{show:false}},{...xr,gridIndex:1}],
@@ -1404,15 +1421,15 @@ async function renderBody(){
       {type:'line',name:'7-day trend',data:rolling7(fasted),smooth:.4,symbol:'none',lineStyle:{color:c.accent,width:3,cap:'round'},z:4,
         areaStyle:{origin:'start',color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:c.soft},{offset:1,color:'rgba(0,0,0,0)'}])}},
       {type:'scatter',name:'Fasted',data:fasted,symbolSize:8,itemStyle:{color:c.accent,opacity:.45},z:5},
-      {type:'scatter',name:'Not fasted',data:s.filter(p=>p.fasted===false).map(p=>[p.date,p.kg]),symbolSize:8,itemStyle:{color:c.surface,borderColor:c.accent,borderWidth:2},z:5},
+      {type:'scatter',name:'Not fasted',data:s.filter(p=>p.fasted===false).map(p=>[p.date,U.wv(p.kg)]),symbolSize:8,itemStyle:{color:c.surface,borderColor:c.accent,borderWidth:2},z:5},
       {type:'line',name:'Target',data:wt,step:'end',symbol:'none',lineStyle:{color:c.good,type:'dashed',width:1.8},z:3,
         endLabel:{show:true,color:c.ink,fontWeight:600,fontFamily:'Archivo',formatter:p=>'target '+p.value[1]}},
-      {type:'scatter',name:'InBody',data:BODY.inbody.filter(b=>start && b.date>=start).map(b=>[b.date,b.weight_kg]),symbol:'diamond',symbolSize:15,itemStyle:{color:c.warn,...ring(c)},z:6},
+      {type:'scatter',name:'InBody',data:BODY.inbody.filter(b=>start && b.date>=start).map(b=>[b.date,U.wv(b.weight_kg)]),symbol:'diamond',symbolSize:15,itemStyle:{color:c.warn,...ring(c)},z:6},
       {type:'line',name:'Body fat %',xAxisIndex:1,yAxisIndex:1,data:bf,smooth:.3,symbol:'circle',symbolSize:8,lineStyle:{color:c.ink,width:2},itemStyle:{color:c.ink,...ring(c)}},
     ]});
   $('#inbodytable').innerHTML = `<table><tr><th>Date</th><th>Weight</th><th>Muscle (SMM)</th><th>Fat mass</th><th>Body fat</th><th>Fat-free</th><th>Visceral</th><th>Phase angle</th><th>Score</th></tr>` +
-    BODY.inbody.map(b=>`<tr><td>${shortDate(b.date)} ${b.date.slice(0,4)}</td><td>${esc(b.weight_kg)}${b.clothed?'*':''}</td><td>${b.smm_kg??'–'}</td><td>${b.fat_kg??'–'}</td><td>${b.pbf_pct!=null?b.pbf_pct+'%':'–'}</td><td>${b.ffm_kg??'–'}</td><td>${b.visceral_level??'–'}</td><td>${b.phase_angle??'–'}</td><td>${b.score??'–'}</td></tr>`).join('') +
-    `</table><p class="sub">* clothed. InBody reads about 1.7 points higher body fat and 0.8 kg lower fat-free mass than the home scale. Home-scale body fat moves ±0.3% day to day with hydration, so read the trend, not single days.</p>`;
+    BODY.inbody.map(b=>`<tr><td>${shortDate(b.date)} ${b.date.slice(0,4)}</td><td>${fmt(U.wv(b.weight_kg),1)}${b.clothed?'*':''}</td><td>${b.smm_kg!=null?fmt(U.wv(b.smm_kg),1):'–'}</td><td>${b.fat_kg!=null?fmt(U.wv(b.fat_kg),1):'–'}</td><td>${b.pbf_pct!=null?b.pbf_pct+'%':'–'}</td><td>${b.ffm_kg!=null?fmt(U.wv(b.ffm_kg),1):'–'}</td><td>${b.visceral_level??'–'}</td><td>${b.phase_angle??'–'}</td><td>${b.score??'–'}</td></tr>`).join('') +
+    `</table><p class="sub">* clothed. InBody reads about 1.7 points higher body fat and ${U.w(0.8)} lower fat-free mass than the home scale. Home-scale body fat moves ±0.3% day to day with hydration, so read the trend, not single days.</p>`;
   renderBP(); renderEnergyBalance(); renderComposition();
 }
 
@@ -1428,21 +1445,22 @@ function renderComposition(){
   const shown = BC.filter(([k]) => s.some(p => p[k] != null));
   const start = s.length ? s[0].date : null, end = SUMMARY.length ? SUMMARY[SUMMARY.length-1].date : null;
   $('#bcnote').textContent = 'From the home scale\'s morning readings: the line joins fasted ones, hollow dots are after food (less reliable). ' +
-    'Diamonds are InBody scans where InBody measures the same thing (it reads about 1.7 points more body fat and 0.8 kg less fat-free mass than the scale). The change is against the reading nearest 30 days earlier. ' +
+    'Diamonds are InBody scans where InBody measures the same thing (it reads about 1.7 points more body fat and ${U.w(0.8)} less fat-free mass than the scale). The change is against the reading nearest 30 days earlier. ' +
     'Bioimpedance swings with hydration, so read the trend, not single days.';
   $('#bcgrid').innerHTML = shown.map(([k,lab]) => `<div class="bc"><div class="bc-h" id="bch-${k}"></div><div id="bc-${k}" class="chart bc-c"></div></div>`).join('');
   const ax = {axisLine:{lineStyle:{color:c.rule}},axisLabel:{color:c.muted,fontSize:10},splitLine:{lineStyle:{color:c.rule,opacity:.5}}};
-  for(const [k,lab,u,dp,ik] of shown){
-    const pts = s.filter(p => p[k] != null), f = pts.filter(p => p.fasted !== false), nf = pts.filter(p => p.fasted === false);
+  for(const [k,lab,u0,dp,ik] of shown){
+    const conv = u0 === 'kg' && IMP(), cv = v => v == null || !conv ? v : U.wv(v), u = conv ? U.wu() : u0;   // kg measures in lb if chosen
+    const pts = s.filter(p => p[k] != null).map(p => conv ? {...p, [k]: cv(p[k])} : p), f = pts.filter(p => p.fasted !== false), nf = pts.filter(p => p.fasted === false);
     const last = (f.length ? f : pts)[ (f.length ? f : pts).length-1 ];
     const ago = new Date(new Date(last.date+'T00:00') - 30*864e5).toISOString().slice(0,10);
     const base = [...(f.length ? f : pts)].reverse().find(p => p.date <= ago) || null;
     const d = base ? last[k] - base[k] : null;
-    const ibs = ik ? ib.filter(b => b[ik] != null && (!start || b.date >= start)).map(b => [b.date, b[ik]]) : [];
+    const ibs = ik ? ib.filter(b => b[ik] != null && (!start || b.date >= start)).map(b => [b.date, cv(b[ik])]) : [];
     // each chart starts a few days before its own first reading, so the measures the scale added later aren't squashed
     const first = [pts[0].date, ...ibs.map(b => b[0])].sort()[0];
     const x0 = new Date(new Date(first+'T00:00') - 4*864e5).toISOString().slice(0,10);
-    const band = bands[k];
+    const band = bands[k] && bands[k].map(cv);
     $('#bch-'+k).innerHTML = `<span class="nm">${lab}</span> <b>${fmt(last[k],dp)}</b><small>${u?' '+u:''}</small>` +
       (d!=null ? ` <span class="sub">${d>0?'+':''}${fmt(d,dp)} in 30 d</span>` : ` <span class="sub">${esc(pts.length)} reading${pts.length!==1?'s':''}</span>`);
     const vals = [...pts.map(p => p[k]), ...ibs.map(b => b[1]), ...(band ? band.filter(v => v!=null) : [])];
@@ -1467,10 +1485,10 @@ async function renderEnergyBalance(){
   const E = await api('/api/energy').catch(()=>null), H = E && E.history;
   if(!H || !H.days.length){ $('#ebnote').textContent = 'Needs a few closed days with Garmin data.'; return; }
   const c = theme(), ax = {axisLine:{lineStyle:{color:c.rule}},axisLabel:{color:c.muted,fontSize:11},splitLine:{lineStyle:{color:c.rule,opacity:.5}}};
-  const kg = v => (v>0?'+':'')+fmt(v,2)+' kg';
+  const kg = v => (v>0?'+':'')+fmt(U.wv(v),2)+' '+U.wu();
   const parts = [];
   if(H.avg_deficit!=null) parts.push(`Average ${H.avg_deficit>=0?'deficit':'surplus'} <b>${fmt(Math.abs(H.avg_deficit))} kcal/day</b> over ${esc(H.counted)} closed days with watch data (burnt per Garmin minus eaten as logged). `);
-  if(H.expected_kg!=null) parts.push(`At ${fmt(H.kcal_per_kg)} kcal per kg that should be <b>${kg(H.expected_kg)}</b> in ${H.days.length} days`);
+  if(H.expected_kg!=null) parts.push(`At ${fmt(IMP() ? H.kcal_per_kg/LB : H.kcal_per_kg)} kcal per ${U.wu()} that should be <b>${kg(H.expected_kg)}</b> in ${H.days.length} days`);
   if(H.actual_kg!=null) parts.push(`; the trend through your ${esc(H.weights.length)} fasted weigh-ins is <b>${kg(H.actual_kg)}</b>.`);
   else parts.push('. Not enough fasted weigh-ins in the window for an actual trend yet.');
   if(H.gap_kcal_day!=null){
@@ -1491,15 +1509,15 @@ async function renderEnergyBalance(){
     yAxis:[{type:'value',gridIndex:0,...ax},{type:'value',gridIndex:1,scale:true,...ax}],
     tooltip:{trigger:'axis',...tip(c),formatter:ps => ps.map(p => p.seriesName==='Balance'
       ? (() => { const d = H.days[p.dataIndex]; return `<b>${shortDate(d.date)}</b><br>burnt ${d.burnt!=null?fmt(d.burnt):'–'} · eaten ${d.eaten!=null?fmt(d.eaten):'–'}<br>${d.deficit==null?'not counted (day open or no watch data)':d.deficit>=0?`<b>${fmt(d.deficit)}</b> deficit`:`<b>${fmt(-d.deficit)}</b> surplus`}`; })()
-      : `${esc(p.seriesName)}: <b>${fmt(p.value[1],2)} kg</b> (${shortDate(String(p.value[0]).slice(0,10))})`).join('<br>')},
+      : `${esc(p.seriesName)}: <b>${fmt(p.value[1],2)} ${U.wu()}</b> (${shortDate(String(p.value[0]).slice(0,10))})`).join('<br>')},
     series:[
       {type:'bar',name:'Balance',xAxisIndex:0,yAxisIndex:0,barMaxWidth:14,
         data:H.days.map(d => d.deficit==null ? null : {value:d.deficit, itemStyle:{color:d.deficit>=0?c.good:c.warn, borderRadius:d.deficit>=0?[3,3,0,0]:[0,0,3,3]}}),
         markLine:{silent:true,symbol:'none',lineStyle:{color:c.muted,type:'dashed'},label:{color:c.muted,position:'end',fontSize:11,formatter:'avg'},
           data:H.avg_deficit!=null?[{yAxis:H.avg_deficit}]:[]}},
-      {type:'line',name:'Expected',xAxisIndex:1,yAxisIndex:1,data:H.expected_line||[],symbol:'none',lineStyle:{color:c.good,type:'dashed',width:2},itemStyle:{color:c.good}},
-      {type:'line',name:'Actual trend',xAxisIndex:1,yAxisIndex:1,data:H.trend||[],symbol:'none',lineStyle:{color:c.accent,width:3},itemStyle:{color:c.accent}},
-      {type:'scatter',name:'Fasted',xAxisIndex:1,yAxisIndex:1,data:H.weights,symbolSize:8,itemStyle:{color:c.accent,opacity:.5}},
+      {type:'line',name:'Expected',xAxisIndex:1,yAxisIndex:1,data:(H.expected_line||[]).map(([d,v])=>[d,U.wv(v)]),symbol:'none',lineStyle:{color:c.good,type:'dashed',width:2},itemStyle:{color:c.good}},
+      {type:'line',name:'Actual trend',xAxisIndex:1,yAxisIndex:1,data:(H.trend||[]).map(([d,v])=>[d,U.wv(v)]),symbol:'none',lineStyle:{color:c.accent,width:3},itemStyle:{color:c.accent}},
+      {type:'scatter',name:'Fasted',xAxisIndex:1,yAxisIndex:1,data:(H.weights||[]).map(([d,v])=>[d,U.wv(v)]),symbolSize:8,itemStyle:{color:c.accent,opacity:.5}},
     ]});
 }
 
@@ -2004,7 +2022,8 @@ async function renderFood(){
   FOODS = FOODS || await api('/api/foods').catch(()=>null);
   const el = $('#food'); if(!FOODS){ el.innerHTML = '<p class="empty">Couldn’t load the foods.</p>'; return; }
   const F = FOODS, C = F.counts;
-  const amt = (v, r) => v ? (v >= 1000 ? fmt(v/1000, 1) + (r.liquid ? ' L' : ' kg') : fmt(v) + (r.liquid ? ' ml' : ' g')) : '–';
+  const amt = (v, r) => !v ? '–' : IMP() ? (r.liquid ? (v >= 3785 ? fmt(v/3785.41, 1) + ' gal' : fmt(v/29.5735, 0) + ' fl oz') : (v >= 454 ? fmt(v/453.592, 1) + ' lb' : fmt(v/28.3495, 1) + ' oz'))
+    : (v >= 1000 ? fmt(v/1000, 1) + (r.liquid ? ' L' : ' kg') : fmt(v) + (r.liquid ? ' ml' : ' g'));
   // counted foods read as "10 × 50 g" (ten eggs); weighed ones as the total; servings with no weight (tea) as "12 cups"
   const qty = (v, n, r) => n && v && Math.abs(v - n * Math.round(v / n)) < 1 ? `${fmt(n)} × ${amt(Math.round(v / n), r)}`
     : (n && !v ? `${fmt(n)} serving${n === 1 ? '' : 's'}` : amt(v, r));
@@ -2212,34 +2231,54 @@ let PROFILE = null;
 function showWho(){   // a small profile icon, not the name: the name made the header wrap and pushed the sync status down
   const b = $('#who'); if(!b || !PROFILE) return;
   b.hidden = !PROFILE.name;
-  const label = PROFILE.name ? `${esc(PROFILE.name)}: profile, start date and timezone` : 'Profile';
+  const label = PROFILE.name ? `${esc(PROFILE.name)}: profile, start date, timezone and units` : 'Profile';
   b.title = label; b.setAttribute('aria-label', label);
   b.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 }
+let SETUP_FIRST = false;
 function openSetup(first){
   const d = $('#setup'), f = $('#setupform'); if(!d || !PROFILE) return;
+  SETUP_FIRST = !!first; $('#setupai').hidden = !!first;   // on first run the assistant step follows Save
   $('#setup-h').textContent = first ? 'Welcome to Body Kaizen' : 'Your profile';
   const browserTz = (()=>{ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone; }catch(e){ return ''; } })();
   f.name.value = PROFILE.name || '';
   f.start_date.value = PROFILE.start_date || PROFILE.suggested.start_date || '';
   f.timezone.value = PROFILE.timezone || browserTz || PROFILE.suggested.timezone || '';
+  f.units.value = PROFILE.units || 'metric';
   try { const tzs = Intl.supportedValuesOf ? Intl.supportedValuesOf('timeZone') : [];
         $('#tzlist').innerHTML = tzs.map(z => `<option value="${esc(z)}">`).join(''); } catch(e) {}
   $('#setuperr').textContent = ''; d.showModal(); f.name.focus();
 }
 async function saveSetup(ev){
   ev.preventDefault(); const f = $('#setupform');
-  const body = {name: f.name.value, start_date: f.start_date.value, timezone: f.timezone.value.trim()};
+  const body = {name: f.name.value, start_date: f.start_date.value, timezone: f.timezone.value.trim(), units: f.units.value};
   const r = await post('/api/setup', body).catch(()=>null);
   const j = r ? await r.json().catch(()=>({})) : {error:'The server did not answer.'};
   if(!r || !r.ok){ $('#setuperr').textContent = j.error || 'Could not save.'; return; }
-  PROFILE = j; showWho(); $('#setup').close(); reloadData();
+  PROFILE = j; UNITS = j.units || 'metric'; showWho(); $('#setup').close();
+  if(SETUP_FIRST) openAssistant(); else reloadData();
 }
-async function loadProfile(){
-  PROFILE = await api('/api/profile').catch(()=>null); if(!PROFILE) return;
+// After first-run setup (and from Profile): copy a prompt that sets up an AI assistant for this data folder
+async function openAssistant(){
+  const d = $('#assistant'); if(!d) return;
+  const A = await api('/api/assistant').catch(() => null);
+  if(!A){ reloadData(); return; }
+  $('#ai-dir').textContent = A.data_dir; $('#ai-docs').href = A.docs; $('#ai-prompt').textContent = A.prompt; $('#ai-msg').textContent = '';
+  $('#ai-copy').onclick = () => (navigator.clipboard ? navigator.clipboard.writeText(A.prompt) : Promise.reject())
+    .then(() => { $('#ai-msg').textContent = 'Copied: paste it into your assistant.'; })
+    .catch(() => { $('#ai-msg').textContent = 'Couldn\u2019t copy: open "Show the prompt" and copy it from there.'; d.querySelector('details').open = true; });
+  d.onclose = () => reloadData();
+  if(!d.open) d.showModal();
+}
+async function loadProfile(p){
+  PROFILE = p || await api('/api/profile').catch(()=>null); if(!PROFILE) return;
+  UNITS = PROFILE.units || 'metric';
   showWho(); $('#who') && ($('#who').onclick = () => openSetup(false));
   $('#setupsave') && ($('#setupsave').onclick = saveSetup);
+  $('#setupai') && ($('#setupai').onclick = () => { $('#setup').close(); openAssistant(); });
   if(PROFILE.needs_setup) openSetup(!PROFILE.name);
 }
-api('/api/summary').then(s => { SUMMARY = s; showTab((location.hash||'#day').slice(1)); pollSync(); alertToasts(); loadProfile(); })
+Promise.all([api('/api/summary'), api('/api/profile').catch(() => null)]).then(([s, p]) => {
+  SUMMARY = s; if(p && p.units) UNITS = p.units;
+  showTab((location.hash||'#day').slice(1)); pollSync(); alertToasts(); loadProfile(p); })
   .catch(e => { $('main').innerHTML = `<p class="empty">Couldn't load data from the server (${esc(e.message)}). Check the terminal running app/server.py.</p>`; });

@@ -321,6 +321,42 @@ class PrivateFiles(unittest.TestCase):
             scheduler.subprocess.run = real; scheduler._installed.update(at=float("-inf"), ok=False)
 
 
+class Units(unittest.TestCase):
+    """Metric by default; imperial changes what's shown (lb, mi), never what's stored."""
+
+    def test_default_and_conversions(self):
+        import units
+        old = bkenv.units
+        try:
+            bkenv.units = lambda: "metric"
+            self.assertEqual((units.kg(79.1), units.km(7.21)), ("79.1 kg", "7.21 km"))
+            bkenv.units = lambda: "imperial"
+            self.assertEqual((units.kg(79.1), units.km(7.21)), ("174.4 lb", "4.48 mi"))
+            self.assertEqual(units.kg(None), "–")
+        finally: bkenv.units = old
+        self.assertIn(bkenv.units(), bkenv.UNITS)   # the demo has none set: metric
+
+    def test_saved_with_the_profile(self):
+        with tempfile.TemporaryDirectory() as t:
+            old = bkenv.SETTINGS
+            bkenv.SETTINGS = pathlib.Path(t) / "settings.yaml"
+            bkenv.SETTINGS.write_text("food: {weights_are: cooked}\nunits: metric\n")
+            try:
+                bkenv.save_profile("Sam", "2026-11-01", "Europe/London", "imperial")
+                txt = bkenv.SETTINGS.read_text()
+                self.assertEqual(txt.count("units:"), 1); self.assertIn("units: imperial", txt); self.assertIn("weights_are: cooked", txt)
+                bkenv.save_profile("Sam", "2026-11-01", "Europe/London")   # no units given: leave them as they are
+                self.assertIn("units: imperial", bkenv.SETTINGS.read_text())
+            finally: bkenv.SETTINGS = old; bkenv._cache["mtime"] = None
+
+    def test_assistant_prompt_names_the_folder_and_the_guides(self):
+        import assistant
+        A = assistant.build()
+        for part in (str(bkenv.DATA), "AI-GUIDE.md", "SCHEMA.md", "CLAUDE.md", "compute"):
+            with self.subTest(part=part): self.assertIn(part, A["prompt"])
+        self.assertNotIn("session.key", A["prompt"])
+
+
 class FixedClock(unittest.TestCase):
     def test_ft_now_fixes_the_time(self):
         old = os.environ.get("FT_NOW")

@@ -122,13 +122,23 @@ def child_env():
     for redirected output, and a '→' in a log line would crash the child)."""
     return {**os.environ, "FT_DATA": str(DATA), "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
 
-def save_profile(name, start, timezone):
-    """Write profile + timezone into settings.yaml, keeping the rest of the file (and its comments) as it is."""
+UNITS = ("metric", "imperial")
+
+def units():
+    """How the dashboard shows weights, distances and portions: metric (kg, km, g, ml; the default) or imperial
+    (lb, mi, oz, fl oz). Display only: every file stays metric."""
+    u = str(settings().get("units") or "metric").lower()
+    return u if u in UNITS else "metric"
+
+def save_profile(name, start, timezone, units=None):
+    """Write profile + timezone (+ units) into settings.yaml, keeping the rest of the file (and its comments) as it is."""
     txt = SETTINGS.read_text(encoding="utf-8") if SETTINGS.exists() else ""
     txt = re.sub(r"(?m)^profile:.*\n(?:[ \t]+.*\n?)*", "", txt)          # drop an old profile block
     txt = re.sub(r"(?m)^timezone:.*\n?", "", txt)
-    block = yaml.safe_dump({"profile": {"name": str(name).strip(), "start_date": str(start)}, "timezone": timezone},
-                           sort_keys=False, allow_unicode=True)
+    if units: txt = re.sub(r"(?m)^units:.*\n?", "", txt)
+    top = {"profile": {"name": str(name).strip(), "start_date": str(start)}, "timezone": timezone}
+    if units: top["units"] = units
+    block = yaml.safe_dump(top, sort_keys=False, allow_unicode=True)
     SETTINGS.write_text(block + ("\n" + txt.lstrip("\n") if txt.strip() else ""), encoding="utf-8")
     _cache["mtime"] = None
 

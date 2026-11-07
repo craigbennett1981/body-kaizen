@@ -5,7 +5,7 @@ Lifts are tagged in the data folder's exercises.yaml (`muscles:` primary, `secon
 Fine tags (front-delts, upper-back...) map to one region; broad tags (shoulders, back, core...) spread to every
 region they cover, so older catalogues still draw."""
 import datetime as dt
-import data
+import data, units
 from workouts import _sets, _nice
 
 REGIONS = ["chest", "front-delts", "rear-delts", "biceps", "triceps", "forearms", "abs", "obliques", "traps",
@@ -76,7 +76,7 @@ def build(days=7, end=None, date=None, idx=None):
         mins = _minutes(e) if spec else 0
         if spec and mins >= 5:
             n = round(mins / MIN_PER_SET, 1)
-            name = f"{str(e.get('type')).capitalize()}" + (f" {e['distance_km']} km" if e.get("distance_km") else "")
+            name = f"{str(e.get('type')).capitalize()}" + (f" {units.km(e['distance_km'])}" if e.get("distance_km") else "")
             seen = set()
             for role, tags, w in (("primary", spec.get("muscles") or [], 1.0), ("secondary", spec.get("secondary") or [], 0.5)):
                 for r in {r for t in tags for r in regions_for(t)} - seen:

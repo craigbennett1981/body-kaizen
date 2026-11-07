@@ -5,6 +5,12 @@ What changed in each release. Earlier releases are described on the
 
 ## Unreleased
 
+### Setting up
+- **Metric or imperial:** chosen at first-run setup (metric by default) and changeable from the profile icon.
+  Weights, distances, paces and portions follow it everywhere; files stay metric and macros stay in grams.
+- **Set up your AI assistant** from the dashboard: after first-run setup (and from the profile icon), a prompt to copy
+  into Claude Code that points it at your data folder and the guide, writes your `CLAUDE.md` and asks about you.
+
 ### Install in one line
 - **macOS, Linux and Windows installers** (`install/install.sh`, `install/install.ps1`): no Python needed (uv brings
   its own), the Garmin and LibreLinkUp syncs included, the dashboard started at login, and a **Body Kaizen** launcher

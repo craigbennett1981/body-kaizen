@@ -1,6 +1,6 @@
 """Weekly review (Monday-Sunday): adherence, averages, training, recovery, weight, and one focus for next week."""
 import datetime as dt
-import data
+import data, units
 
 METRICS = [("kcal", "Calories"), ("protein_g", "Protein"), ("satfat_g", "Saturated fat"), ("fibre_g", "Fibre")]
 
@@ -87,10 +87,10 @@ def markdown(w):
     for k, label in METRICS:
         h = w["hits"][k]; L.append(f"| {label} | {str(h['hit']) + '/' + str(h['of']) if h['of'] else 'no target that week'} | {f(w['averages'][k])} |")
     t, r = w["training"], w["recovery"]
-    L += ["", f"**Training:** {', '.join(f'{v} {k}' for k, v in t['sessions'].items()) or 'none'}; {f(t['run_km'])} km run; ~{f(t['session_kcal'])} kcal burnt in sessions and walking.",
-          "**New bests:** " + (", ".join(f"{p['lift'].replace('-', ' ')} {p['kg']} kg" + (f" × {p['reps']}" if p.get("reps") else "") for p in t["prs"]) or "none"),
+    L += ["", f"**Training:** {', '.join(f'{v} {k}' for k, v in t['sessions'].items()) or 'none'}; {units.km(t['run_km'], 1) if t['run_km'] else '0 ' + ('mi' if units.imperial() else 'km')} run; ~{f(t['session_kcal'])} kcal burnt in sessions and walking.",
+          "**New bests:** " + (", ".join(f"{p['lift'].replace('-', ' ')} {units.kg(p['kg'])}" + (f" × {p['reps']}" if p.get("reps") else "") for p in t["prs"]) or "none"),
           f"**Recovery:** sleep {f(r['sleep_avg_h'])} h average ({r['nights_ok']}/{r['nights']} nights ≥ 7h30); HRV {f(r['hrv_avg'])} ms; resting HR {f(r['rhr_avg'])}; steps {f(r['steps_avg'])}.",
-          f"**Weight:** {f(w['weight']['avg'], ' kg')} average (previous week {f(w['weight']['prev_avg'], ' kg')}).", ""]
+          f"**Weight:** {units.kg(w['weight']['avg'])} average (previous week {units.kg(w['weight']['prev_avg'])}).", ""]
     if w["focus"]: L += [f"**Focus for next week:** {w['focus']}", ""]
     return "\n".join(L)
 

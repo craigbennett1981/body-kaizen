@@ -2,7 +2,7 @@
 Each item: level (act | keep | info), title, why (his numbers), do (concrete steps). Rule-based; no medical claims."""
 import datetime as dt, statistics as st
 from collections import defaultdict
-import data, longevity
+import data, longevity, units
 
 def _dm(iso):
     """'4 Nov': strftime has no portable day-without-leading-zero code (Windows lacks it)."""
@@ -164,7 +164,7 @@ def compute():
     wtar = data.weight_target_for(S[-1]["date"])
     if wt:
         last = wt[-1]
-        add("Body", "info", "Weight and recomp", f"Last fasted weight {last[1]} kg ({_dm(last[0])}); target {wtar} kg. On a recomp the scale moves slowly: judge it on the InBody rescan in early December.",
+        add("Body", "info", "Weight and recomp", f"Last fasted weight {units.kg(last[1])} ({_dm(last[0])}); target {units.kg(wtar)}. On a recomp the scale moves slowly: judge it on the InBody rescan in early December.",
             ["Weigh 3+ mornings a week, fasted, after the toilet.", "Expect weight to hold roughly steady while fat drops and muscle rises."], 6)
         if (today - dt.date.fromisoformat(last[0])).days > 5:
             add("Body", "act", "Weigh in again", f"No fasted weigh-in since {_dm(last[0])}.", ["Step on the scale tomorrow morning."], 4)
