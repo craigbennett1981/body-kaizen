@@ -1496,6 +1496,63 @@ async function renderEnergyBalance(){
     ]});
 }
 
+/* ---------- food: every food eaten, its macros, how much and how often; the week's biggest sources ---------- */
+let FOODS = null, FSORT = {k:'times', dir:-1}, FQ = '', FWIN = 'all';
+const PE_CLS = v => v==null ? '' : v >= 15 ? 'good' : v >= 8 ? 'warn' : '';   // grams of protein per 100 kcal
+async function renderFood(){
+  FOODS = FOODS || await api('/api/foods').catch(()=>null);
+  const el = $('#food'); if(!FOODS){ el.innerHTML = '<p class="empty">Couldn’t load the foods.</p>'; return; }
+  const F = FOODS, C = F.counts;
+  const amt = (v, r) => v ? (v >= 1000 ? fmt(v/1000, 1) + (r.liquid ? ' L' : ' kg') : fmt(v) + (r.liquid ? ' ml' : ' g')) : '–';
+  // counted foods read as "10 × 50 g" (ten eggs); weighed ones as the total; servings with no weight (tea) as "12 cups"
+  const qty = (v, n, r) => n && v && Math.abs(v - n * Math.round(v / n)) < 1 ? `${fmt(n)} × ${amt(Math.round(v / n), r)}`
+    : (n && !v ? `${fmt(n)} serving${n === 1 ? '' : 's'}` : amt(v, r));
+  const src = k => { const S = F.sources[k]; if(!S || !S.top.length) return '';
+    const u = k==='k' ? ' kcal' : ' g', dp = k==='sf' ? 1 : 0;
+    return `<div class="fs"><h3>${esc(S.label)} <span class="sub">${fmt(S.total, dp)}${u} in ${esc(F.recent_days)} days</span></h3>` +
+      S.top.map(x => `<div class="fs-row" title="${esc(x.name)}: ${fmt(x.value, dp)}${u}"><span class="nm">${esc(x.name)}</span><span class="bar"><i class="fs-${k}" style="width:${Math.round(x.share*100)}%"></i></span><span class="pc">${Math.round(x.share*100)}%</span></div>`).join('') + `</div>`; };
+  el.innerHTML = `<div class="wk-grid">
+      <div class="t"><div class="lab">Foods you've eaten</div><div class="v">${fmt(C.foods)}</div><div class="s">over ${esc(F.logged_days)} logged days</div></div>
+      <div class="t"><div class="lab">In the last 7 days</div><div class="v">${fmt(C.week)}</div><div class="s">different foods</div></div>
+      <div class="t"><div class="lab">New this month</div><div class="v">${fmt(C.new_this_month)}</div><div class="s">first eaten since the 1st</div></div>
+    </div>
+    <h2>Where it came from, last 7 days</h2>
+    <p class="sub">The foods behind each total, as a share of it. Saturated fat is the one to watch: the top few foods are where a swap pays off most.</p>
+    <div class="fs-grid">${['sf','p','k','fib'].map(src).join('')}</div>
+    <h2>Your staples</h2>
+    <p class="sub">Eaten on the most days. Small changes to these move every day's totals.</p>
+    <div class="staples">${F.staples.map(s => `<span class="chip">${esc(s.name)} <b>${Math.round(s.share*100)}%</b></span>`).join('')}</div>
+    <h2>Every food</h2>
+    <div class="f-ctl"><input id="fq" type="search" placeholder="Search foods" value="${esc(FQ)}" aria-label="Search foods">
+      <span class="seg" role="group" aria-label="Show"><button data-w="all" aria-pressed="${FWIN==='all'}">All time</button><button data-w="week" aria-pressed="${FWIN==='week'}">Last 7 days</button></span></div>
+    <div class="ftab-wrap"><table class="ftab" id="ftab"></table></div>
+    <p class="sub">Macros per 100 g (or 100 ml for drinks). <b>Protein per 100 kcal</b> shows how efficiently a food delivers protein: green 15 g or more, amber 8–15. "Times" counts logged entries; amounts are what you ate in total. Click a heading to sort.</p>`;
+  const table = () => {
+    const week = FWIN === 'week';
+    const rows = F.foods.filter(r => (!week || r.w_times) && (!FQ || r.name.toLowerCase().includes(FQ) || r.key.includes(FQ)));
+    const val = (r, k) => ({name: r.name.toLowerCase(), times: week ? r.w_times : r.times, amount: week ? r.w_amount : r.amount,
+      kcal: (week ? r.w_totals : r.totals).k || 0, pe: r.protein_per_100kcal ?? -1, last: r.last,
+      k: (r.per100||r.per_unit||{}).k ?? -1, p: (r.per100||r.per_unit||{}).p ?? -1, sf: (r.per100||r.per_unit||{}).sf ?? -1, fib: (r.per100||r.per_unit||{}).fib ?? -1})[k];
+    rows.sort((a, b) => { const x = val(a, FSORT.k), y = val(b, FSORT.k); return (x < y ? -1 : x > y ? 1 : 0) * FSORT.dir; });
+    const th = (k, lab, cls='') => `<th class="${cls}${FSORT.k===k?' sorted':''}" data-k="${k}" aria-sort="${FSORT.k===k?(FSORT.dir>0?'ascending':'descending'):'none'}">${lab}</th>`;
+    const p = r => r.per100 || r.per_unit || {};
+    $('#ftab').innerHTML = `<tr>${th('name','Food')}${th('k','kcal','num')}${th('p','Protein','num')}<th class="num">Carbs</th><th class="num">Fat</th>${th('sf','Sat fat','num')}${th('fib','Fibre','num')}${th('pe','Protein / 100 kcal','num')}${th('times', week?'Times (7 d)':'Times','num')}${th('amount', week?'Eaten (7 d)':'Eaten','num')}${th('kcal', week?'kcal (7 d)':'kcal total','num')}<th class="num" title="Times you logged it in the last 7 days, and how much you ate: 10 × 50 g is ten 50 g servings">7 days</th>${th('last','Last eaten','num')}</tr>` +
+      (rows.length ? rows.map(r => `<tr><td class="nm">${esc(r.name)}${r.new_this_month?' <span class="tag">new</span>':''}${r.conf==='estimate'?' <span class="sub" title="Macros are an estimate, not from a label">est.</span>':''}${!r.per100&&r.per_unit?' <span class="sub" title="No weight for this one: the macros are per serving, not per 100 g">per serving</span>':''}</td>
+        <td class="num">${fmt(p(r).k)}</td><td class="num">${fmt(p(r).p,1)}</td><td class="num">${fmt(p(r).c,1)}</td><td class="num">${fmt(p(r).f,1)}</td>
+        <td class="num${(p(r).sf||0)>=5?' hi-sf':''}">${fmt(p(r).sf,1)}</td><td class="num">${fmt(p(r).fib,1)}</td>
+        <td class="num pe-${PE_CLS(r.protein_per_100kcal)}">${r.protein_per_100kcal==null?'–':fmt(r.protein_per_100kcal,1)}</td>
+        <td class="num">${fmt(week?r.w_times:r.times)}</td><td class="num">${qty(week?r.w_amount:r.amount, week?r.w_count:r.count, r)}</td><td class="num">${fmt((week?r.w_totals:r.totals).k||0)}</td>
+        <td class="num">${r.w_times?`${esc(r.w_times)} time${r.w_times===1?'':'s'} · ${qty(r.w_amount, r.w_count, r)}`:'–'}</td><td class="num">${shortDate(r.last)}</td></tr>`).join('')
+        : `<tr><td colspan="13" class="empty">No foods match.</td></tr>`);
+    $('#ftab').querySelectorAll('th[data-k]').forEach(h => h.addEventListener('click', () => {
+      const k = h.dataset.k; FSORT = FSORT.k===k ? {k, dir:-FSORT.dir} : {k, dir: k==='name' ? 1 : -1}; table(); }));
+  };
+  table();
+  $('#fq').addEventListener('input', e => { FQ = e.target.value.trim().toLowerCase(); table(); });
+  el.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => { FWIN = b.dataset.w;
+    el.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', x===b)); table(); }));
+}
+
 /* ---------- blood pressure ---------- */
 const BPCLS = {normal:'normal', elevated:'elevated', 'stage 1':'s1', 'stage 2':'s2', crisis:'crisis'};
 const BPLABEL = {normal:'Normal', elevated:'Elevated', 'stage 1':'Stage 1 high', 'stage 2':'Stage 2 high', crisis:'Crisis: seek care'};
@@ -1626,7 +1683,7 @@ async function alertToasts(){
   for(const a of al) if(!a.id.startsWith('lab-')) toast(`alert:${esc(a.id)}:${esc(a.since)}`, 'warn', a.title, `${esc(a.text)} ${esc(a.todo)}`);
 }
 async function reloadData(){
-  SUMMARY = await api('/api/summary'); HS = null; TRAIN = null;  WO = null; BODY = null; REF = null; READY = null; renderAll();
+  SUMMARY = await api('/api/summary'); HS = null; TRAIN = null; FOODS = null;  WO = null; BODY = null; REF = null; READY = null; renderAll();
 }
 
 /* ---------- boot ---------- */
@@ -1634,6 +1691,7 @@ function renderTab(t){
   if(t==='day') renderDay(currentDate);
   if(t==='longevity') renderLongevity();
   if(t==='advice') renderAdvice();
+  if(t==='food') renderFood();
   if(t==='wellbeing') renderWellbeing();
   if(t==='week') renderWeek(WEEK);
   if(t==='trends') renderTrends();

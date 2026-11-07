@@ -207,3 +207,20 @@ class ThresholdsPage(unittest.TestCase):
         self.assertTrue(T["rules"] and T["markers"] and T["athlete"]["domains"])
         self.assertTrue(all(len(r) == 5 for _, rows in thresholds.RULES for r in rows))
 
+
+
+class FoodsPage(unittest.TestCase):
+    def test_totals_add_up(self):
+        import foods
+        F = foods.build()
+        self.assertTrue(F["foods"])
+        self.assertEqual(F["counts"]["foods"], len(F["foods"]))
+        for f in F["foods"]:
+            self.assertGreaterEqual(f["times"], f["w_times"])
+            self.assertGreaterEqual(f["days"], 1)
+            self.assertLessEqual(f["first"], f["last"])
+        for k, s in F["sources"].items():
+            with self.subTest(source=k):
+                week = sum((f["w_totals"] or {}).get(k, 0) for f in F["foods"])
+                self.assertAlmostEqual(s["total"], week, delta=1)
+                self.assertTrue(all(0 <= t["share"] <= 1 for t in s["top"]))
