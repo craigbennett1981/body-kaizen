@@ -14,7 +14,8 @@ What changed in each release. Earlier releases are described on the
   capped, errors while saving logged rather than dropping the connection, and the Garmin check no longer starts a
   process on every status request.
 - **Private files:** `~/.body-kaizen` and `~/.garminconnect`, and every login file in them, are created private to
-  your account. New data folders get a `.gitignore` for sync bookkeeping. The data-folder check ignores case on
+  your account. New data folders are private to you too (0700), get a `.gitignore` for sync bookkeeping, and no
+  longer inherit the demo person's experiments. The data-folder check ignores case on
   macOS and Windows.
 - **Build:** GitHub Actions pinned to commits, and the release tag passed to scripts through the environment.
 

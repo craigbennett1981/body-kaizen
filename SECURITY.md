@@ -36,7 +36,8 @@
   login email in `~/.body-kaizen/libre.json` and its password in the operating system's keychain (via `keyring`).
   None of them is written to the code or data folder. Both folders, and every file in them, are private to your
   account (0700 and 0600), created that way rather than tightened afterwards.
-- **The data folder stays clean in git.** A new data folder gets a `.gitignore` for sync bookkeeping
+- **The data folder is yours alone and stays clean in git.** A new data folder is private to your account (0700),
+  whether the dashboard's first-run setup or `body-kaizen init` makes it, and gets a `.gitignore` for sync bookkeeping
   (`imports/*/state.json`) and operating-system clutter. The dashboard refuses a data folder inside the code
   folder, matching paths without regard to case on macOS and Windows, where `~/Repos/Body-Kaizen` and
   `~/repos/body-kaizen` are the same folder.

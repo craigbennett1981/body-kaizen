@@ -170,7 +170,10 @@ def init_data_folder(out, template=None):
     out = pathlib.Path(out).expanduser().resolve()
     if out.exists() and any(out.iterdir()): raise FileExistsError(f"{out} isn't empty")
     template = pathlib.Path(template or CODE / "demo")
-    shutil.copytree(template, out, ignore=shutil.ignore_patterns(*DATA_DIRS, "__pycache__", "*.pyc"), dirs_exist_ok=True)
+    private_dir(out)   # your health data: a folder only your account can open (0700)
+    # experiments.yaml is the demo person's own experiments: a new folder starts with none
+    shutil.copytree(template, out, ignore=shutil.ignore_patterns(*DATA_DIRS, "experiments.yaml", "__pycache__", "*.pyc"), dirs_exist_ok=True)
+    private_dir(out)   # again: copytree copies the template folder's permissions onto it
     for d in DATA_DIRS: (out / d).mkdir(exist_ok=True)
     gi = out / ".gitignore"   # a data folder is often a git repository: keep sync bookkeeping and OS clutter out of it
     if not gi.exists(): gi.write_text(DATA_GITIGNORE, encoding="utf-8")

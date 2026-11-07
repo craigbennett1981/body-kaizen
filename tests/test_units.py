@@ -305,6 +305,8 @@ class PrivateFiles(unittest.TestCase):
         with tempfile.TemporaryDirectory() as t:
             out = bkenv.init_data_folder(pathlib.Path(t) / "d")
             self.assertIn("imports/*/state.json", (out / ".gitignore").read_text())
+            self.assertFalse((out / "experiments.yaml").exists())   # the demo person's experiments stay behind
+            if os.name == "posix": self.assertEqual(out.stat().st_mode & 0o777, 0o700)   # health data: only you
 
     def test_garmin_check_is_cached(self):
         calls = []

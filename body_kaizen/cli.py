@@ -72,10 +72,7 @@ def _init(args):
     out = pathlib.Path(args.dir).expanduser().resolve()
     if out.exists() and any(out.iterdir()):
         sys.exit(f"{out} already exists and isn't empty: choose another folder.")
-    shutil.copytree(CODE / "demo", out, ignore=shutil.ignore_patterns(*DATA_DIRS), dirs_exist_ok=True)
-    for d in DATA_DIRS: (out / d).mkdir()
-    s = out / "settings.yaml"   # forget Sam: the dashboard asks for your own name, start date and timezone
-    s.write_text(re.sub(r"(?m)^timezone:.*\n?", "", re.sub(r"(?m)^profile:.*\n(?:[ \t]+.*\n?)*", "", s.read_text(encoding="utf-8"))).lstrip("\n"), encoding="utf-8")
+    _bkenv().init_data_folder(out, CODE / "demo")   # the same as the dashboard's setup: private folder, .gitignore, no Sam
     print(f"""Created {out}
 
 Next:
