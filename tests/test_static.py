@@ -123,6 +123,13 @@ class StaticDemo(unittest.TestCase):
         idx = (self.site / "index.html").read_text(encoding="utf-8")
         title = re.search(r"<title>(.*?)</title>", idx).group(1)
         self.assertLessEqual(len(title), 70); self.assertIn("Body Kaizen", title)
+        # the words the page uses most are in its title, description and top heading, so search engines know its topic
+        h1 = re.sub(r"<[^>]+>", "", re.search(r'<h1 class="brand"[^>]*>(.*?)</h1>', idx, re.S).group(1))
+        for word in ("calorie", "protein", "sleep", "training"):
+            with self.subTest(word=word):
+                self.assertIn(word, title.lower()); self.assertIn(word, h1.lower())
+        for word in ("calories", "protein", "fat", "fibre", "sleep"):
+            with self.subTest(word=word): self.assertIn(word, meta(idx, "name", "description").lower())
         self.assertTrue(50 <= len(meta(idx, "name", "description")) <= 160, "search results cut descriptions at about 155 characters")
         canon = re.search(r'<link rel="canonical" href="([^"]+)"', idx).group(1)
         self.assertRegex(canon, r"^https://[^/]+/")
