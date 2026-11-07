@@ -112,7 +112,10 @@ class SignIn(WriteProtection):
         self.assertEqual(status, 303); self.assertEqual(h["Location"], "/")
         c = h["Set-Cookie"]
         for part in (f"bk_session_{self.port}={key}", "HttpOnly", "SameSite=Strict", "Path=/"): self.assertIn(part, c)
-        self.assertEqual(self.req("GET", f"/thresholds.html?key={key}&x=1", body=None, Cookie=None)[2]["Location"], "/thresholds.html?x=1")
+        self.assertEqual(self.req("GET", f"/thresholds.html?key={key}&x=1", body=None, Cookie=None)[2]["Location"], "/thresholds.html")
+        for odd in ("//evil.example/", "/api/summary", "/nope%0d%0aSet-Cookie:x=1", "/../etc/passwd"):   # only the dashboard's own pages
+            with self.subTest(path=odd):
+                self.assertEqual(self.req("GET", f"{odd}?key={key}", body=None, Cookie=None)[2].get("Location"), "/")
         status, _, h = self.req("GET", "/?key=wrong", body=None, Cookie=None)
         self.assertEqual(status, 401); self.assertNotIn("Set-Cookie", h)
 
