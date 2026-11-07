@@ -105,5 +105,6 @@ meals:
     parsed:
     - {item: apple, g: 178}
 totals: {kcal: 2106, protein_g: 162.4, carbs_g: 267.0, fat_g: 44.6, satfat_g: 14.2, fibre_g: 33.6, sodium_mg: 1175, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+habits: {screens_off: '22:44'}
 energy: {total: 2652, active: 897, bmr: 1755, source: garmin}
 intensity_min: {moderate: 0, vigorous: 43, source: garmin}

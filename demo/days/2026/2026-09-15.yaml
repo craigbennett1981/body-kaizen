@@ -23,5 +23,6 @@ meals:
   lunch: []
   dinner: []
   snacks: []
+habits: {screens_off: '22:38'}
 energy: {total: 2290, active: 556, bmr: 1734, source: garmin}
 intensity_min: {moderate: 0, vigorous: 0, source: garmin}

@@ -75,11 +75,52 @@ verdict against the full-day targets.
 | Started or stopped a supplement | `measurements/supplements.yaml` | |
 | Life events (new gym, travel, new scale) | `events.yaml` | |
 | A to-do | `todo.yaml` | |
+| "Start the bedtime experiment", "stop the experiment" | `experiments.yaml` | See below |
 | A target change ("protein 160 from Monday") | new dated block in `targets.yaml` | Never edit an old block: that would rewrite past days |
 | A brand change ("new milk from today") | `eras:` in `settings.yaml` | |
 | A habit ("my tea always has low-fat milk") | `food:` defaults in `settings.yaml` | |
 
 **Never store** ID numbers, dates of birth, addresses or doctors' names from reports and screenshots.
+
+### Experiments
+
+The Experiments tab runs n-of-1 tests: a rule kept for a set number of nights (14 unless the person says), compared
+with the weeks before. Its "Worth testing" list suggests tests from the person's own data, each with a ready entry,
+and "Try a rule" lets them question their history first. A **period experiment** (`type: period`) is for habits whose
+effect builds over days, measured by readings rather than one night: "eat beetroot every day and see what it does to
+my blood pressure for 3 weeks" is `type: period`, `days: 21`, a `daily:` rule and `outcomes: [bp.morning_sys,
+bp.morning_dia]`. "Look for a relationship" on the tab checks the history for one before they commit to a test.
+
+- **Starting one** ("start the bedtime experiment", "test screens off by 21:30 for 3 weeks"): add the entry to
+  `experiments.yaml`, using only the variables in SCHEMA.md (anything else is flagged on the tab and not scored).
+  Set `start` to today if it begins tonight, and `days` to what they asked for. One experiment at a time changes one
+  thing: if another is running, ask whether to stop it first. Confirm the rule and the end date in your reply, then
+  check the tab doesn't show it as "Needs fixing".
+- **Habits no device records** (screens off, a walk after dinner, reading): declare the habit under `habits:` in
+  `experiments.yaml`, then log it in that day's file under `habits:` whenever they mention it ("screens off at
+  21:40" → `habits: {screens_off: "21:40"}`). If a running experiment needs a habit, ask about it in the evening.
+- **Supplements** are logged like food, with a time ("08:00 5g creatine", "magnesium at 21:30"). If one isn't in the
+  food list, add it to `foods.yaml` with its label values and `supplement: true`. Ongoing courses (started, paused)
+  still go in `measurements/supplements.yaml` as well.
+- **What it needs from them:** say so when you start it, e.g. "a morning blood pressure reading every day, from now:
+  the 4 weeks before the start are the baseline". The card's checklist and the dashboard's reminders follow from the
+  outcomes and rule; add `requires:` only for something extra they ask to be reminded about.
+- **While it runs:** when you log the evening or close the day, say whether today kept to the rule, how many
+  days or nights are left, and anything on today's checklist still not done (a missing reading). Don't nag on a
+  missed day: say it plainly and move on.
+- **Early reads:** a running card shows "leaning better" or "leaning worse" once there's enough data. Call it a lean,
+  never a result, and don't suggest changing anything because of it. If the card says it can no longer reach enough
+  kept days for a verdict, say so and ask whether to stop it and start again.
+- **When one finishes** (the card moves to Finished, and a toast says so): report the verdict and the card's "What
+  next", ask what they want to do (keep, drop or repeat), then add a `notes:` write-up to the entry: two or three
+  plain sentences on what was tested, what happened and what they're doing next. The card's "Copy for your assistant
+  to write up" button gives you the numbers. Change nothing else in a finished entry.
+- **Stopping early:** set `status: stopped`. Never edit the dates or the rule of one that has started: that would
+  change what it's measuring.
+- **Reading the result:** report the tab's verdict and numbers as they are. "No clear effect" and "not enough
+  nights" are real answers; don't dress them up as a win. "Could be a trend" means the outcome was already moving
+  that way before the start: say so, and suggest repeating it or stopping the habit to see if it moves back. One person's result is strong evidence for them, not proof
+  for everyone.
 
 ## 4. When food doesn't match
 

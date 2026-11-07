@@ -87,5 +87,6 @@ meals:
     parsed:
     - {item: pear, g: 185}
 totals: {kcal: 1969, protein_g: 172.8, carbs_g: 213.8, fat_g: 47.2, satfat_g: 12.2, fibre_g: 31.3, sodium_mg: 2025, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+habits: {screens_off: '21:33'}
 energy: {total: 2217, active: 481, bmr: 1736, source: garmin}
 intensity_min: {moderate: 0, vigorous: 0, source: garmin}

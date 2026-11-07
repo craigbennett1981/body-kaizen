@@ -306,6 +306,8 @@ def main():
                            "sleep_end": (dt.datetime.combine(d, dt.time()) + dt.timedelta(minutes=wake)).isoformat()[:16], "sleep_score": score,
                            "overnight_hr": rhr + 4, "hrv_ms": hrv, "hrv_7d_ms": h7, "hrv_status": "balanced" if hrv > h7 - 8 else "unbalanced",
                            "rhr": rhr, "body_battery": bb, "stress_avg": int(28 + R.gauss(0, 5) + (12 if sick else 0)), "source": "garmin"}
+        # a habit no device records, logged by the assistant from chat; derived from the date so the random data doesn't change
+        if d.toordinal() % 5: day["habits"] = {"screens_off": hm(21 * 60 + (d.toordinal() * 37) % 120)}
         if R.random() < 0.6:
             day["feel"] = {"overall": 2 if sick else R.choice([3, 4, 4, 4, 5]), "energy": 2 if sick else R.choice([3, 4, 4, 5]), "mood": R.choice([3, 4, 4, 5]),
                            "gut": R.choice([3, 4, 4]), "stress": R.choice([2, 2, 3])}
@@ -440,6 +442,17 @@ def main():
         {"date": "2026-09-05", "test": "hr_cap_run", "speed_kmh": 9.0, "cap_bpm": 145, "km": 3.9, "minutes": 26},
         {"date": "2026-10-10", "test": "hr_cap_run", "speed_kmh": 9.0, "cap_bpm": 145, "km": 4.6, "minutes": 31}]), encoding="utf-8")
     (M / "episodes.yaml").write_text(yaml_dump([{"start": "2026-09-02", "end": "2026-09-04", "what": "cold: sore throat, low energy"}]), encoding="utf-8")
+    # two experiments, dated from the end: one finished, one running (the Experiments tab)
+    (OUT / "experiments.yaml").write_text(yaml_dump({"habits": {"screens_off": {"type": "time", "label": "Screens off"}}, "experiments": [
+        {"id": "bedtime", "title": "Asleep by 23:00", "start": (END - dt.timedelta(days=40)).isoformat(), "days": 14,
+         "rule": {"bedtime_by": "23:00"}, "outcomes": ["asleep", "sleep_score", "hrv", "rhr"],
+         "hypothesis": "A regular bedtime before 23:00 gives longer sleep and a better HRV."},
+        {"id": "salt", "type": "period", "title": "Salt under 2,000 mg a day", "start": (END - dt.timedelta(days=30)).isoformat(), "days": 21,
+         "ramp_days": 3, "daily": {"all": [{"var": "day.sodium", "op": "<=", "value": 2000}]}, "outcomes": ["bp.morning_sys", "bp.morning_dia"],
+         "hypothesis": "Less salt every day lowers morning blood pressure within a few weeks."},
+        {"id": "session-by-19", "title": "Training finished by 19:00", "start": (END - dt.timedelta(days=9)).isoformat(), "days": 14,
+         "rule": {"session_end_by": "19:00"}, "outcomes": ["asleep", "sleep_score", "hrv"],
+         "hypothesis": "Finishing training by 19:00 protects that night's sleep."}]}), encoding="utf-8")
     (M / "supplements.yaml").write_text(yaml_dump([{"name": "Vitamin D3", "frequency": "daily", "started": "2026-10-05"}]), encoding="utf-8")
     # totals for every day
     r = subprocess.run([sys.executable, str(CODE / "scripts" / "compute.py")], env={**os.environ, "FT_DATA": str(OUT)}, capture_output=True, text=True)

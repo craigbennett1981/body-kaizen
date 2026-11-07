@@ -91,6 +91,7 @@ meals:
     parsed:
     - {item: dates, g: 30}
 totals: {kcal: 1995, protein_g: 155.2, carbs_g: 230.1, fat_g: 51.9, satfat_g: 14.1, fibre_g: 30.1, sodium_mg: 1502, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+habits: {screens_off: '21:14'}
 symptoms:
 - {what: sore throat, severity: 2}
 - {what: fatigue, severity: 2}

@@ -33,6 +33,7 @@ recovery:                   # morning Garmin check, optional
   awake_min: 0
 
 feel: {overall: 4, mood: 4, energy: 4, gut: 3, stress: 2, note: "flat after lunch"}   # 1–5 (stress: 5 = very stressed), all optional
+habits: {screens_off: "21:40", walk_after_dinner: true}   # habits declared in experiments.yaml, from chat
 
 symptoms:                   # health issues reported that day, any number
   - {what: headache, severity: 1, time: "15:00", note: "after screen-heavy day"}   # severity 1 mild, 2 moderate, 3 severe
@@ -223,9 +224,89 @@ In your data folder:
 | `measurements/` | blood tests, InBody scans, functional tests, episodes, supplements |
 | `imports/` | raw responses from Garmin, LibreLinkUp and Hevy |
 | `events.yaml`, `todo.yaml` | timeline events; your to-do list |
+| `experiments.yaml` | n-of-1 experiments for the Experiments tab (below) |
 
 In the code: `foods/starter.yaml` (starter food list), `scripts/` (`nutrition.py` matcher, `compute.py` totals, syncs and
 imports), `app/` (dashboard).
+
+### experiments.yaml
+
+An experiment is a rule kept for a number of nights, and the outcomes it should move. Nights are keyed by the
+morning you wake up: `night.*` is that night's sleep and the morning's HRV and resting heart rate; `day.*`, `food.*`
+and `habit.*` are the day before it (the day you went to bed on).
+
+```yaml
+habits:                         # things no device records, logged in day files (below); declare them to test them
+  screens_off: {type: time, label: Screens off}        # type: time | bool | num | min
+  walk_after_dinner: {type: bool}
+experiments:
+  - id: screens                 # short, unique
+    title: Screens off by 21:30
+    start: 2026-11-08           # the first evening; the first night counted is the one you wake from on the 9th
+    days: 14                    # nights, 3 to 60; 14 if left out
+    rule:
+      all:                      # or any:
+        - {var: habit.screens_off, op: "<=", value: "21:30"}
+        - {var: day.caffeine_last, op: "<=", value: "14:00"}
+    outcomes: [night.asleep, night.score, night.hrv]   # the default; {var: night.awake, better: lower} to say which way is good
+    hypothesis: Screens off earlier helps me fall asleep sooner.   # optional
+    baseline_days: 28           # optional: nights before the start to compare with
+    status: stopped             # optional: only to end one early; otherwise worked out from the dates
+    notes: Asleep 20 min sooner on kept nights; keeping it.   # optional: the write-up, added when it finishes
+    requires: [bp.evening]      # optional: extra readings to remind about (below)
+  - id: salt                    # a period experiment: a daily habit, and readings that move over days, not one night
+    type: period
+    title: Sodium under 2 g a day
+    start: 2026-11-08           # the first day of the habit
+    days: 21
+    ramp_days: 3                # optional, default 3: readings from the first days are left out while any effect builds
+    daily:                      # checked against each day, like rule: (no night.*, bp.* or weight.* in it)
+      all: [{var: day.sodium, op: "<=", value: 2000}]
+    outcomes: [bp.morning_sys, bp.morning_dia]         # required; weight.kg needs {var: weight.kg, better: lower} or higher
+```
+
+Operators: `<=`, `>=`, `<`, `>`, `=`, `!=` (yes/no variables take `=` or `!=` with `true` or `false`). Times are
+`"HH:MM"`. The first shorthand still works: `rule: {bedtime_by: "22:30"}`, `session_end_by`, `last_meal_by`,
+`caffeine_cutoff`, `sat_fat_max`, `steps_min`.
+
+| variable | what it is |
+|---|---|
+| `night.bedtime`, `night.wake` | asleep at, woke at (times; outcomes: earlier bedtime counts as better) |
+| `night.asleep`, `night.deep`, `night.rem`, `night.awake` | minutes asleep, in deep and REM sleep, awake in the night |
+| `night.score`, `night.hrv`, `night.rhr`, `night.battery` | sleep score, overnight HRV, resting heart rate, body battery on waking |
+| `day.kcal`, `day.protein`, `day.carbs`, `day.fat`, `day.satfat`, `day.fibre`, `day.sodium`, `day.caffeine` | the day's totals |
+| `day.caffeine_last`, `day.first_meal`, `day.last_meal` | times: last food or drink with 20 mg+ caffeine, first and last timed food |
+| `day.dinner_kcal`, `day.dinner_carbs` | dinner's calories and carbs |
+| `day.trained`, `day.session_end`, `day.steps`, `day.stress` | trained (yes/no), when the last session ended, steps, average stress |
+| `food.<key>` | yes/no: had that food or supplement (any key in your food list) |
+| `amount.<key>` | how much of it: g, ml, or servings for foods logged by count |
+| `habit.<name>` | a habit declared above |
+| `bp.morning_sys`, `bp.morning_dia`, `bp.morning_pulse`, `bp.evening_sys`, `bp.evening_dia` | that date's blood pressure, the average of its morning or evening readings (period outcomes) |
+| `weight.kg` | that morning's fasted weight (period outcome) |
+
+Night experiments take `night.*` outcomes; period experiments take `night.*`, `bp.*` and `weight.*`. A time that didn't happen (no training, no caffeine, no timed food) keeps
+a "by" rule (`<=` or `<`). A night with no value for the rule is left out, not counted either way. Unknown
+variables, operators or values are listed on the Experiments tab and that experiment isn't scored.
+
+Kept nights are compared with the baseline nights; each outcome gets the difference and a 90% range from
+resampling, and only counts as better or worse when the whole range is on one side of zero. A finished experiment
+needs 60% of judged nights kept (and at least 5) for a verdict.
+
+A period experiment compares the period's readings (after the ramp-up) with the baseline's, resampling runs of 3
+days because one day's reading is close to the next. It needs 7+ readings on each side and 75% of days kept. If an
+outcome was already drifting the same way before the start, and that drift would explain at least 30% of the
+change, the verdict is "Could be a trend" instead of "It worked".
+
+While one runs, the card shows what's left and how many more misses it can take and still give a verdict; early
+results read "leaning better" or "leaning worse", since the range is wide and can flip. A toast marks the halfway
+point and the finish (with the verdict and what to do next).
+
+Each running or planned experiment has a checklist for today on its card: the readings it is judged on (needed
+during the baseline weeks too), and once it has started, the rule. Readings follow from the outcomes and rule
+(`bp.morning_*` needs a morning reading, `weight.kg` a weigh-in, `night.*` the watch worn overnight); `requires:`
+adds more, from `bp.morning`, `bp.evening`, `weight`, `sleep` or a `habit.*`/`food.*` variable to log. Anything not
+done by its time shows as a dashboard toast, dismissed for the day: morning readings from 10:00, food from 20:00,
+habits from 21:00, an evening reading from 21:30, and a bedtime rule 45 minutes before the time.
 
 ### settings.yaml
 

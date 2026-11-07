@@ -33,6 +33,7 @@ import pace  # noqa: E402
 import energybalance  # noqa: E402
 import foods  # noqa: E402
 import sleep  # noqa: E402
+import experiments  # noqa: E402
 
 STATIC = pathlib.Path(__file__).resolve().parent / "static"
 HOST = os.environ.get("FT_HOST", "127.0.0.1")   # localhost only — never exposed to the network
@@ -65,6 +66,14 @@ def params_ok(q):
     return True
 SETUP_MODE = data.bkenv.needs_data_setup()   # no data folder yet: serve only the first-run folder setup
 
+
+def _exp_reminders():
+    """Experiment reminders ride along with the alerts as toasts; a broken experiments.yaml must not stop the alerts."""
+    try: return experiments.reminders()
+    except Exception as e:
+        print("experiment reminders failed:", e, flush=True); return []
+
+
 ROUTES = {
     "/api/summary": lambda q: data.summary(),
     "/api/training": lambda q: data.training(),
@@ -74,6 +83,7 @@ ROUTES = {
     "/api/connections": lambda q: connections.status(),
     "/api/foods": lambda q: foods.build(),
     "/api/sleep": lambda q: sleep.build(),
+    "/api/experiments": lambda q: experiments.build(),
     "/api/energy": lambda q: energybalance.build(q.get("date", [None])[0]),
     "/api/garmin": lambda q: {**scheduler.status(), "last_watch_date": insights.last_watch_date(), "watch_upto": glance.watch_upto()},
     "/api/insights": lambda q: insights.for_day(q.get("date", [""])[0]),
@@ -81,7 +91,7 @@ ROUTES = {
     "/api/plan": lambda q: planner.plan(),
     "/api/longevity": lambda q: {**longevity.compute(), "lab_alerts": [a for a in alerts.compute() if a["id"].startswith("lab-")]},
     "/api/todo": lambda q: todo.items(),
-    "/api/alerts": lambda q: alerts.compute(),
+    "/api/alerts": lambda q: alerts.compute() + _exp_reminders(),
     "/api/timeline": lambda q: timeline.events(),
     "/api/doctor": lambda q: doctor.report(),
     "/api/advice": lambda q: advice.compute(),
@@ -104,7 +114,7 @@ ROUTES = {
 }
 
 # Reload app code when it changes on disk, so edits never leave a stale server running.
-MODULES = ["insights", "weekly", "readiness", "planner", "longevity", "habits", "todo", "alerts", "timeline", "doctor", "advice", "wellbeing", "healthscore", "glucose", "daytimeline", "glance", "workouts", "muscles", "pace", "thresholds", "datasetup", "energybalance", "foods", "sleep"]
+MODULES = ["insights", "weekly", "readiness", "planner", "longevity", "habits", "todo", "alerts", "timeline", "doctor", "advice", "wellbeing", "healthscore", "glucose", "daytimeline", "glance", "workouts", "muscles", "pace", "thresholds", "datasetup", "energybalance", "foods", "sleep", "experiments"]
 _HERE = pathlib.Path(data.__file__).parent
 _CODE = [_HERE / "data.py", _HERE.parent / "scripts" / "nutrition.py"] + [_HERE / f"{n}.py" for n in MODULES]
 _code_mtime = tuple(f.stat().st_mtime for f in _CODE if f.exists())   # baseline at startup, not first request: an edit made

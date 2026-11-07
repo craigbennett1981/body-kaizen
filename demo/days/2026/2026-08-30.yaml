@@ -81,5 +81,6 @@ meals:
     - {item: scoop, n: 1}
     - {item: milk-lowfat, ml: 300}
 totals: {kcal: 1966, protein_g: 174.0, carbs_g: 199.7, fat_g: 53.5, satfat_g: 15.3, fibre_g: 32.6, sodium_mg: 1313, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+habits: {screens_off: '22:46'}
 energy: {total: 2258, active: 516, bmr: 1742, source: garmin}
 intensity_min: {moderate: 0, vigorous: 0, source: garmin}

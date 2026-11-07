@@ -99,5 +99,6 @@ meals:
     - {item: scoop, n: 0.5}
     - {item: yogurt, g: 150}
 totals: {kcal: 2035, protein_g: 169.2, carbs_g: 230.9, fat_g: 45.2, satfat_g: 17.3, fibre_g: 17.9, sodium_mg: 1586, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+habits: {screens_off: '22:56'}
 energy: {total: 2409, active: 672, bmr: 1737, source: garmin}
 intensity_min: {moderate: 64, vigorous: 0, source: garmin}

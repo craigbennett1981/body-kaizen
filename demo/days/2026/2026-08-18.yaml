@@ -111,5 +111,6 @@ meals:
     parsed:
     - {item: dates, g: 49}
 totals: {kcal: 2168, protein_g: 159.5, carbs_g: 271.8, fat_g: 52.1, satfat_g: 14.1, fibre_g: 36.6, sodium_mg: 1588, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+habits: {screens_off: '21:22'}
 energy: {total: 2501, active: 753, bmr: 1748, source: garmin}
 intensity_min: {moderate: 0, vigorous: 35, source: garmin}

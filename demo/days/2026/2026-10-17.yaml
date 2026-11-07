@@ -95,6 +95,7 @@ meals:
     parsed:
     - {item: croissant, n: 1}
 totals: {kcal: 2106, protein_g: 166.8, carbs_g: 260.0, fat_g: 45.9, satfat_g: 16.4, fibre_g: 37.3, sodium_mg: 1653, caffeine_mg: 45, low_confidence_kcal_pct: 0}
+habits: {screens_off: '22:22'}
 energy: {total: 2724, active: 1006, bmr: 1718, source: garmin}
 intensity_min: {moderate: 40, vigorous: 0, source: garmin}
 fitness: {vo2max: 47.0, source: garmin}

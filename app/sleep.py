@@ -48,9 +48,12 @@ def _before_day(d):
     """What happened on the day before a night, from its day file and Garmin: session end, last meal, late caffeine."""
     n = data._nutrition()
     p = data.day_file(d)
-    out = {"session_end": None, "last_meal": None, "caffeine_late_mg": 0.0, "steps": None, "stress": None}
+    out = {"session_end": None, "last_meal": None, "caffeine_late_mg": 0.0, "caffeine": [], "steps": None, "stress": None,
+           "satfat": None, "protein": None, "kcal": None}
     if p.exists():
         f = data._jsonable(data._load(p))
+        tot = f.get("totals") or {}
+        out["satfat"], out["protein"], out["kcal"] = tot.get("satfat_g"), tot.get("protein_g"), tot.get("kcal")
         for e in f.get("exercise") or []:
             s = _mins(e.get("start"))
             if s is not None and (e.get("kind") or e.get("type") or "") != "walk":
@@ -60,9 +63,9 @@ def _before_day(d):
                 t = _mins(it.get("time"))
                 if t is None: continue
                 out["last_meal"] = max(out["last_meal"] or 0, t)
-                if t >= CAFFEINE_FROM:
-                    for c in it.get("parsed") or []:
-                        if c.get("item") in n.FOODS: out["caffeine_late_mg"] += n.macros(c).get("caf", 0) or 0
+                caf = sum((n.macros(c).get("caf", 0) or 0) for c in it.get("parsed") or [] if c.get("item") in n.FOODS)
+                if caf: out["caffeine"].append((t, caf))
+                if t >= CAFFEINE_FROM: out["caffeine_late_mg"] += caf
     sm = _raw(d).get("summary") or {}
     out["steps"] = sm.get("totalSteps"); out["stress"] = sm.get("averageStressLevel")
     return out
