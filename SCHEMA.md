@@ -215,7 +215,7 @@ In your data folder:
 | `days/YYYY/*.yaml` | one file per day |
 | `settings.yaml` | your profile (name, start date), timezone, input defaults, `eras`, `git` options (below) |
 | `targets.yaml` | versioned intake targets (effective-from dates) and how they're paced through the day |
-| `foods.yaml` | your own foods (optional): added to the starter list in the code, same key = yours wins |
+| `foods.yaml` | your own foods (optional): added to the starter list in the code, same key = yours wins. The Food tab counts fruit, veg, nuts, grains and beans as plants; set `plant: true` or `plant: false` on a food to overrule it |
 | `meals.yaml` | named meals (one word expands to several items) |
 | `overrides.yaml` | exact logged phrasings → components, for text the matcher gets wrong |
 | `exercises.yaml` | lift catalogue: aliases, equipment, equipment epochs, progression rules |

@@ -224,3 +224,17 @@ class FoodsPage(unittest.TestCase):
                 week = sum((f["w_totals"] or {}).get(k, 0) for f in F["foods"])
                 self.assertAlmostEqual(s["total"], week, delta=1)
                 self.assertTrue(all(0 <= t["share"] <= 1 for t in s["top"]))
+
+    def test_extras(self):
+        import foods, nutrition
+        F = foods.build()
+        P = F["plants"]
+        self.assertEqual(P["this_week"], len(P["plants"])); self.assertEqual(len(P["history"]), 8)
+        sec = foods._section_map()
+        self.assertFalse(foods.is_plant("whey", {"name": "Nutrex 100% Whey chocolate"}, sec))   # "nut" inside a brand name
+        self.assertTrue(foods.is_plant("oats-rolled", {"name": "Rolled oats"}, sec))
+        self.assertFalse(foods.is_plant("x", {"name": "oats", "plant": False}, sec))           # explicit override wins
+        self.assertEqual([s["slot"] for s in F["slots"]["slots"]], list(foods.SLOTS)) if F["slots"]["days"] else None
+        self.assertEqual(len(F["weekdays"]["days"]), 7)
+        for s in F["swaps"]:
+            for c in s["swaps"]: self.assertGreater(c["saves_sf"], 0)

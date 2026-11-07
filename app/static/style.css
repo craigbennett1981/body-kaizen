@@ -510,3 +510,16 @@ table.ftab th{text-align:left;font-weight:600;color:var(--muted);padding:6px 8px
 table.ftab th.sorted{color:var(--ink)} table.ftab th.num,table.ftab td.num{text-align:right;font-feature-settings:"tnum"}
 table.ftab td{padding:6px 8px;border-bottom:1px solid var(--rule)} table.ftab td.nm{max-width:280px}
 table.ftab td.hi-sf{color:var(--bad);font-weight:600} table.ftab td.pe-good{color:var(--good);font-weight:600} table.ftab td.pe-warn{color:var(--warn)}
+
+/* food extras */
+.pl-head{display:flex;align-items:flex-end;gap:6px;margin:6px 0 10px} .pl-head .v{font-size:34px;font-weight:700;line-height:1}
+.pl-hist{position:relative;display:inline-flex;align-items:flex-end;gap:3px;height:40px;margin-left:auto;padding:0 2px}
+.pl-hist i{display:block;width:12px;background:var(--accent);opacity:.55;border-radius:2px 2px 0 0} .pl-hist i.ok{background:var(--good);opacity:1}
+.pl-hist i:last-of-type{opacity:1} .pl-hist .goal{position:absolute;left:0;right:0;border-top:1px dashed var(--bad)}
+.sw-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.sw-row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:5px 0;border-bottom:1px solid var(--rule);font-size:13px}
+.sw-row .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .sw-row .sub{grid-column:1/-1;font-size:12px}
+table.ftab td.bar-cell{width:30%;min-width:80px} table.ftab td.bar-cell .bar{display:block;height:8px;background:var(--rule);border-radius:4px;overflow:hidden}
+table.ftab td.bar-cell .bar i{display:block;height:100%;background:var(--accent)} table.ftab tr.tot td{font-weight:600;border-top:2px solid var(--rule)}
+table.ftab td.mostly{text-align:left;white-space:normal;color:var(--muted);font-size:12px;min-width:160px}
+table.ftab.wkd{width:auto;min-width:min(100%,520px)}

@@ -1499,6 +1499,60 @@ async function renderEnergyBalance(){
 /* ---------- food: every food eaten, its macros, how much and how often; the week's biggest sources ---------- */
 let FOODS = null, FSORT = {k:'times', dir:-1}, FQ = '', FWIN = 'all';
 const PE_CLS = v => v==null ? '' : v >= 15 ? 'good' : v >= 8 ? 'warn' : '';   // grams of protein per 100 kcal
+function foodExtras(F){
+  const P = F.plants, W = F.weekdays, S = F.slots, G = F.glucose, T = (W && W.targets) || {};
+  let h = '';
+  // plants: this week against the goal, and the last 8 weeks
+  if(P){
+    const max = Math.max(P.goal, ...P.history.map(x => x.count));
+    h += `<h2>Plants this week</h2>
+    <p class="sub">Different plants in the last 7 days: fruit, veg, grains, beans, nuts and seeds each count once. Research on gut bacteria found people eating ${esc(P.goal)} or more a week had the most varied gut microbiome.</p>
+    <div class="pl-head"><span class="v ${P.this_week >= P.goal ? 'good' : 'bad'}">${fmt(P.this_week)}</span><span class="sub"> of ${esc(P.goal)}</span>
+      <span class="pl-hist" aria-label="Plants per week, last ${P.history.length} weeks">${P.history.map(x => `<i title="7 days to ${shortDate(x.end)}: ${x.count}" class="${x.count >= P.goal ? 'ok' : ''}" style="height:${Math.round(x.count / max * 100)}%"></i>`).join('')}<b class="goal" style="bottom:${Math.round(P.goal / max * 100)}%" title="Goal: ${esc(P.goal)}"></b></span></div>
+    <div class="staples">${P.plants.map(n => `<span class="chip">${esc(n)}</span>`).join('')}</div>`;
+  }
+  // swaps for the week's biggest saturated fat sources
+  if(F.swaps && F.swaps.length){
+    h += `<h2>Swaps for your saturated fat</h2>
+    <p class="sub">Your biggest sources this week, and foods you already eat with at least as much protein per calorie and under half the saturated fat. "Saves" is what eating the same calories of the swap instead would have saved this week.</p>
+    <div class="sw-grid">${F.swaps.map(s => `<div class="fs"><h3>${esc(s.name)} <span class="sub">${fmt(s.week_sf, 1)} g sat fat in ${fmt(s.week_kcal)} kcal</span></h3>` +
+      (s.swaps.length ? s.swaps.map(c => `<div class="sw-row"><span class="nm">${esc(c.name)}</span><span class="good">−${fmt(c.saves_sf, 1)} g</span><span class="sub">${c.protein_change >= 0 ? '+' : '−'}${fmt(Math.abs(c.protein_change))} g protein</span></div>`).join('')
+        : '<p class="sub">Nothing you eat beats it on both counts.</p>') + `</div>`).join('')}</div>`;
+  }
+  // meal slots
+  if(S && S.slots && S.slots.length){
+    const kmax = Math.max(...S.slots.map(s => s.k));
+    h += `<h2>Your meals, on an average day</h2>
+    <p class="sub">What each meal supplies per day, averaged over your ${esc(S.days)} complete days in the last 4 weeks. Drinks and anything outside a meal count as snacks.</p>
+    <div class="ftab-wrap"><table class="ftab slots"><tr><th>Meal</th><th class="num">kcal</th><th></th><th class="num">Protein</th><th class="num">Sat fat</th><th class="num">Fibre</th><th>Mostly</th></tr>` +
+      S.slots.map(s => `<tr><td>${esc(s.slot[0].toUpperCase() + s.slot.slice(1))}</td><td class="num">${fmt(s.k)}</td><td class="bar-cell"><span class="bar"><i class="fs-k" style="width:${Math.round(s.k / kmax * 100)}%"></i></span></td>
+        <td class="num">${fmt(s.p)} g</td><td class="num${T.sf && s.sf > T.sf / 3 ? ' hi-sf' : ''}">${fmt(s.sf, 1)} g</td><td class="num">${fmt(s.fib, 1)} g</td><td class="mostly">${s.top.map(n => esc(n.split(/[,(]/)[0].trim())).join(', ')}</td></tr>`).join('') + `</table></div>`;
+  }
+  // weekday pattern
+  if(W && W.days && W.days.some(d => d.n)){
+    const cell = (v, k) => { if(v == null) return '<td class="num">–</td>';
+      const t = T[k], ok = k === 'sf' ? (t == null || v <= t) : k === 'k' ? true : (t == null || v >= t);
+      return `<td class="num ${k === 'k' ? '' : (ok ? 'good' : 'bad')}"><b>${fmt(v, k === 'sf' ? 1 : 0)}</b></td>`; };
+    const row = (lab, d, n, cls = '') => d ? `<tr class="${cls}"><td>${esc(lab)} <span class="sub">${esc(n)} d</span></td>${cell(d.k, 'k')}${cell(d.p, 'p')}${cell(d.sf, 'sf')}${cell(d.fib, 'fib')}</tr>` : '';
+    const gap = W.weekday && W.weekend ? Math.round(W.weekend.k - W.weekday.k) : null;
+    h += `<h2>Weekdays and weekends</h2>
+    <p class="sub">Daily averages over complete days in the last 8 weeks, against your targets (protein ${esc(T.p ?? '–')} g or more, saturated fat ${esc(T.sf ?? '–')} g or less, fibre ${esc(T.fib ?? '–')} g or more).${gap != null ? ` Weekends run ${fmt(Math.abs(gap))} kcal ${gap >= 0 ? 'higher' : 'lower'} than weekdays.` : ''}</p>
+    <div class="ftab-wrap"><table class="ftab wkd"><tr><th>Day</th><th class="num">kcal</th><th class="num">Protein</th><th class="num">Sat fat</th><th class="num">Fibre</th></tr>
+      ${W.days.filter(d => d.n).map(d => row(d.day, d, d.n)).join('')}
+      ${row('Weekdays', W.weekday, W.n_weekday, 'tot')}${row('Weekends', W.weekend, W.n_weekend, 'tot')}</table></div>`;
+  }
+  // glucose by food
+  h += `<h2>Glucose by food</h2>`;
+  if(G && G.available){
+    h += `<p class="sub">Median rise in glucose after meals that included each food (eaten in at least 2 timed meals). A meal's rise belongs to everything in it, so look for foods that sit high across different meals.</p>
+    <div class="ftab-wrap"><table class="ftab"><tr><th>Food</th><th class="num">Meals</th><th class="num">Median rise</th><th class="num">Median peak</th><th class="num">Biggest rise</th></tr>` +
+      G.foods.slice(0, 25).map(r => `<tr><td>${esc(r.name)}</td><td class="num">${esc(r.meals)}</td><td class="num${r.rise >= 2 ? ' hi-sf' : ''}"><b>${fmt(r.rise, 1)}</b></td><td class="num">${fmt(r.peak, 1)}</td><td class="num">${fmt(r.max_rise, 1)}</td></tr>`).join('') + `</table></div>`;
+  } else {
+    h += `<p class="sub">Not enough sensor data yet. Wear a CGM (a Libre, synced on the Connections page) and log meals with times, and this ranks your foods by the glucose rise after them.</p>`;
+  }
+  return h;
+}
+
 async function renderFood(){
   FOODS = FOODS || await api('/api/foods').catch(()=>null);
   const el = $('#food'); if(!FOODS){ el.innerHTML = '<p class="empty">Couldn’t load the foods.</p>'; return; }
@@ -1522,6 +1576,7 @@ async function renderFood(){
     <h2>Your staples</h2>
     <p class="sub">Eaten on the most days. Small changes to these move every day's totals.</p>
     <div class="staples">${F.staples.map(s => `<span class="chip">${esc(s.name)} <b>${Math.round(s.share*100)}%</b></span>`).join('')}</div>
+    ${foodExtras(F)}
     <h2>Every food</h2>
     <div class="f-ctl"><input id="fq" type="search" placeholder="Search foods" value="${esc(FQ)}" aria-label="Search foods">
       <span class="seg" role="group" aria-label="Show"><button data-w="all" aria-pressed="${FWIN==='all'}">All time</button><button data-w="week" aria-pressed="${FWIN==='week'}">Last 7 days</button></span></div>
