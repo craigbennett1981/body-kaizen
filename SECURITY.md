@@ -5,7 +5,9 @@
 - **Local only.** The dashboard server listens on `127.0.0.1` and serves nothing to your network or the internet.
 - **Only you can open it.** Every request, reads included, needs a cookie holding a secret kept in
   `~/.body-kaizen/session.key`, which only your account can read (0600, in a 0700 folder). Starting the dashboard
-  from a terminal, `scripts/setup_mac.sh`, or `body-kaizen open` opens your browser on a sign-in link carrying it;
+  from a terminal, the installer, its **Body Kaizen** launcher, `scripts/setup_mac.sh`, or `body-kaizen open` opens
+  your browser on a sign-in link carrying it (the launcher reads the key when you click it; it is never stored in the
+  launcher or a bookmark);
   the server turns it into the cookie (`HttpOnly`, `SameSite=Strict`) and redirects to the address without the key,
   so it isn't left in the address bar or history. It's the pattern Jupyter uses. Other accounts on the same computer,
   and anything else that reaches the port, get a "not signed in" page and no data. The secret is kept across

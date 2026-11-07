@@ -5,6 +5,12 @@ What changed in each release. Earlier releases are described on the
 
 ## Unreleased
 
+### Install in one line
+- **macOS, Linux and Windows installers** (`install/install.sh`, `install/install.ps1`): no Python needed (uv brings
+  its own), the Garmin and LibreLinkUp syncs included, the dashboard started at login, and a **Body Kaizen** launcher
+  in Applications, the applications menu or the Start menu that opens it signed in. Run again to update; uninstalling
+  leaves your data alone.
+
 ### Security
 - **Only you can open the dashboard.** Every request needs a cookie holding a secret only your account can read
   (`~/.body-kaizen/session.key`). Starting it from a terminal or `scripts/setup_mac.sh` opens your browser signed

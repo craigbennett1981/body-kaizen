@@ -162,9 +162,10 @@ All run from the code folder with `FT_DATA` set. Credentials never go in the dat
   curve, so give meals a `time`.
 - **Hevy:** `scripts/hevy_import.py workout_data.csv` (try `--dry-run` first), or paste a single workout from
   Hevy's share button into the chat.
-- **Dashboard:** `python app/server.py` opens it in the browser, signed in. On a Mac, `scripts/setup_mac.sh`
-  keeps it running. If a page says "this browser isn't signed in", run `python -m body_kaizen open` from the code
-  folder (or `body-kaizen open`): once per browser. Never paste the sign-in link or `~/.body-kaizen/session.key`
+- **Dashboard:** installed with the one-line installer, it starts at login; from the code, `python app/server.py`
+  opens it signed in, and `scripts/setup_mac.sh` keeps it running on a Mac. If a page says "this browser isn't
+  signed in", the person clicks the **Body Kaizen** launcher, or runs `body-kaizen open` (`python -m body_kaizen
+  open` from the code): once per browser. Never paste the sign-in link or `~/.body-kaizen/session.key`
   into a chat, a commit or a log.
 
 ## 7. Replying

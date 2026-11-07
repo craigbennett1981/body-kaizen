@@ -1,17 +1,18 @@
 # The data folder
 
-Body Kaizen keeps your data in its own folder, separate from the code, and finds it through the `FT_DATA`
-environment variable:
+Body Kaizen keeps your data in its own folder, separate from the code. The dashboard asks where on first run (the
+installer opens it there) and remembers the choice in `~/.body-kaizen/config.json`. To point it somewhere else for one
+run, set `FT_DATA` or pass `--data`:
 
 ```bash
-FT_DATA=~/body-kaizen-data python app/server.py
+body-kaizen --data ~/body-kaizen-data          # or, from the code: FT_DATA=~/body-kaizen-data python app/server.py
 ```
 
 Keep this folder in a **private** git repository (or none). The dashboard and the scripts read and write only
 inside it. The code folder is never written to, so you can update Body Kaizen with a plain `git pull`.
 
-`demo/` in this repository is a complete example. Copy it to start your own and clear out the dated files.
-View it with `FT_NO_SYNC=1 FT_DATA=demo python app/server.py`. Syncs never run, and nothing is committed, while the
+`demo/` in this repository is a complete example; `body-kaizen init DIR` starts a new folder from its reference files
+without the demo person. View the demo with `body-kaizen demo`, or from the code `FT_NO_SYNC=1 FT_DATA=demo python app/server.py`. Syncs never run, and nothing is committed, while the
 data folder is `demo/`, still has the demo profile ("Sam (demo)"), or sits anywhere inside the code folder.
 
 ## Layout
