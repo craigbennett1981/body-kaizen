@@ -3,7 +3,7 @@
 What changed in each release. Earlier releases are described on the
 [releases page](https://github.com/craigbennett1981/body-kaizen/releases).
 
-## Unreleased
+## 0.6.0 (7 November 2026)
 
 ### Experiments tab
 - **Test one change on yourself:** a rule each evening (asleep by 22:30) judged on that night's sleep, or a daily
@@ -21,6 +21,12 @@ What changed in each release. Earlier releases are described on the
 - **Sleep & recovery** (was Sleep and Recovery), **Week** (now with the trends chart and all the advice),
   **History** (was Timeline and Wellbeing). Glucose by food and by meal moved to **Food**; the health score shows
   once, on Longevity. Old links to the merged tabs still work.
+
+### Clearer about what it is
+- **Wellness framing:** the README, disclaimer and live demo say plainly who it isn't for (under 18s, pregnancy, eating
+  disorders, adjusting insulin or medication), with careful wording throughout and a privacy note.
+- **A short notice above the highlights** in the README, pointing to the full disclaimer.
+- **Integrations:** if there's one you'd use, ask for it as a GitHub issue.
 
 ## 0.5.0 (7 November 2026)
 
