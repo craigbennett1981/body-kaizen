@@ -1587,7 +1587,7 @@ async function renderSleep(){
   const bedLine = TN ? {markLine:{symbol:'none',silent:true,data:[{yAxis:hmToMin(TN.in_bed) - base}],lineStyle:{color:c.good,type:'dashed'},label:{formatter:`in bed by ${TN.in_bed}`,color:c.good,position:'insideEndTop'}}} : {};
   chart('sl-when').setOption({animation:MOTION,animationDuration:400,textStyle:{fontFamily:'Archivo'},grid:{left:52,right:20,top:12,bottom:30},
     xAxis:{type:'category',data:x,...ax},
-    yAxis:{type:'value',inverse:true,min:0,max:top,interval:60,...ax,axisLabel:{...ax.axisLabel,formatter: v => clk(v + base)}},
+    yAxis:{type:'value',min:0,max:top,interval:60,...ax,axisLabel:{...ax.axisLabel,formatter: v => clk(v + base)}},
     tooltip:{trigger:'axis',...tip(c),formatter: ps => { const n = N[ps[0].dataIndex]; return `<b>${esc(fmtDate(n.date))}</b><br>Asleep ${clk(n.start)} to ${clk(n.end)}<br>${esc(mh(n.asleep))} asleep`; }},
     series:[{type:'bar',stack:'w',silent:true,itemStyle:{color:'transparent'},data:N.map(n => n.start - base)},
       {type:'bar',stack:'w',barMaxWidth:14,data:N.map(n => ({value:n.end - n.start,itemStyle:{color:n.weekend_morning?c.accent:c.muted,opacity:n.weekend_morning?.9:.55,borderRadius:3}})),...bedLine}]});
