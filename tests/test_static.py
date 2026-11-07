@@ -100,6 +100,32 @@ class StaticDemo(unittest.TestCase):
                 if not (D / k).exists(): missing.append(k)
         self.assertEqual(missing, [])
 
+    def test_search_and_link_previews(self):
+        """Titles and descriptions that fit search results, a canonical URL, link-preview cards with an image that
+        exists, valid structured data, and noindex where a page shouldn't be found."""
+        import json, re
+        def meta(html, attr, name):
+            m = re.search(rf'<meta {attr}="{re.escape(name)}" content="([^"]*)"', html); return m and m.group(1)
+        idx = (self.site / "index.html").read_text(encoding="utf-8")
+        title = re.search(r"<title>(.*?)</title>", idx).group(1)
+        self.assertLessEqual(len(title), 70); self.assertIn("Body Kaizen", title)
+        self.assertTrue(50 <= len(meta(idx, "name", "description")) <= 160, "search results cut descriptions at about 155 characters")
+        canon = re.search(r'<link rel="canonical" href="([^"]+)"', idx).group(1)
+        self.assertRegex(canon, r"^https://[^/]+\.github\.io/")
+        img = meta(idx, "property", "og:image"); self.assertTrue(img.startswith(canon))
+        self.assertTrue((self.site / img[len(canon):]).exists(), "the link-preview image isn't in the site")
+        self.assertEqual(meta(idx, "name", "twitter:card"), "summary_large_image")
+        ld = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', idx, re.S).group(1))
+        self.assertIn("SoftwareApplication", [g["@type"] for g in ld["@graph"]])
+        self.assertIn('id="bk-about-h"', idx)                        # real text for crawlers, visible to everyone
+        self.assertIn("index,follow", meta(idx, "name", "robots"))
+        for page in ("doctor.html", "connections.html", "404.html"):
+            with self.subTest(page=page):
+                self.assertIn("noindex", meta((self.site / page).read_text(encoding="utf-8"), "name", "robots"))
+        sitemap = (self.site / "sitemap.xml").read_text(encoding="utf-8")
+        self.assertIn(f"<loc>{canon}</loc>", sitemap); self.assertNotIn("doctor.html", sitemap)
+        self.assertTrue((self.site / "favicon.svg").exists())
+
     def test_only_demo_data(self):
         """The export is built from the demo template: Sam, never a real data folder."""
         prof = (self.site / "data" / "profile.json").read_text(encoding="utf-8")

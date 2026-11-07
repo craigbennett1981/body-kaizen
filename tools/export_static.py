@@ -65,6 +65,7 @@ def main():
     os.environ.update({"FT_DATA": str(demo), "FT_NO_SYNC": "1"})
     sys.path[:0] = [str(CODE / "scripts"), str(CODE / "app")]
     import server, data   # noqa: E402  (after FT_DATA: the data folder is read at import)
+    sys.path.insert(0, str(CODE / "tools")); import static_seo   # noqa: E402
 
     dates = [d["date"] for d in data.summary()]
     P = params(server, dates, data)
@@ -89,9 +90,12 @@ def main():
     for p in PAGES:
         html = (STATIC / p).read_text(encoding="utf-8")
         html = re.sub(r"""(href=["'])/(?=[a-z])""", r"\1", html)
-        html = html.replace("<head>", '<head>\n<script src="static-demo.js"></script>', 1)
+        html = re.sub(r'(<meta charset="utf-8">)', r'\1\n<script src="static-demo.js"></script>', html, count=1, flags=re.I) \
+            if re.search(r'<meta charset="utf-8">', html, re.I) else html.replace("<head>", '<head>\n<script src="static-demo.js"></script>', 1)
+        html = static_seo.apply(html, p, static_seo.base_url())
         (out / p).write_text(html, encoding="utf-8")
     (out / ".nojekyll").write_text("")
+    static_seo.extras(out, static_seo.base_url(), A.end)
     (out / "data" / "_built.json").write_text(json.dumps({"built": dt.datetime.now(dt.timezone.utc).isoformat(timespec="minutes"),
                                                           "end": A.end, "files": n}))
     print(f"exported {n} answers ({size / 1e6:.1f} MB) for {len(dates)} days to {out}")
