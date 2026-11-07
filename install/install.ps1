@@ -91,6 +91,6 @@ if (-not $env:BK_NO_SERVICE -and -not $env:BK_NO_OPEN) {
 }
 
 Say 'Body Kaizen is installed.'
-Write-Host "  Dashboard:  http://127.0.0.1:$Port  (it starts when you sign in to Windows)"
+if (-not $env:BK_NO_SERVICE) { Write-Host "  Dashboard:  http://127.0.0.1:$Port  (it starts when you sign in to Windows)" } else { Write-Host "  Dashboard:  start it with  & '$Bk'" }
 Write-Host '  Launcher:   Body Kaizen in the Start menu: it opens the dashboard signed in, in any browser'
 Write-Host "  Next:       set up your AI assistant: $Repo#quick-start"

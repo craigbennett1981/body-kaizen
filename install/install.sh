@@ -145,7 +145,7 @@ else
 Type=Application
 Name=Body Kaizen
 Comment=Your private health dashboard
-Exec=$BK open --port $PORT
+Exec="$BK" open --port $PORT
 Icon=body-kaizen
 Terminal=false
 Categories=Utility;
@@ -160,6 +160,6 @@ if [ -z "${BK_NO_SERVICE:-}" ] && [ -z "${BK_NO_OPEN:-}" ]; then
 fi
 
 say "Body Kaizen is installed."
-echo "  Dashboard:  http://127.0.0.1:$PORT  (it starts at login)"
+if [ -z "${BK_NO_SERVICE:-}" ]; then echo "  Dashboard:  http://127.0.0.1:$PORT  (it starts at login)"; else echo "  Dashboard:  start it with  $BK"; fi
 echo "  Launcher:   $LAUNCHER: it opens the dashboard signed in, in any browser"
 echo "  Next:       set up your AI assistant: $REPO#quick-start"
