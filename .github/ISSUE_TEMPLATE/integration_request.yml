@@ -1,0 +1,68 @@
+name: Integration request
+description: A device, app or service you'd like Body Kaizen to read from
+title: "Integration: "
+labels: [enhancement, integration]   # "integration" needs creating once: gh label create integration
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks: requests shape what gets built next. See [docs/integrations.md](https://github.com/craigbennett1981/body-kaizen/blob/main/docs/integrations.md) for what's already supported.
+
+        **Don't paste real health data, account details, passwords or API keys.** If you want to show what an export looks like, use a few made-up rows.
+  - type: input
+    id: name
+    attributes:
+      label: What is it?
+      description: The device, app or service, with a link if you have one.
+      placeholder: "Oura Ring (https://ouraring.com)"
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of thing
+      options:
+        - Watch or wearable (sleep, heart rate, activity)
+        - Continuous glucose monitor
+        - Smart scale or body composition
+        - Blood pressure monitor
+        - Gym or workout app
+        - Running or cycling app
+        - Food or nutrition app
+        - Lab results or health records
+        - Health platform (Apple Health, Health Connect, Google Fit)
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: data
+    attributes:
+      label: What would you want from it?
+      description: The data you'd want in Body Kaizen, and where you'd want to see it (which tab, or a new one).
+      placeholder: "Sleep stages and HRV each morning, on Sleep & recovery, alongside or instead of Garmin."
+    validations:
+      required: true
+  - type: dropdown
+    id: access
+    attributes:
+      label: How can you get the data out today?
+      description: Pick the closest. It decides how an integration could work.
+      multiple: true
+      options:
+        - An official API
+        - A file export (CSV, JSON, XML)
+        - Only screenshots of the app
+        - Through another platform (Apple Health, Health Connect, Strava)
+        - Not sure
+  - type: textarea
+    id: today
+    attributes:
+      label: How do you handle it now?
+      description: Optional. For example, you send your assistant screenshots, or copy numbers in by hand.
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Can you help?
+      options:
+        - label: I use this and could test an integration with my own account
+        - label: I could help build it
