@@ -51,8 +51,11 @@ jobs:
           python -m venv /tmp/bk && /tmp/bk/bin/pip install dist/*.whl
           cd /tmp && /tmp/bk/bin/body-kaizen --version
           /tmp/bk/bin/body-kaizen demo --port 8790 & sleep 5
-          curl -fsS http://127.0.0.1:8790/api/summary > /dev/null
-          curl -fsS http://127.0.0.1:8790/app.js > /dev/null
+          # signed out: the sign-in page and no data; signed in through `body-kaizen open --print`: everything
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8790/api/summary)" = 401
+          curl -fsS -c /tmp/jar -o /dev/null "$(/tmp/bk/bin/body-kaizen open --print --port 8790)"
+          curl -fsS -b /tmp/jar http://127.0.0.1:8790/api/summary > /dev/null
+          curl -fsS -b /tmp/jar http://127.0.0.1:8790/app.js > /dev/null
           /tmp/bk/bin/body-kaizen init /tmp/bk-data && test -f /tmp/bk-data/targets.yaml
 
   static-demo:

@@ -296,8 +296,9 @@ class PrivateFiles(unittest.TestCase):
             sys.platform = "darwin"   # macOS ignores case: ~/Repos/Body-Kaizen/demo is inside ~/repos/body-kaizen
             self.assertTrue(bkenv.inside(str(bkenv.CODE).upper() + "/demo", bkenv.CODE))
             self.assertTrue(bkenv.in_code_repo(pathlib.Path(str(bkenv.CODE).swapcase()) / "x"))
-            sys.platform = "linux"    # Linux doesn't: a differently-cased folder is a different folder
-            self.assertFalse(bkenv.inside(str(bkenv.CODE).upper() + "/demo", bkenv.CODE))
+            if os.name == "posix":    # Linux doesn't: a differently-cased folder is a different folder
+                sys.platform = "linux"  # (on Windows the paths themselves compare without case, whatever sys.platform says)
+                self.assertFalse(bkenv.inside(str(bkenv.CODE).upper() + "/demo", bkenv.CODE))
         finally: sys.platform = old
         self.assertTrue(bkenv.inside(bkenv.CODE / "demo", bkenv.CODE)); self.assertFalse(bkenv.inside(bkenv.CODE.parent, bkenv.CODE))
 
