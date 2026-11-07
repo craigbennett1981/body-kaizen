@@ -170,6 +170,14 @@ have caused against your actual trend, and says how far your logs and Garmin are
 
 ![Energy balance: daily burnt minus eaten, and the weight change it predicts against the actual trend](docs/img/energy-balance.png)
 
+**Food.** Every food you've ever logged, with its macros per 100 g, protein per 100 kcal, how often you've had it,
+how much in total, and the same for the last 7 days. Search it, sort any column, or switch to the last week only.
+Above the table: which foods your saturated fat, protein, calories and fibre came from this week, and your staples
+(the foods on the most days), because small swaps there move every day's totals.
+Below that: how many different plants you ate this week against 30, swaps for your biggest saturated fat
+sources from foods you already eat, what each meal supplies on an average day, weekdays against weekends, and,
+with a glucose sensor, your foods ranked by the rise after them.
+
 **Glucose against every meal.** With a FreeStyle Libre connected, the Day timeline draws the glucose curve with a dot
 on it for each meal (sized by its carbs; hover for the foods), and each timed meal gets its rise, peak and time back
 to baseline. The Body tab adds a 14-day profile and your meals ranked by spike.
