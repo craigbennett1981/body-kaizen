@@ -856,10 +856,14 @@ async function renderWeek(start){
       const tgt = r.green ? (r.green[0]!=null && r.green[1]!=null ? `${r.green[0]}–${r.green[1]}` : r.green[0]!=null ? `≥ ${r.green[0]}` : `< ${r.green[1]}`) : '–';
       return `<tr><td>${esc(r.label)}</td><td><b>${r.value==null?'–':fmt(r.value, r.value<10&&!Number.isInteger(r.value)?2:0)}</b></td><td class="sub">${tgt} ${r.unit||''}</td><td><span class="st ${esc(r.status)}" role="img" aria-label="${ST_LABEL[r.status]}">${ST_IC[r.status]}</span></td></tr>`; }).join('') + `</table>`;
     const G = H.grid;
+    // a date over each week's column (the week's first day); on a phone only where the month changes
+    const weekHeads = G => Array.from({length: Math.ceil(G.length / 7)}, (_, w) => {
+      const d = G[w * 7].date, prev = w ? G[(w - 1) * 7].date : null, newMonth = !prev || prev.slice(0, 7) !== d.slice(0, 7);
+      return `<span class="ax${newMonth ? ' m' : ''}${w ? ' wk' : ''}">${esc(shortDate(d))}</span>`; }).join('');
     const cells = (k) => G.map((d, i) => `<i class="${d[k]===true?'y':d[k]===false?'n':''}${i%7===0&&i?' wk':''}" title="${shortDate(d.date)}: ${d[k]===true?'yes':d[k]===false?'no':'no data'}"></i>`).join('');
     const pct = (k) => { const v = G.filter(d => d[k]!=null); return v.length ? Math.round(100*v.filter(d=>d[k]).length/v.length) : null; };
     h += `<h2>Last 12 weeks</h2><p class="sub">Each square is a day: green met, hatched red missed, pale no data. ${shortDate(G[0].date)} to ${shortDate(G[G.length-1].date)}.</p>
-      <div class="hm">${H.names.map(([k, lab]) => `<span class="lab">${lab} <span class="pct">${pct(k)!=null?pct(k)+'%':''}</span></span>${cells(k)}`).join('')}</div>`;
+      <div class="hm"><span class="lab"></span>${weekHeads(G)}${H.names.map(([k, lab]) => `<span class="lab">${lab} <span class="pct">${pct(k)!=null?pct(k)+'%':''}</span></span>${cells(k)}`).join('')}</div>`;
   }
   if(tr.prs.length) h += `<h2>New bests</h2><ul class="notes">${tr.prs.map(p => `<li class="n-good"><span class="ic">✓</span><span>${p.lift.replace(/-/g,' ')}: ${U.w(p.kg)}${p.reps?' × '+p.reps:p.metres?' for '+p.metres+' m':''} <span class="who">${shortDate(p.date)}</span></span></li>`).join('')}</ul>`;
   const cols = [['kcal','Calories',0],['protein_g','Protein',0],['satfat_g','Sat fat',1],['fibre_g','Fibre',0]];
