@@ -133,7 +133,7 @@ async function renderDay(date){
         const body = w.state==='later' ? `<b>${fmt(w.plan,dp)}</b>` : `<b>${fmt(w.eaten,dp)}</b><small>/${fmt(w.plan,dp)}</small>`;
         return `<span class="pw-s ${st}" title="${esc(W.name)} (${esc(W.from)}–${esc(W.until)}): ${w.state==='later'?'plan '+fmt(w.plan,dp):fmt(w.eaten,dp)+' eaten, plan '+fmt(w.plan,dp)}${m.kind==='max'?' (limit)':''}">${body}</span>`; }).join('')}</div>`; };
     h += `<div class="macros">` + METRICS.map(([k,lab,u,dp,tk]) =>
-      `<div class="m"><div class="lab">${lab}</div>
+      `<div class="m"><div class="lab">${lab}${k==='kcal'?'<span class="eb-h" id="kcal-eb-h"></span>':''}</div>
         <div class="val-row"><div class="val lv-${stat(k,tk)}" title="${ttl(k,tk,dp,u)}">${fmt(tot[k],dp)}<small>${u}</small>${ARROW(ev[k])}</div>${k==='kcal'?'<div class="eb-side" id="kcal-eb"></div>':''}</div>
         <div class="tgt">${tgtText(tk,t)}</div>
         <div class="bar"><i class="lv-${stat(k,tk)}" style="width:${barPct(tk,tot[k],t)}%"></i></div>${pw(k,k==='satfat_g'?1:0)}</div>`).join('') + `</div>
@@ -194,14 +194,17 @@ async function renderEnergyToday(date){
   const E = await api('/api/energy?date='+date).catch(()=>null);
   const el = $('#kcal-eb'); if(date !== currentDate || !el) return;
   const t = E && E.today;
-  if(!t || !t.available){ el.innerHTML = ''; return; }
+  const hd = $('#kcal-eb-h'), setHead = v => { if(hd) hd.textContent = v; };
+  if(!t || !t.available){ el.innerHTML = ''; setHead(''); return; }
   const bal = v => v >= 0 ? `${fmt(v)} deficit` : `${fmt(-v)} surplus`;
   const live = !t.complete && t.sync;
   const word = v => v >= 0 ? 'deficit' : 'surplus';
-  if(!live){ el.innerHTML = `<span><b>${fmt(Math.abs(t.deficit_so_far))}</b> ${word(t.deficit_so_far)}</span><span>burnt ${fmt(t.burnt_so_far)}</span>`;
+  if(!live){ setHead(t.deficit_so_far >= 0 ? 'Deficit' : 'Surplus'); el.innerHTML = `<span><b>${fmt(Math.abs(t.deficit_so_far))}</b> day</span><span>burnt ${fmt(t.burnt_so_far)}</span>`;
     el.title = "Garmin's total burn for the day minus what was eaten."; return; }
   const a = t.deficit_so_far, b = t.deficit_day;
-  el.innerHTML = `<span><b>${fmt(Math.abs(a))}</b> ${word(a)} now</span><span><b>~${fmt(Math.abs(b))}</b> ${word(b)} today</span>`;
+  const head = a < 0 && b < 0 ? 'Surplus' : a >= 0 && b >= 0 ? 'Deficit' : 'Balance';
+  const one = (v, lab) => `<span><b>${v < 0 && head === 'Balance' ? '+' : ''}${fmt(Math.abs(v))}</b> ${lab}</span>`;   // in a mixed column, + marks a surplus
+  setHead(head); el.innerHTML = `${one(a, 'now')}${one(b, 'day').replace('<b>', '<b>~')}`;
   el.title = `Now: burnt ${fmt(t.burnt_so_far)} kcal to ${t.sync} (last watch sync) minus ${fmt(t.eaten)} eaten.\n` +
     `Day: projected burn ${fmt(t.projected)} kcal by midnight (resting ${fmt(t.rest_of_day_resting)} + your usual ${fmt(t.rest_of_day_active||0)} active after ${t.sync}, median of ${t.typical_days} days) ` +
     `minus ${t.target_mid && t.target_mid > t.eaten ? 'your target, ' + fmt(t.target_mid) : 'what you\'ve eaten'} kcal.`;
@@ -1171,9 +1174,9 @@ function renderEnergy(){
   chart('trainchart').setOption({animation:MOTION,animationDuration:550,animationEasing:'cubicOut',textStyle:{fontFamily:'Archivo'},
     title:[{text:'Steps',left:56,top:282,textStyle:{fontSize:12.5,fontWeight:600,color:c.ink,fontFamily:'Archivo'}}],
     legend:{top:0,left:56,itemWidth:12,itemHeight:10,itemGap:16,textStyle:{color:c.muted},data:[...types.map(t=>TYPE_LABEL[t]),'7-day average']},
-    grid:[{left:56,right:76,top:40,height:220},{left:56,right:76,top:306,height:96}],
+    grid:[{left:66,right:76,top:40,height:220},{left:66,right:76,top:306,height:96}],
     xAxis:[0,1].map(i => ({type:'category',gridIndex:i,data:x,...ax,axisTick:{show:false},axisLabel:{...ax.axisLabel,show:i===1}})),
-    yAxis:[{type:'value',gridIndex:0,...ax,...niceRange(0, Math.max(...totals, 100), 4, true),name:'kcal',nameTextStyle:{color:c.muted}},
+    yAxis:[{type:'value',gridIndex:0,...ax,...niceRange(0, Math.max(...totals, 100), 4, true),name:'kcal burnt',nameLocation:'middle',nameGap:42,nameRotate:90,nameTextStyle:{color:c.muted,fontSize:11}},
            {type:'value',gridIndex:1,...ax,...niceRange(0, Math.max(sref, ...steps.filter(v=>v!=null)), 2, true),axisLabel:{...ax.axisLabel,formatter:v=>v>=1000?(v/1000)+'k':v}}],
     axisPointer:{link:[{xAxisIndex:'all'}],lineStyle:{color:c.muted}},
     tooltip:{trigger:'axis',...tip(c),formatter: ps => { const d = days[ps[0].dataIndex];
@@ -1203,11 +1206,11 @@ function renderLift(name){
   const ax = {axisLine:{lineStyle:{color:c.rule}},axisLabel:{color:c.muted,fontSize:11},splitLine:{lineStyle:{color:c.rule}}};
   chart('trainchart').setOption({animation:MOTION,animationDuration:500,textStyle:{fontFamily:'Archivo'},
     legend:{top:0,left:56,textStyle:{color:c.muted},data:carry?[]:['Top set kg','Est. 1RM']},
-    grid:{left:56,right:40,top:40,bottom:34},
+    grid:{left:66,right:40,top:40,bottom:34},
     tooltip:{trigger:'axis',...tip(c),formatter: ps => { const p = pts[ps[0].dataIndex];
       return `<b>${fmtDate(p.date)}</b><br>${esc(p.kg)} kg${p.reps?' × '+p.reps:''}${p.metres?' for '+p.metres+' m':''}${p.reps?'<br>est. 1RM '+p.e1rm+' kg':''}${p.pr?'<br><b>New best</b>':''}${p.epoch?'<br>'+(p.epoch==='v2'?'new':'old')+' machines':''}`; }},
     xAxis:{type:'category',data:pts.map(p=>shortDate(p.date)),...ax,axisTick:{show:false}},
-    yAxis:{type:'value',...ax,...niceRange(Math.min(...vals)-2, Math.max(...vals)+2, 4),name:'kg',nameTextStyle:{color:c.muted}},
+    yAxis:{type:'value',...ax,...niceRange(Math.min(...vals)-2, Math.max(...vals)+2, 4),name:'kg',nameLocation:'middle',nameGap:42,nameRotate:90,nameTextStyle:{color:c.muted,fontSize:11}},
     series:[
       {type:'line',name:'Top set kg',symbol:'circle',data:pts.map(p=>({value:p.kg,symbolSize:p.pr?13:9,itemStyle:{color:p.pr?c.warn:c.accent,...ring(c)}})),lineStyle:{color:c.accent,width:2},
         areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:c.soft},{offset:1,color:'rgba(0,0,0,0)'}])},
@@ -1808,9 +1811,9 @@ function renderBP(){
   chart('bpchart').setOption({animation:MOTION,animationDuration:400,textStyle:{fontFamily:'Archivo'},
     legend:{top:0,left:56,textStyle:{color:c.muted},data:['Systolic','Diastolic','Pulse pressure'],
       tooltip:{show:true,...tip(c),formatter: p => p.name==='Pulse pressure' ? `<div style="max-width:300px;white-space:normal">${PP_HELP}</div>` : p.name}},
-    grid:{left:56,right:110,top:36,bottom:34},
+    grid:{left:66,right:110,top:24,bottom:34},
     xAxis:{type:'time',...ax},
-    yAxis:{type:'value',name:'mmHg',nameTextStyle:{color:c.muted},...ax,...niceRange(Math.min(60, ...all), Math.max(145, ...all), 4)},
+    yAxis:{type:'value',name:'mmHg',nameLocation:'middle',nameGap:42,nameRotate:90,nameTextStyle:{color:c.muted,fontSize:11},...ax,...niceRange(Math.min(60, ...all), Math.max(145, ...all), 4)},
     tooltip:{trigger:'item',...tip(c),formatter: p => { const b = p.data.b;
       const pp = b.sys-b.dia;
       return `<b>${fmtDate(b.date)}</b> ${b.time||''} · ${esc(b.context)}<br>${esc(b.sys)}/${esc(b.dia)}${b.pulse?` · pulse ${esc(b.pulse)}`:''}<br><span class="bpcat ${BPCLS[b.category]}">${BPLABEL[b.category]}</span>
