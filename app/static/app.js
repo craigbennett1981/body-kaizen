@@ -224,7 +224,7 @@ async function renderEnergyToday(date){
   setHead(head); el.innerHTML = `${one(a, 'now')}${one(b, 'day').replace('<b>', '<b>~')}`;
   el.title = `Now: burnt ${fmt(t.burnt_so_far)} kcal to ${t.sync} (last watch sync) minus ${fmt(t.eaten)} eaten.\n` +
     `Day: projected burn ${fmt(t.projected)} kcal by midnight (resting ${fmt(t.rest_of_day_resting)} + your usual ${fmt(t.rest_of_day_active||0)} active after ${t.sync}, median of ${t.typical_days} days) ` +
-    `minus ${t.target_mid && t.target_mid > t.eaten ? 'your target, ' + fmt(t.target_mid) : 'what you\'ve eaten'} kcal.`;
+    `minus the ${fmt(t.eaten)} eaten so far: the day's balance if you stop eating now.`;
 }
 /* ---------- next move + readiness strip ---------- */
 async function renderGlance(date){

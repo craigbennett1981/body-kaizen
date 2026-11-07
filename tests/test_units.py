@@ -178,7 +178,7 @@ class EnergyBalance(unittest.TestCase):
         if not T["available"]: self.skipTest("no Garmin day in the demo")
         self.assertEqual(T["projected"], T["burnt_so_far"] + T["rest_of_day_resting"] + (T["rest_of_day_active"] or 0))
         self.assertEqual(T["deficit_so_far"], T["burnt_so_far"] - T["eaten"])
-        self.assertEqual(T["deficit_day"], T["projected"] - max(T["eaten"], T["target_mid"] or 0))
+        self.assertEqual(T["deficit_day"], T["projected"] - T["eaten"])   # if you stop eating now
         self.assertGreaterEqual(T["projected"], T["burnt_so_far"])
 
 

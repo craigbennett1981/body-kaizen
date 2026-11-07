@@ -37,8 +37,8 @@ lunch, lunch to dinner, dinner and after. While a day is in progress the colours
 re-spread over the windows still to come.
 
 **Energy balance.** The Calories box shows your deficit so far (Garmin's burn to the last sync minus what you've
-eaten) and the deficit you're heading for today: burn projected to midnight minus your target, or what you've eaten
-if that's more. Hover for the sums.
+eaten) and the day's: Garmin's burn projected to midnight (resting for the rest of the day plus your usual evening
+activity) minus what you've eaten, so the balance if you stop eating now. Hover for the sums.
 
 **The timeline.** The whole day at its clock times: sleep stages, meals (red dots for anything with 3 g or more of
 saturated fat), protein pace, calories eaten against burnt, body battery and steps, and, with a FreeStyle Libre, the
