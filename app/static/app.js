@@ -133,7 +133,7 @@ async function renderDay(date){
         const body = w.state==='later' ? `<b>${fmt(w.plan,dp)}</b>` : `<b>${fmt(w.eaten,dp)}</b><small>/${fmt(w.plan,dp)}</small>`;
         return `<span class="pw-s ${st}" title="${esc(W.name)} (${esc(W.from)}–${esc(W.until)}): ${w.state==='later'?'plan '+fmt(w.plan,dp):fmt(w.eaten,dp)+' eaten, plan '+fmt(w.plan,dp)}${m.kind==='max'?' (limit)':''}">${body}</span>`; }).join('')}</div>`; };
     h += `<div class="macros">` + METRICS.map(([k,lab,u,dp,tk]) =>
-      `<div class="m"><div class="lab">${lab}</div>
+      `<div class="m"><div class="lab">${lab}${k==='kcal'?'<span class="eb-h" id="kcal-eb-h"></span>':''}</div>
         <div class="val-row"><div class="val lv-${stat(k,tk)}" title="${ttl(k,tk,dp,u)}">${fmt(tot[k],dp)}<small>${u}</small>${ARROW(ev[k])}</div>${k==='kcal'?'<div class="eb-side" id="kcal-eb"></div>':''}</div>
         <div class="tgt">${tgtText(tk,t)}</div>
         <div class="bar"><i class="lv-${stat(k,tk)}" style="width:${barPct(tk,tot[k],t)}%"></i></div>${pw(k,k==='satfat_g'?1:0)}</div>`).join('') + `</div>
@@ -194,16 +194,17 @@ async function renderEnergyToday(date){
   const E = await api('/api/energy?date='+date).catch(()=>null);
   const el = $('#kcal-eb'); if(date !== currentDate || !el) return;
   const t = E && E.today;
-  if(!t || !t.available){ el.innerHTML = ''; return; }
+  const hd = $('#kcal-eb-h'), setHead = v => { if(hd) hd.textContent = v; };
+  if(!t || !t.available){ el.innerHTML = ''; setHead(''); return; }
   const bal = v => v >= 0 ? `${fmt(v)} deficit` : `${fmt(-v)} surplus`;
   const live = !t.complete && t.sync;
   const word = v => v >= 0 ? 'deficit' : 'surplus';
-  if(!live){ el.innerHTML = `<span class="eb-h">${t.deficit_so_far >= 0 ? 'Deficit' : 'Surplus'}</span><span><b>${fmt(Math.abs(t.deficit_so_far))}</b> day</span><span>burnt ${fmt(t.burnt_so_far)}</span>`;
+  if(!live){ setHead(t.deficit_so_far >= 0 ? 'Deficit' : 'Surplus'); el.innerHTML = `<span><b>${fmt(Math.abs(t.deficit_so_far))}</b> day</span><span>burnt ${fmt(t.burnt_so_far)}</span>`;
     el.title = "Garmin's total burn for the day minus what was eaten."; return; }
   const a = t.deficit_so_far, b = t.deficit_day;
   const head = a < 0 && b < 0 ? 'Surplus' : a >= 0 && b >= 0 ? 'Deficit' : 'Balance';
   const one = (v, lab) => `<span><b>${v < 0 && head === 'Balance' ? '+' : ''}${fmt(Math.abs(v))}</b> ${lab}</span>`;   // in a mixed column, + marks a surplus
-  el.innerHTML = `<span class="eb-h">${head}</span>${one(a, 'now')}${one(b, 'day').replace('<b>', '<b>~')}`;
+  setHead(head); el.innerHTML = `${one(a, 'now')}${one(b, 'day').replace('<b>', '<b>~')}`;
   el.title = `Now: burnt ${fmt(t.burnt_so_far)} kcal to ${t.sync} (last watch sync) minus ${fmt(t.eaten)} eaten.\n` +
     `Day: projected burn ${fmt(t.projected)} kcal by midnight (resting ${fmt(t.rest_of_day_resting)} + your usual ${fmt(t.rest_of_day_active||0)} active after ${t.sync}, median of ${t.typical_days} days) ` +
     `minus ${t.target_mid && t.target_mid > t.eaten ? 'your target, ' + fmt(t.target_mid) : 'what you\'ve eaten'} kcal.`;
