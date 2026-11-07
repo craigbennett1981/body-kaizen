@@ -11,7 +11,7 @@
 tracked as your own n-of-one experiment, in plain files you own.
 
 <p align="center">
-  <a href="https://craigbennett1981.github.io/body-kaizen/"><b>▶&nbsp; Try the live demo</b></a> &nbsp;·&nbsp;
+  <a href="https://demo.bodykaizen.app/"><b>▶&nbsp; Try the live demo</b></a> &nbsp;·&nbsp;
   <a href="#quick-start"><b>Quick start</b></a> &nbsp;·&nbsp;
   <a href="docs/features.md"><b>Every page, explained</b></a>
 </p>
@@ -21,7 +21,7 @@ tracked as your own n-of-one experiment, in plain files you own.
 You tell an AI assistant like Claude what you ate, send it a photo of a label or a screenshot of your scale, and
 it writes everything into your own private git repository. Body Kaizen works out the macros, pulls in your
 Garmin, glucose and gym data, and shows how your day, week and months are going against the targets you set. The
-[live demo](https://craigbennett1981.github.io/body-kaizen/) is the real dashboard on 90 days of made-up data:
+[live demo](https://demo.bodykaizen.app/) is the real dashboard on 90 days of made-up data:
 click anything.
 
 ![You send a message, Claude logs it and replies with your totals, and the dashboard updates](docs/img/claude-loop.gif)
@@ -57,7 +57,7 @@ your hard sets, and calories burnt by activity.</td>
 | **Advice, Week, Timeline, Wellbeing** | This week's top changes, a week at a glance, weight with what explains it, mood and symptoms |
 
 Every page in detail, with screenshots: **[docs/features.md](docs/features.md)**. Or open it in the
-**[live demo](https://craigbennett1981.github.io/body-kaizen/)**.
+**[live demo](https://demo.bodykaizen.app/)**.
 
 **Works with** Claude (or any AI assistant that can edit files) · Garmin Connect · FreeStyle Libre (LibreLinkUp) ·
 Hevy · InBody · any smart scale or blood-pressure app you can screenshot.

@@ -27,6 +27,10 @@ jobs:
       - name: Install
         run: pip install -r requirements.txt playwright && python -m playwright install --with-deps chromium
       - name: Export the static demo
+        # The project's own demo lives at demo.bodykaizen.app (set as the Pages custom domain in the repo's
+        # settings); a fork publishes to its own github.io address instead.
+        env:
+          BK_SITE_URL: ${{ github.repository == 'craigbennett1981/body-kaizen' && 'https://demo.bodykaizen.app/' || '' }}
         run: python tools/export_static.py _site
       - name: Click through it before publishing
         env: {BK_STATIC_SITE: _site}

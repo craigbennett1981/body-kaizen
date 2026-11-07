@@ -61,7 +61,8 @@ background:var(--surface,#161a22);color:var(--muted,#a9b0bd);font-size:14px;line
 
 
 def base_url():
-    """Where the site lives: BK_SITE_URL, else the GitHub Pages address of the repository Actions is building."""
+    """Where the site lives: BK_SITE_URL (the project's demo.bodykaizen.app), else the GitHub Pages address of the
+    repository Actions is building."""
     if os.environ.get("BK_SITE_URL"): return os.environ["BK_SITE_URL"].rstrip("/") + "/"
     repo = os.environ.get("GITHUB_REPOSITORY", "craigbennett1981/body-kaizen")
     owner, name = repo.split("/", 1)

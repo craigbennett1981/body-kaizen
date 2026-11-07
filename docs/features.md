@@ -1,7 +1,7 @@
 # What's on each page
 
 Every tab of the dashboard, what it shows and how to read it. Screenshots are from the demo data (Sam, a made-up
-person). To click around yourself, open the [live demo](https://craigbennett1981.github.io/body-kaizen/). The screenshots are made
+person). To click around yourself, open the [live demo](https://demo.bodykaizen.app/). The screenshots are made
 from the demo by `tools/readme_media.py`, so they show the current code.
 
 - [A day with Body Kaizen](#a-day-with-body-kaizen)

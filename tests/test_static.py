@@ -111,7 +111,7 @@ class StaticDemo(unittest.TestCase):
         self.assertLessEqual(len(title), 70); self.assertIn("Body Kaizen", title)
         self.assertTrue(50 <= len(meta(idx, "name", "description")) <= 160, "search results cut descriptions at about 155 characters")
         canon = re.search(r'<link rel="canonical" href="([^"]+)"', idx).group(1)
-        self.assertRegex(canon, r"^https://[^/]+\.github\.io/")
+        self.assertRegex(canon, r"^https://[^/]+/")
         img = meta(idx, "property", "og:image"); self.assertTrue(img.startswith(canon))
         self.assertTrue((self.site / img[len(canon):]).exists(), "the link-preview image isn't in the site")
         self.assertEqual(meta(idx, "name", "twitter:card"), "summary_large_image")
