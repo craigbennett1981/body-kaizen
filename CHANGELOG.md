@@ -3,6 +3,22 @@
 What changed in each release. Earlier releases are described on the
 [releases page](https://github.com/craigbennett1981/body-kaizen/releases).
 
+## Unreleased
+
+### Security
+- **Only you can open the dashboard.** Every request needs a cookie holding a secret only your account can read
+  (`~/.body-kaizen/session.key`). Starting it from a terminal or `scripts/setup_mac.sh` opens your browser signed
+  in; `body-kaizen open` (or `python -m body_kaizen open`) signs in another browser. Once per browser: it survives
+  restarts. Other accounts on the computer get a "not signed in" page and no data.
+- **Harder to tie up:** bad request lengths refused at once, idle connections dropped after 30 seconds, day ranges
+  capped, errors while saving logged rather than dropping the connection, and the Garmin check no longer starts a
+  process on every status request.
+- **Private files:** `~/.body-kaizen` and `~/.garminconnect`, and every login file in them, are created private to
+  your account. New data folders are private to you too (0700), get a `.gitignore` for sync bookkeeping, and no
+  longer inherit the demo person's experiments. The data-folder check ignores case on
+  macOS and Windows.
+- **Build:** GitHub Actions pinned to commits, and the release tag passed to scripts through the environment.
+
 ## 0.6.0 (7 November 2026)
 
 ### Experiments tab

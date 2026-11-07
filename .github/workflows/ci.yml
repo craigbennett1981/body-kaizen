@@ -20,8 +20,8 @@ jobs:
           - {os: windows-latest, python-version: "3.12"}
           - {os: macos-latest, python-version: "3.12"}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install core dependency
@@ -40,8 +40,8 @@ jobs:
   package:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: "3.12"
       - name: Build the sdist and wheel
@@ -51,8 +51,11 @@ jobs:
           python -m venv /tmp/bk && /tmp/bk/bin/pip install dist/*.whl
           cd /tmp && /tmp/bk/bin/body-kaizen --version
           /tmp/bk/bin/body-kaizen demo --port 8790 & sleep 5
-          curl -fsS http://127.0.0.1:8790/api/summary > /dev/null
-          curl -fsS http://127.0.0.1:8790/app.js > /dev/null
+          # signed out: the sign-in page and no data; signed in through `body-kaizen open --print`: everything
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8790/api/summary)" = 401
+          curl -fsS -c /tmp/jar -o /dev/null "$(/tmp/bk/bin/body-kaizen open --print --port 8790)"
+          curl -fsS -b /tmp/jar http://127.0.0.1:8790/api/summary > /dev/null
+          curl -fsS -b /tmp/jar http://127.0.0.1:8790/app.js > /dev/null
           /tmp/bk/bin/body-kaizen init /tmp/bk-data && test -f /tmp/bk-data/targets.yaml
 
   static-demo:
@@ -60,8 +63,8 @@ jobs:
     # a route or parameter the export doesn't cover fails here, before it can break the demo.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: "3.12"
       - name: Install

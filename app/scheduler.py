@@ -25,9 +25,16 @@ def _state():
     try: return json.loads(STATE.read_text(encoding="utf-8"))
     except Exception: return {}
 
+_installed = {"at": float("-inf"), "ok": False}
 def installed():
+    """Is the Garmin library installed? Checked in a fresh Python (so a pip install takes effect without a
+    restart), but at most once a minute: the status endpoint is polled, and each check starts a process.
+    Once found it stays found."""
+    import time
+    if _installed["ok"] or time.monotonic() - _installed["at"] < 60: return _installed["ok"]
     r = subprocess.run([sys.executable, "-c", "import garminconnect"], capture_output=True)
-    return r.returncode == 0
+    _installed.update(at=time.monotonic(), ok=r.returncode == 0)
+    return _installed["ok"]
 
 def status():
     s = _state()

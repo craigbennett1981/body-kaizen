@@ -3,7 +3,7 @@
 Every subcommand runs the same file you would run from a clone (app/server.py, scripts/compute.py, ...),
 so the installed package and a git checkout behave the same way.
 """
-import argparse, os, pathlib, re, runpy, shutil, signal, sys, tempfile
+import argparse, os, pathlib, re, runpy, shutil, signal, socket, sys, tempfile, webbrowser
 
 from . import __version__
 
@@ -26,9 +26,32 @@ def _run(rel, args):
     sys.argv = [str(path), *args]
     runpy.run_path(str(path), run_name="__main__")
 
+def _bkenv():
+    sys.path.insert(0, str(CODE / "scripts")); import bkenv
+    return bkenv
+
+def _port(args):
+    return int(getattr(args, "port", None) or os.environ.get("FT_PORT", "8765"))
+
+def _up(port):
+    try:
+        with socket.create_connection(("127.0.0.1", port), timeout=0.5): return True
+    except OSError: return False
+
+def _open(args):
+    """Open the running dashboard in your browser, signed in. Once per browser: the cookie it sets lasts a year."""
+    port = _port(args)
+    if args.print:   # for a browser on another profile, or to copy by hand
+        return print(_bkenv().signin_url(port))
+    if not _up(port):
+        sys.exit(f"The dashboard isn't running on port {port}. Start it with: body-kaizen")
+    if not webbrowser.open(_bkenv().signin_url(port)):
+        print("Couldn't open a browser. Run `body-kaizen open --print` and open the link it prints.")
+
 def _serve(args):
     if args.data: os.environ["FT_DATA"] = str(pathlib.Path(args.data).expanduser())
     if args.port: os.environ["FT_PORT"] = str(args.port)
+    if getattr(args, "no_browser", False): os.environ["FT_NO_BROWSER"] = "1"   # the server opens it otherwise
     # With no data folder yet the dashboard opens on its first-run setup, where you choose or create one.
     _run("app/server.py", [])
 
@@ -49,10 +72,7 @@ def _init(args):
     out = pathlib.Path(args.dir).expanduser().resolve()
     if out.exists() and any(out.iterdir()):
         sys.exit(f"{out} already exists and isn't empty: choose another folder.")
-    shutil.copytree(CODE / "demo", out, ignore=shutil.ignore_patterns(*DATA_DIRS), dirs_exist_ok=True)
-    for d in DATA_DIRS: (out / d).mkdir()
-    s = out / "settings.yaml"   # forget Sam: the dashboard asks for your own name, start date and timezone
-    s.write_text(re.sub(r"(?m)^timezone:.*\n?", "", re.sub(r"(?m)^profile:.*\n(?:[ \t]+.*\n?)*", "", s.read_text(encoding="utf-8"))).lstrip("\n"), encoding="utf-8")
+    _bkenv().init_data_folder(out, CODE / "demo")   # the same as the dashboard's setup: private folder, .gitignore, no Sam
     print(f"""Created {out}
 
 Next:
@@ -67,6 +87,10 @@ def main(argv=None):
     for p in (ap, sub.add_parser("serve", help="start the dashboard (the default)")):
         p.add_argument("--data", metavar="DIR", help="your data folder (default: FT_DATA, else ~/body-kaizen-data)")
         p.add_argument("--port", type=int, help="port to listen on (default 8765)")
+        p.add_argument("--no-browser", action="store_true", help="don't open the browser")
+    p = sub.add_parser("open", help="open the running dashboard in your browser, signed in")
+    p.add_argument("--port", type=int, help="the dashboard's port (default 8765)")
+    p.add_argument("--print", action="store_true", help="print the sign-in link instead of opening it")
     p = sub.add_parser("demo", help="start the dashboard on made-up demo data")
     p.add_argument("--port", type=int, help="port to listen on (default 8765)")
     p = sub.add_parser("init", help="create a new data folder")
@@ -78,4 +102,4 @@ def main(argv=None):
     if argv and argv[0] in SCRIPTS:
         return _run(SCRIPTS[argv[0]][0], argv[1:])
     args = ap.parse_args(argv)
-    {"demo": _demo, "init": _init}.get(args.cmd, _serve)(args)
+    {"demo": _demo, "init": _init, "open": _open}.get(args.cmd, _serve)(args)

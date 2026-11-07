@@ -2,7 +2,8 @@ const $ = s => document.querySelector(s);
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 // ↑ / ↓ next to a value that missed its target (only once the day is judged)
 const ARROW = e => e && e.ok===false && e.dir ? `<span class="dir" title="${e.dir==='over'?'Above':'Below'} target" aria-label="${e.dir==='over'?'above':'below'} target">${e.dir==='over'?'↑':'↓'}</span>` : '';
-const api = p => fetch(p).then(r => { if(!r.ok) throw new Error(p+' '+r.status); return r.json(); });
+// 401: this browser has been signed out (cookies cleared): reload, which shows how to sign back in
+const api = p => fetch(p).then(r => { if(r.status === 401) location.reload(); if(!r.ok) throw new Error(p+' '+r.status); return r.json(); });
 const fmt = (v, d=0) => v==null ? '–' : Number(v).toLocaleString('en-GB',{maximumFractionDigits:d,minimumFractionDigits:d});
 const fmtDate = s => new Date(s+'T00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
 const shortDate = s => new Date(s+'T00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});
