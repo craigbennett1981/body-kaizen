@@ -42,11 +42,15 @@ def _done(api):
     """Save the token and say who we are."""
     import os
     try:
+        os.makedirs(TOKENS, mode=0o700, exist_ok=True); os.chmod(TOKENS, 0o700)   # private before the token lands in it
+    except OSError: pass
+    try:
         api.client.dump(TOKENS)
     except Exception as e:
         raise LoginError(f"Logged in, but couldn't save the Garmin token to ~/.garminconnect ({type(e).__name__}).")
-    try: os.chmod(TOKENS, 0o700)
-    except OSError: pass
+    for f in pathlib.Path(TOKENS).glob("*.json"):
+        try: f.chmod(0o600)
+        except OSError: pass
     name = None
     try:
         if not getattr(api, "full_name", None) and hasattr(api, "_load_profile_and_settings"): api._load_profile_and_settings()

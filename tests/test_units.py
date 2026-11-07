@@ -268,6 +268,56 @@ class SleepPage(unittest.TestCase):
         self.assertEqual(T["in_bed"], "21:55")   # 06:00 - 7h30 - 20 min awake - 15 min to fall asleep
 
 
+class PrivateFiles(unittest.TestCase):
+    """Logins, tokens and the sign-in key live in folders only you can open, in files only you can read."""
+
+    @unittest.skipUnless(os.name == "posix", "POSIX permissions")
+    def test_write_private_is_0600_in_a_0700_folder(self):
+        with tempfile.TemporaryDirectory() as t:
+            d = pathlib.Path(t) / "cfg"; d.mkdir(mode=0o755); d.chmod(0o755)   # an existing, too-open folder gets tightened
+            f = d / "x.json"; f.write_text("old"); f.chmod(0o644)
+            bkenv.write_private(f, "secret")
+            self.assertEqual(f.read_text(), "secret")
+            self.assertEqual(f.stat().st_mode & 0o777, 0o600); self.assertEqual(d.stat().st_mode & 0o777, 0o700)
+
+    def test_session_key_is_kept(self):
+        with tempfile.TemporaryDirectory() as t:
+            old = bkenv.SESSION_KEY_FILE
+            bkenv.SESSION_KEY_FILE = pathlib.Path(t) / "k" / "session.key"
+            try:
+                k = bkenv.session_key(); self.assertGreaterEqual(len(k), 40)
+                self.assertEqual(bkenv.session_key(), k)   # the same across restarts: a signed-in browser stays signed in
+                self.assertIn(f"key={k}", bkenv.signin_url(9999)); self.assertTrue(bkenv.signin_url(9999).startswith("http://127.0.0.1:9999/"))
+            finally: bkenv.SESSION_KEY_FILE = old
+
+    def test_case_insensitive_code_folder_check(self):
+        old = sys.platform
+        try:
+            sys.platform = "darwin"   # macOS ignores case: ~/Repos/Body-Kaizen/demo is inside ~/repos/body-kaizen
+            self.assertTrue(bkenv.inside(str(bkenv.CODE).upper() + "/demo", bkenv.CODE))
+            self.assertTrue(bkenv.in_code_repo(pathlib.Path(str(bkenv.CODE).swapcase()) / "x"))
+            sys.platform = "linux"    # Linux doesn't: a differently-cased folder is a different folder
+            self.assertFalse(bkenv.inside(str(bkenv.CODE).upper() + "/demo", bkenv.CODE))
+        finally: sys.platform = old
+        self.assertTrue(bkenv.inside(bkenv.CODE / "demo", bkenv.CODE)); self.assertFalse(bkenv.inside(bkenv.CODE.parent, bkenv.CODE))
+
+    def test_new_data_folder_ignores_sync_bookkeeping(self):
+        with tempfile.TemporaryDirectory() as t:
+            out = bkenv.init_data_folder(pathlib.Path(t) / "d")
+            self.assertIn("imports/*/state.json", (out / ".gitignore").read_text())
+
+    def test_garmin_check_is_cached(self):
+        calls = []
+        real = scheduler.subprocess.run
+        scheduler.subprocess.run = lambda *a, **k: calls.append(1) or type("R", (), {"returncode": 1})()
+        scheduler._installed.update(at=float("-inf"), ok=False)
+        try:
+            for _ in range(5): self.assertFalse(scheduler.installed())
+            self.assertEqual(len(calls), 1)   # not a new Python process on every status poll
+        finally:
+            scheduler.subprocess.run = real; scheduler._installed.update(at=float("-inf"), ok=False)
+
+
 class FixedClock(unittest.TestCase):
     def test_ft_now_fixes_the_time(self):
         old = os.environ.get("FT_NOW")

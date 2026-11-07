@@ -4,6 +4,7 @@ import enum, http.client, json, os, pathlib, re, socket, subprocess, sys, tempfi
 from unittest import mock
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "tests")); import signin   # noqa: E402
 sys.path[:0] = [str(ROOT / "scripts")]
 os.environ.setdefault("FT_DATA", str(ROOT / "demo"))
 os.environ.setdefault("BK_CONFIG", str(pathlib.Path(tempfile.gettempdir()) / "bk-test-config.json"))
@@ -181,6 +182,7 @@ class Endpoints(unittest.TestCase):
                "FT_NO_SYNC": "1", "FT_NO_SELF_RESTART": "1", "FT_PORT": str(cls.port), "HOME": cls.tmp.name}
         cls.srv = subprocess.Popen([sys.executable, str(ROOT / "app" / "server.py")], env=env,
                                    stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+        cls.cookie = signin.sign_in(cls.port, env["BK_CONFIG"])
         for _ in range(75):
             try:
                 with urllib.request.urlopen(cls.base + "/connections.html", timeout=3) as r: cls.page = r.read().decode(); break
@@ -195,7 +197,7 @@ class Endpoints(unittest.TestCase):
     def post(self, path, body, token=None):
         c = http.client.HTTPConnection("127.0.0.1", self.port, timeout=10)
         c.request("POST", path, body=json.dumps(body).encode(), headers={
-            "Host": f"127.0.0.1:{self.port}", "Origin": self.base, "Sec-Fetch-Site": "same-origin",
+            "Host": f"127.0.0.1:{self.port}", "Cookie": self.cookie, "Origin": self.base, "Sec-Fetch-Site": "same-origin",
             "Content-Type": "application/json", "X-BK-Token": token or self.token})
         r = c.getresponse(); out = (r.status, json.loads(r.read() or b"{}")); c.close(); return out
 

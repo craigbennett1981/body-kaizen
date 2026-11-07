@@ -64,10 +64,7 @@ def connect(email, password):
     try: keyring.set_password(SERVICE, email, password)
     except Exception as e:
         raise LoginError(f"Logged in, but couldn't save the password to this computer's keychain ({type(e).__name__}).")
-    CFG.parent.mkdir(parents=True, exist_ok=True)
-    CFG.write_text(json.dumps({"email": email, "region": region.name, "patient_id": str(p.patient_id)}, indent=2), encoding="utf-8")
-    try: CFG.chmod(0o600)
-    except OSError: pass
+    bkenv.write_private(CFG, json.dumps({"email": email, "region": region.name, "patient_id": str(p.patient_id)}, indent=2))
     latest = None
     try:
         import libre_pull

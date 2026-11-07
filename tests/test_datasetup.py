@@ -4,6 +4,7 @@ folders and a temporary config file only. Standard library only."""
 import http.client, json, os, pathlib, re, socket, subprocess, sys, tempfile, time, unittest, urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "tests")); import signin   # noqa: E402
 sys.path[:0] = [str(ROOT / "scripts")]
 # Same environment as the other test files (unittest discover imports them all into one process, this one first),
 # and never the real ~/.body-kaizen/config.json.
@@ -44,6 +45,7 @@ class SetupMode(unittest.TestCase):
         cls.srv = subprocess.Popen([sys.executable, str(ROOT / "app" / "server.py")], env=env,
                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         cls.base = f"http://127.0.0.1:{cls.port}"
+        cls.cookie = signin.sign_in(cls.port, cls.cfg)
         cls.page = cls.get("/", wait=True).decode()
         cls.token = re.search(r'name="bk-token" content="([^"]+)"', cls.page).group(1)
 
@@ -63,7 +65,7 @@ class SetupMode(unittest.TestCase):
     def post(self, path, body, token=None):
         c = http.client.HTTPConnection("127.0.0.1", self.port, timeout=10)
         c.request("POST", path, body=json.dumps(body).encode(), headers={
-            "Host": f"127.0.0.1:{self.port}", "Origin": self.base, "Sec-Fetch-Site": "same-origin",
+            "Host": f"127.0.0.1:{self.port}", "Cookie": self.cookie, "Origin": self.base, "Sec-Fetch-Site": "same-origin",
             "Content-Type": "application/json", "X-BK-Token": token or self.token})
         r = c.getresponse(); out = (r.status, json.loads(r.read() or b"{}")); c.close(); return out
 

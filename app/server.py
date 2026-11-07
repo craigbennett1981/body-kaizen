@@ -3,7 +3,7 @@
 
 run:  python3 app/server.py            -> http://127.0.0.1:8765
 """
-import datetime as dt, hmac, importlib, json, os, pathlib, re, secrets, sys, time, traceback, urllib.parse
+import datetime as dt, hmac, http.cookies, importlib, json, os, pathlib, re, secrets, sys, time, traceback, urllib.parse
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -46,6 +46,21 @@ ALLOWED_ORIGINS = {f"http://{h}" for h in ALLOWED_HOSTS}
 # A fresh secret each time the server starts. Only the dashboard's own page gets it (written into index.html as it
 # is served); every request that changes anything must send it back in the X-BK-Token header.
 SESSION_TOKEN = secrets.token_urlsafe(32)
+# Signing in: every request, reads included, needs a cookie holding the secret in ~/.body-kaizen/session.key, which
+# only your account can read. `body-kaizen` (or `body-kaizen open`) opens the browser on a link carrying it; the server
+# turns that into the cookie and drops the key from the address. Other accounts on this computer, and anything else
+# that can reach the port, get the sign-in page and no data. (The same pattern as Jupyter's token.)
+SIGNIN_KEY = data.bkenv.session_key()
+COOKIE = f"bk_session_{PORT}"   # one per port: a demo on another port has its own
+COOKIE_AGE = 365 * 86400
+SIGNIN_PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Body Kaizen: open from your account</title><style>
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#111318;color:#EBEEF5;font:16px/1.5 system-ui,sans-serif}
+main{max-width:520px;padding:28px} h1{font-size:24px;margin:0 0 12px} p{color:#AEB5C2} code{background:#1E222B;padding:2px 7px;border-radius:6px;color:#EBEEF5}
+</style></head><body><main><h1>Body Kaizen is running, but this browser isn't signed in</h1>
+<p>Only the account that runs the dashboard can open it. On that account, run <code>body-kaizen open</code>
+(or <code>python -m body_kaizen open</code> from the code folder) and it opens this browser signed in.</p>
+<p>It's once per browser: you stay signed in across restarts.</p></main></body></html>"""
 MAX_BODY = 10_000
 CSP = ("default-src 'self'; script-src 'self'{nonce}; style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
        "font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'")
@@ -53,6 +68,11 @@ CSP = ("default-src 'self'; script-src 'self'{nonce}; style-src 'self' 'unsafe-i
 # (a date is used to build a file path).
 PARAM_OK = {"date": r"\d{4}-\d{2}-\d{2}", "start": r"\d{4}-\d{2}-\d{2}", "end": r"\d{4}-\d{2}-\d{2}",
             "days": r"\d{1,4}", "i": r"\d{1,3}", "now": r"\d{2}:\d{2}", "id": r"[A-Za-z0-9_.:-]{1,80}"}
+
+
+def _days(q, default, most):
+    """A `days` parameter, kept between 1 and `most`: a huge one would make the server work through years of data."""
+    return max(1, min(most, int(q.get("days", [default])[0])))
 
 
 def params_ok(q):
@@ -98,16 +118,16 @@ ROUTES = {
     "/api/wellbeing": lambda q: wellbeing.compute(),
     "/api/healthscore": lambda q: healthscore.compute(),
     "/api/workouts": lambda q: workouts.index(),
-    "/api/muscles": lambda q: muscles.build(int(q.get("days", ["7"])[0]), q.get("end", [None])[0], q.get("date", [None])[0], q.get("i", [None])[0]),
+    "/api/muscles": lambda q: muscles.build(_days(q, 7, 365), q.get("end", [None])[0], q.get("date", [None])[0], q.get("i", [None])[0]),
     "/api/workout": lambda q: workouts.detail(q.get("date", [""])[0], q.get("i", ["0"])[0]),
     "/api/pace": lambda q: pace.build(q.get("date", [data.bkenv.today().isoformat()])[0], q.get("now", [None])[0]),   # now=HH:MM for tests and screenshots
     "/api/profile": lambda q: profile_info(),
-    # The page's write token again, for a tab left open across a server restart. Safe to hand out on GET: only a
-    # page on this dashboard's own address can read the reply (Host check, no CORS headers).
+    # The page's write token again, for a tab left open across a server restart. Only a signed-in browser gets it,
+    # and only a page on this dashboard's own address can read the reply (Host check, no CORS headers).
     "/api/session": lambda q: {"token": SESSION_TOKEN},
     "/api/glance": lambda q: glance.build(q.get("date", [data.bkenv.today().isoformat()])[0]),
     "/api/daytimeline": lambda q: daytimeline.build(q.get("date", [data.bkenv.today().isoformat()])[0]),
-    "/api/glucose_overview": lambda q: glucose.overview(int(q.get("days", ["14"])[0])),
+    "/api/glucose_overview": lambda q: glucose.overview(_days(q, 14, 90)),
     "/api/glucose": lambda q: glucose.day(q.get("date", [data.bkenv.today().isoformat()])[0]),
     "/api/thresholds": lambda q: thresholds.build(),
     "/api/readiness": lambda q: {"series": readiness.series(), "backtest": readiness.backtest(), "episodes": readiness.episodes()},
@@ -165,9 +185,14 @@ def save_setup(body):
     return None
 
 class Handler(BaseHTTPRequestHandler):
-    def _send(self, code, body, ctype, nonce=None):
+    # A client that connects and then sends nothing (or trickles a request in) is dropped after this many seconds,
+    # instead of holding a thread for good. Longer than any real request, which arrives at once from this computer.
+    timeout = 30
+
+    def _send(self, code, body, ctype, nonce=None, headers=()):
         b = body if isinstance(body, bytes) else body.encode()
         self.send_response(code)
+        for k, v in headers: self.send_header(k, v)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(b)))
         self.send_header("Cache-Control", "no-store")
@@ -186,9 +211,29 @@ class Handler(BaseHTTPRequestHandler):
         if (self.headers.get("Host") or "").lower() in ALLOWED_HOSTS: return True
         self._send(421, '{"error":"wrong host"}', "application/json"); return False
 
+    def _signed_in(self):
+        try: c = http.cookies.SimpleCookie(self.headers.get("Cookie") or "")
+        except http.cookies.CookieError: return False
+        return COOKIE in c and hmac.compare_digest(c[COOKIE].value.encode(), SIGNIN_KEY.encode())
+
+    def _signin(self, u):
+        """The sign-in link (?key=...): set the cookie and send the browser on to the same address without the key,
+        so it isn't left in the address bar, the history or a bookmark. A wrong key just gets the sign-in page."""
+        q = urllib.parse.parse_qs(u.query); key = q.pop("key", [""])[0]
+        if not hmac.compare_digest(key.encode(), SIGNIN_KEY.encode()): return self._needs_signin(u)
+        rest = urllib.parse.urlencode(q, doseq=True)
+        cookie = f"{COOKIE}={SIGNIN_KEY}; Path=/; Max-Age={COOKIE_AGE}; HttpOnly; SameSite=Strict"
+        self._send(303, "", "text/plain", headers=[("Location", (u.path or "/") + ("?" + rest if rest else "")), ("Set-Cookie", cookie)])
+
+    def _needs_signin(self, u):
+        if u.path.startswith("/api/"): return self._send(401, '{"error":"not signed in","signin":true}', "application/json")
+        self._send(401, SIGNIN_PAGE, "text/html; charset=utf-8")
+
     def do_GET(self):
         if not self._host_ok(): return
         u = urllib.parse.urlparse(self.path)
+        if "key" in urllib.parse.parse_qs(u.query): return self._signin(u)
+        if not self._signed_in(): return self._needs_signin(u)
         try:
             if u.path == "/api/datasetup":
                 return self._send(200, json.dumps(datasetup.info()), "application/json")
@@ -227,7 +272,8 @@ class Handler(BaseHTTPRequestHandler):
         secret in a custom header, which another site can neither read nor send without a CORS preflight this
         server never answers."""
         h = self.headers
-        why = ("origin" if h.get("Origin") not in ALLOWED_ORIGINS else
+        why = ("signed out" if not self._signed_in() else
+               "origin" if h.get("Origin") not in ALLOWED_ORIGINS else
                "site" if h.get("Sec-Fetch-Site") not in (None, "same-origin") else
                "type" if (h.get("Content-Type") or "").split(";")[0].strip().lower() != "application/json" else
                "token" if not hmac.compare_digest(h.get("X-BK-Token") or "", SESSION_TOKEN) else None)
@@ -238,7 +284,10 @@ class Handler(BaseHTTPRequestHandler):
         return True
 
     def _json_body(self):
-        n = int(self.headers.get("Content-Length") or 0)
+        # A negative or malformed length would make read() wait for the client to close the connection
+        try: n = int(self.headers.get("Content-Length") or 0)
+        except ValueError: n = -1
+        if n < 0: self._send(400, '{"error":"bad length"}', "application/json"); return None
         if n > MAX_BODY: self._send(413, '{"error":"too large"}', "application/json"); return None
         try: body = json.loads(self.rfile.read(n) or b"{}")
         except ValueError: self._send(400, '{"error":"bad json"}', "application/json"); return None
@@ -251,6 +300,13 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         if not self._host_ok() or not self._write_ok(): return
+        try: self._post()
+        except Exception:
+            traceback.print_exc()   # details go to the server log only, as for GET
+            try: self._send(500, '{"error":"server error: see the server log"}', "application/json")
+            except OSError: pass   # the client has gone
+
+    def _post(self):
         u = urllib.parse.urlparse(self.path)
         if u.path.startswith("/api/datasetup/"):
             if not SETUP_MODE: return self._send(409, '{"error":"a data folder is already set up"}', "application/json")
@@ -301,7 +357,8 @@ def main():
     if HOST not in LOOPBACK and os.environ.get("FT_ALLOW_REMOTE") != "1":
         sys.exit(f"Refusing to listen on {HOST}: the dashboard has no login, so it only runs on this computer "
                  "(127.0.0.1). Set FT_ALLOW_REMOTE=1 only if you've put your own authentication in front of it.")
-    tries = 40 if os.environ.pop("BK_RESTARTED", None) else 1   # restarted on Windows: wait for the old server to let go
+    restarted = bool(os.environ.pop("BK_RESTARTED", None))
+    tries = 40 if restarted else 1   # restarted on Windows: wait for the old server to let go
     for i in range(tries):
         try: srv = ThreadingHTTPServer((HOST, PORT), Handler); break
         except OSError:
@@ -312,6 +369,14 @@ def main():
     elif not os.environ.get("FT_NO_SYNC"): scheduler.start()   # FT_NO_SYNC=1: no Garmin/Libre pulls (tests, demo);
                                                               # start() also refuses demo data and folders inside the repo
     print(f"Body Kaizen dashboard on http://{HOST}:{PORT} (data: {data.ROOT})", flush=True)
+    if sys.stdout.isatty() and not os.environ.get("FT_NO_BROWSER") and not restarted:
+        # started by hand in a terminal: open the browser signed in, as Jupyter does, and show the link once
+        import threading, webbrowser
+        url = data.bkenv.signin_url(PORT, "127.0.0.1" if HOST in LOOPBACK else HOST)
+        print(f"Opening it in your browser, signed in. If it doesn't open, use this link (it's private to you):\n  {url}", flush=True)
+        threading.Timer(0.5, webbrowser.open, (url,)).start()
+    else:   # a service: its log may be readable by others, so never the key
+        print("To open it signed in: body-kaizen open (or: python -m body_kaizen open, from the code folder)", flush=True)
     srv.serve_forever()
 
 if __name__ == "__main__":

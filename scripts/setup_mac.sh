@@ -67,6 +67,10 @@ launchctl bootout "$DOMAIN/$LABEL" 2>/dev/null || true
 launchctl bootstrap "$DOMAIN" "$PLIST"
 echo "Dashboard service running: http://127.0.0.1:8765  (logs: $REPO/logs/server.log)"
 
+# 5. Open it signed in: the browser keeps a cookie, so this is once per browser (rerun it for another browser)
+for _ in $(seq 1 50); do lsof -nP -iTCP:8765 -sTCP:LISTEN >/dev/null 2>&1 && break; sleep 0.2; done
+(cd "$REPO" && .venv/bin/python -m body_kaizen open) || echo "Open it signed in later with:  cd $REPO && .venv/bin/python -m body_kaizen open"
+
 if [[ ! -f "$HOME/.garminconnect/garmin_tokens.json" ]]; then
   echo
   echo "Last step — log in to Garmin once (password not stored, MFA code if asked):"

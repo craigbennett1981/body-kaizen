@@ -4,6 +4,7 @@ import json, os, pathlib, re, shutil, socket, subprocess, sys, tempfile, time, u
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DEMO = ROOT / "demo"
+sys.path.insert(0, str(ROOT / "tests")); import signin   # noqa: E402
 
 
 def free_port():
@@ -18,7 +19,7 @@ class Smoke(unittest.TestCase):
         cls.data = pathlib.Path(cls.tmp.name) / "data"
         shutil.copytree(DEMO, cls.data)
         cls.env = {**os.environ, "FT_DATA": str(cls.data), "FT_NO_SYNC": "1", "FT_NO_SELF_RESTART": "1",
-                   "FT_PORT": str(free_port())}
+                   "FT_PORT": str(free_port()), "BK_CONFIG": signin.env(cls.tmp.name)}
         cls.days = sorted(p.stem for p in (cls.data / "days").rglob("*.yaml"))
 
     @classmethod
@@ -37,6 +38,7 @@ class Smoke(unittest.TestCase):
         log = tempfile.TemporaryFile(mode="w+", encoding="utf-8")
         srv = subprocess.Popen([sys.executable, str(ROOT / "app" / "server.py")], env=self.env, stdout=log, stderr=subprocess.STDOUT)
         base = f"http://127.0.0.1:{self.env['FT_PORT']}"
+        signin.sign_in(self.env["FT_PORT"], self.env["BK_CONFIG"])
         try:
             for _ in range(50):
                 try: urllib.request.urlopen(base + "/api/summary", timeout=1); break

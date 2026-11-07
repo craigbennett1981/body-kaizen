@@ -67,7 +67,7 @@ def check(path):
         return {"ok": False, "error": "Choose a folder inside your home folder (~)."}
     p = pathlib.Path(full)
     out = {"path": str(p), "short": _home(p)}
-    if p == bkenv.CODE or p.is_relative_to(bkenv.CODE):
+    if bkenv.inside(p, bkenv.CODE):   # also ~/Repos/Body-Kaizen on macOS, where case doesn't matter
         return {**out, "ok": False, "error": "That's inside the Body Kaizen code folder. Keep your data separate, "
                 "so it can never be published with the code."}
     if bkenv.is_data_folder(p):

@@ -112,8 +112,12 @@ You need Python 3.10 or newer, on macOS, Linux or Windows.
 ```bash
 git clone https://github.com/craigbennett1981/body-kaizen.git && cd body-kaizen
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-FT_NO_SYNC=1 FT_DATA=demo .venv/bin/python app/server.py      # then open http://127.0.0.1:8765
+FT_NO_SYNC=1 FT_DATA=demo .venv/bin/python app/server.py      # opens http://127.0.0.1:8765 in your browser
 ```
+
+It opens your browser signed in: only your account on this computer can open the dashboard (see
+[Security](SECURITY.md)). In another browser, or after clearing cookies, run `.venv/bin/python -m body_kaizen open`
+(`body-kaizen open` if you installed the package) and it signs that browser in too.
 
 On Windows, write `.venv\Scripts\python` for `.venv/bin/python`, and set variables with `set FT_DATA=...` (or
 `$env:FT_DATA="..."` in PowerShell).
@@ -133,8 +137,8 @@ Garmin login (with its two-step code), and a LibreLinkUp follower account for a 
 `scripts/setup_mac.sh` installs them, or `.venv/bin/pip install -e '.[all]'`.
 
 **5. Keep it running.** On a Mac, `scripts/setup_mac.sh` installs a background service that starts the dashboard at
-login and runs the scheduled syncs (`--uninstall` removes it). Elsewhere, start the server with your own service
-manager.
+login and runs the scheduled syncs (`--uninstall` removes it), then opens the dashboard signed in. Elsewhere, start
+the server with your own service manager, and open it once with `python -m body_kaizen open`.
 
 <details>
 <summary><b>Install as a package</b> (<code>pipx install body-kaizen</code>)</summary>
@@ -143,6 +147,7 @@ manager.
 pipx install body-kaizen         # add [garmin], [libre] or [all] for the syncs
 body-kaizen demo                 # the demo data, served from a temporary copy
 body-kaizen                      # your own: the first page sets up your data folder (or --data DIR, or FT_DATA)
+body-kaizen open                 # open the running dashboard signed in, in another browser or after clearing cookies
 ```
 
 The scripts are subcommands there: `body-kaizen compute`, `body-kaizen garmin-login`, `body-kaizen libre-pull` and
