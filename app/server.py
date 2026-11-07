@@ -54,6 +54,7 @@ SESSION_TOKEN = secrets.token_urlsafe(32)
 SIGNIN_KEY = data.bkenv.session_key()
 COOKIE = f"bk_session_{PORT}"   # one per port: a demo on another port has its own
 COOKIE_AGE = 365 * 86400
+PAGES = ("/",) + tuple("/" + f.name for f in sorted(STATIC.glob("*.html")))   # where the sign-in link may lead
 SIGNIN_PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Body Kaizen: open from your account</title><style>
 body{margin:0;min-height:100vh;display:grid;place-items:center;background:#111318;color:#EBEEF5;font:16px/1.5 system-ui,sans-serif}
@@ -225,11 +226,13 @@ class Handler(BaseHTTPRequestHandler):
     def _signin(self, u):
         """The sign-in link (?key=...): set the cookie and send the browser on to the same address without the key,
         so it isn't left in the address bar, the history or a bookmark. A wrong key just gets the sign-in page."""
-        q = urllib.parse.parse_qs(u.query); key = q.pop("key", [""])[0]
+        key = urllib.parse.parse_qs(u.query).get("key", [""])[0]
         if not hmac.compare_digest(key.encode(), SIGNIN_KEY.encode()): return self._needs_signin(u)
-        rest = urllib.parse.urlencode(q, doseq=True)
+        # On to one of the dashboard's own pages, never to anything taken from the request: a path like //example.com
+        # would send the browser off-site, and request text in a header could split it. Anything else goes to "/".
+        to = next((p for p in PAGES if p == u.path), "/")
         cookie = f"{COOKIE}={SIGNIN_KEY}; Path=/; Max-Age={COOKIE_AGE}; HttpOnly; SameSite=Strict"
-        self._send(303, "", "text/plain", headers=[("Location", (u.path or "/") + ("?" + rest if rest else "")), ("Set-Cookie", cookie)])
+        self._send(303, "", "text/plain", headers=[("Location", to), ("Set-Cookie", cookie)])
 
     def _needs_signin(self, u):
         if u.path.startswith("/api/"): return self._send(401, '{"error":"not signed in","signin":true}', "application/json")
