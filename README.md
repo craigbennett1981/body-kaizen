@@ -309,6 +309,7 @@ demo/         made-up data folder for trying it out
 docs/         guides, the CLAUDE.md template and screenshots
 tests/        tests run in CI
 SCHEMA.md     the data format
+CHANGELOG.md  what changed in each release
 AI-GUIDE.md   the brief for your AI assistant: every input, where it goes, how to reply
 ```
 
