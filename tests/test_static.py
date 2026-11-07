@@ -53,6 +53,11 @@ class StaticDemo(unittest.TestCase):
             pg.on("console", lambda m: m.type == "error" and "Failed to load resource" not in m.text and bad.append(f"console: {m.text}"))
             pg.goto(self.url); pg.wait_for_selector("#day h1", timeout=15000)
             self.assertTrue(pg.locator("#bk-demo-banner").is_visible())
+            # the page's "now" is the moment the demo was exported, not the visitor's clock
+            import json
+            built = json.loads((self.site / "data" / "_built.json").read_text(encoding="utf-8"))
+            self.assertEqual(pg.evaluate("wallNow().toISOString().slice(0,16)"), built["now"])
+            self.assertEqual(pg.evaluate("todayISO()"), built["end"])
             tabs = pg.eval_on_selector_all("nav button[data-tab]", "bs => bs.map(b => b.dataset.tab)")
             self.assertGreater(len(tabs), 8)
             for t in tabs:

@@ -58,6 +58,11 @@ def tz():
     except Exception: return dt.datetime.now().astimezone().tzinfo
 
 def now():
+    """The current time in the user's timezone. FT_NOW (YYYY-MM-DDTHH:MM, local) fixes it: the static demo is exported
+    as of one moment, so its timelines, pace and "now" line all agree."""
+    fixed = os.environ.get("FT_NOW")
+    if fixed:
+        return dt.datetime.fromisoformat(fixed[:16]).replace(tzinfo=tz())
     return dt.datetime.now(tz())
 
 def today():

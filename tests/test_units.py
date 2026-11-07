@@ -266,3 +266,17 @@ class SleepPage(unittest.TestCase):
         T = sleep.tonight(rows, 450, rows)
         self.assertEqual(T["wake"], "06:00")
         self.assertEqual(T["in_bed"], "21:55")   # 06:00 - 7h30 - 20 min awake - 15 min to fall asleep
+
+
+class FixedClock(unittest.TestCase):
+    def test_ft_now_fixes_the_time(self):
+        old = os.environ.get("FT_NOW")
+        os.environ["FT_NOW"] = "2026-11-07T22:30"
+        try:
+            n = bkenv.now()
+            self.assertEqual((n.date().isoformat(), n.hour, n.minute), ("2026-11-07", 22, 30))
+            self.assertEqual(bkenv.today().isoformat(), "2026-11-07")
+            self.assertIsNotNone(n.tzinfo)
+        finally:
+            if old is None: os.environ.pop("FT_NOW", None)
+            else: os.environ["FT_NOW"] = old

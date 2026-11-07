@@ -21,6 +21,7 @@ CODE = pathlib.Path(__file__).resolve().parent.parent
 STATIC = CODE / "app" / "static"
 PAGES = ["index.html", "doctor.html", "thresholds.html", "connections.html"]   # setup.html isn't needed: the demo has data
 SKIP = {"/api/session", "/api/datasetup"}   # answered by the shim
+DEMO_TIME = "22:30"                          # the demo's "now": after Sam's last meal, before bed
 
 
 def key(path, query=None):
@@ -62,7 +63,10 @@ def main():
 
     demo = pathlib.Path(tempfile.mkdtemp(prefix="bk-demo-")) / "demo"
     subprocess.run([sys.executable, str(CODE / "tools" / "make_demo.py"), str(demo), "--end", A.end, "--days", str(A.days)], check=True)
-    os.environ.update({"FT_DATA": str(demo), "FT_NO_SYNC": "1"})
+    # The demo is a finished day: everything is exported as of DEMO_TIME on its last day, and the page is told the same
+    # moment (window.BK_NOW), so the timeline, pace and the "now" line agree whatever the visitor's clock says.
+    now = f"{A.end}T{DEMO_TIME}"
+    os.environ.update({"FT_DATA": str(demo), "FT_NO_SYNC": "1", "FT_NOW": now})
     sys.path[:0] = [str(CODE / "scripts"), str(CODE / "app")]
     import server, data   # noqa: E402  (after FT_DATA: the data folder is read at import)
     sys.path.insert(0, str(CODE / "tools")); import static_seo   # noqa: E402
@@ -86,7 +90,7 @@ def main():
     for f in ("app.js", "style.css"):
         txt = (STATIC / f).read_text(encoding="utf-8")
         (out / f).write_text(re.sub(r"""(href=["'])/(?=[a-z])""", r"\1", txt), encoding="utf-8")
-    shutil.copy(CODE / "tools" / "static-demo.js", out / "static-demo.js")
+    (out / "static-demo.js").write_text(f'window.BK_NOW = "{now}";\n' + (CODE / "tools" / "static-demo.js").read_text(encoding="utf-8"), encoding="utf-8")
     for p in PAGES:
         html = (STATIC / p).read_text(encoding="utf-8")
         html = re.sub(r"""(href=["'])/(?=[a-z])""", r"\1", html)
@@ -97,7 +101,7 @@ def main():
     (out / ".nojekyll").write_text("")
     static_seo.extras(out, static_seo.base_url(), A.end)
     (out / "data" / "_built.json").write_text(json.dumps({"built": dt.datetime.now(dt.timezone.utc).isoformat(timespec="minutes"),
-                                                          "end": A.end, "files": n}))
+                                                          "end": A.end, "now": now, "files": n}))
     print(f"exported {n} answers ({size / 1e6:.1f} MB) for {len(dates)} days to {out}")
     for m in missing: print("  could not export:", m)
     shutil.rmtree(demo.parent, ignore_errors=True)
