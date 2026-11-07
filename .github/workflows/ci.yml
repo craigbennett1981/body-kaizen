@@ -54,3 +54,20 @@ jobs:
           curl -fsS http://127.0.0.1:8790/api/summary > /dev/null
           curl -fsS http://127.0.0.1:8790/app.js > /dev/null
           /tmp/bk/bin/body-kaizen init /tmp/bk-data && test -f /tmp/bk-data/targets.yaml
+
+  static-demo:
+    # The live demo is the real pages on exported demo data. Export it and click through every tab in a browser:
+    # a route or parameter the export doesn't cover fails here, before it can break the demo.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -r requirements.txt playwright && python -m playwright install --with-deps chromium
+      - name: Export the static demo
+        run: python tools/export_static.py _site
+      - name: Click through it
+        env: {BK_STATIC_SITE: _site}
+        run: python -m unittest tests.test_static -v
