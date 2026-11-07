@@ -36,6 +36,18 @@ SHOTS = [
     ("longevity.png", "longevity", None, None, 0),
 ]
 
+# ---------- the README's preview: the Day page with an "open the demo" button over it, linked to the live demo ----------
+PREVIEW = ("demo-preview.png", "day")
+PREVIEW_OVERLAY = """(() => {
+  const o = document.createElement('div');
+  o.style.cssText = 'position:fixed;inset:0;z-index:99;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;' +
+    'padding-bottom:64px;gap:12px;background:linear-gradient(to bottom,rgba(17,19,24,0) 35%,rgba(17,19,24,.55) 62%,rgba(17,19,24,.96) 100%)';
+  o.innerHTML = '<div style="display:flex;align-items:center;gap:14px;padding:16px 30px;border-radius:999px;background:#2F5BEA;color:#fff;' +
+    'font:700 26px/1 Archivo,system-ui,sans-serif;box-shadow:0 10px 34px rgba(47,91,234,.45)"><span style="font-size:22px">&#9654;</span>Open the live demo</div>' +
+    '<div style="color:#C9CFDA;font:500 17px/1.4 Archivo,system-ui,sans-serif">demo.bodykaizen.app &nbsp;·&nbsp; the real dashboard on made-up data &nbsp;·&nbsp; every tab works</div>';
+  document.body.append(o);
+})()"""
+
 CAPTION_CSS = ("position:fixed;left:0;right:0;bottom:0;z-index:99;padding:14px 20px;background:rgba(17,19,24,.94);"
                "border-top:3px solid #4F7FEA;color:#EBEEF5;font:600 20px/1.3 Archivo,system-ui,sans-serif;text-align:center")
 
@@ -185,6 +197,11 @@ def main():
                                                                              "height": l["y"] + l["height"] - t["y"] + 26})
                     print("wrote", f)
                 pg.close()
+            if want(PREVIEW[0]):
+                pg = b.new_page(viewport={"width": 1280, "height": 720}, device_scale_factor=1.5, reduced_motion="reduce", **opts)
+                pg.goto(url + "#" + PREVIEW[1]); pg.wait_for_selector("#day h1"); pg.wait_for_timeout(2500); P = Page(pg); P.clean()
+                pg.evaluate(PREVIEW_OVERLAY); pg.wait_for_timeout(300)
+                pg.screenshot(path=str(out / PREVIEW[0])); pg.close(); print("wrote", PREVIEW[0])
             for f, (fn, width, start) in GIFS.items():
                 if not want(f): continue
                 vids = tmp / f"v-{f}"; vids.mkdir()
