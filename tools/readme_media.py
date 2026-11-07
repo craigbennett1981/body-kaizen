@@ -7,8 +7,10 @@ It exports the static demo (tools/export_static.py), serves it locally and drive
 clipped to one section of a page, GIFs are recorded as video while the script scrolls, clicks and hovers, then
 converted with ffmpeg. Needs Playwright with Chromium, and ffmpeg. Only demo data is ever shown.
 
-Not regenerated here: claude-loop.gif (a chat), setup.png and connections.png (pages the demo doesn't serve),
-social-preview.png.
+social-preview.png (1280 x 640) is a collage of the screenshots, for link previews: the live demo uses it as its
+og:image. GitHub's own repository preview is a copy uploaded by hand in the repo's settings (there's no API for it).
+
+Not regenerated here: claude-loop.gif (a chat), setup.png and connections.png (pages the demo doesn't serve).
 """
 import argparse, os, pathlib, shutil, subprocess, sys, tempfile, time
 
@@ -51,6 +53,36 @@ PREVIEW_OVERLAY = """(() => {
     '<div style="color:#C9CFDA;font:500 17px/1.4 Archivo,system-ui,sans-serif">demo.bodykaizen.app &nbsp;·&nbsp; the real dashboard on made-up data &nbsp;·&nbsp; every tab works</div>';
   document.body.append(o);
 })()"""
+
+# ---------- the social preview: a 1280 x 640 collage of six screenshots, each labelled ----------
+SOCIAL = ("social-preview.png", [("day.png", "Meals to macros, paced through the day"), ("experiments.png", "Experiments on yourself"),
+          ("readiness.png", "Sleep & recovery"), ("food.png", "Where your food comes from"),
+          ("muscle-map.png", "Workouts and a muscle map"), ("trends.png", "Every day against its targets")])
+SOCIAL_HTML = """<!doctype html><html><head><meta charset="utf-8"><style>
+  @font-face{font-family:Archivo;font-weight:100 900;font-stretch:62% 125%;src:url(data:font/woff2;base64,FONT) format('woff2-variations')}
+  body{margin:0;width:1280px;height:640px;background:#0f1116;color:#EBEEF5;font-family:Archivo,system-ui,sans-serif;overflow:hidden}
+  header{display:flex;justify-content:space-between;align-items:baseline;padding:22px 32px 0}
+  h1{margin:0;font-size:44px;font-weight:800;font-stretch:125%} .src{color:#3fbf6f;font-weight:700;font-size:19px}
+  p{margin:6px 32px 18px;color:#9aa3b2;font-size:22px}
+  .g{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:0 30px}
+  .t{position:relative;height:228px;border-radius:12px;overflow:hidden;background:#1b1f27;border:1px solid #2a2f3a}
+  .t img{width:100%;height:100%;object-fit:cover;object-position:top left}
+  .t span{position:absolute;left:0;right:0;bottom:0;padding:44px 16px 14px;font-size:21px;font-weight:700;
+          background:linear-gradient(to bottom,rgba(15,17,22,0),rgba(15,17,22,.92) 55%)}
+</style></head><body><header><h1>Body Kaizen</h1><span class="src">Garmin · Libre CGM · Hevy · InBody</span></header>
+<p>Log meals, workouts and labs by chatting with an AI assistant. Local-first, plain files you own.</p>
+<div class="g">TILES</div></body></html>"""
+
+
+def social_preview(b, out):
+    import base64
+    tiles = "".join(f'<div class="t"><img src="data:image/png;base64,{base64.b64encode((out / f).read_bytes()).decode()}"><span>{label}</span></div>'
+                    for f, label in SOCIAL[1])
+    pg = b.new_page(viewport={"width": 1280, "height": 640}, device_scale_factor=1)
+    font = base64.b64encode((CODE / "app" / "static" / "vendor" / "archivo-latin.woff2").read_bytes()).decode()
+    pg.set_content(SOCIAL_HTML.replace("TILES", tiles).replace("FONT", font)); pg.wait_for_timeout(800)
+    pg.screenshot(path=str(out / SOCIAL[0])); pg.close(); print("wrote", SOCIAL[0])
+
 
 CAPTION_CSS = ("position:fixed;left:0;right:0;bottom:0;z-index:99;padding:14px 20px;background:rgba(17,19,24,.94);"
                "border-top:3px solid #4F7FEA;color:#EBEEF5;font:600 20px/1.3 Archivo,system-ui,sans-serif;text-align:center")
@@ -214,6 +246,8 @@ def main():
                                                                              "height": l["y"] + l["height"] - t["y"] + 26})
                     print("wrote", f)
                 pg.close()
+            if want(SOCIAL[0]) and all((out / f).exists() for f, _ in SOCIAL[1]):
+                social_preview(b, out)
             if want(PREVIEW[0]):
                 pg = b.new_page(viewport={"width": 1280, "height": 720}, device_scale_factor=1.5, reduced_motion="reduce", **opts)
                 pg.goto(url + "#" + PREVIEW[1]); pg.wait_for_selector("#day h1"); pg.wait_for_timeout(2500); P = Page(pg); P.clean()
