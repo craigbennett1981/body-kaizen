@@ -10,15 +10,39 @@
 **A private dashboard for continuous improvement of your health.** Food, sleep, training, recovery and healthspan,
 tracked as your own n-of-one experiment, in plain files you own.
 
+<p align="center">
+  <a href="https://demo.bodykaizen.app/"><b>▶&nbsp; Try the live demo</b></a> &nbsp;·&nbsp;
+  <a href="#quick-start"><b>Quick start</b></a> &nbsp;·&nbsp;
+  <a href="docs/features.md"><b>Every page, explained</b></a>
+</p>
+
+![A tour of the dashboard on demo data: Day, Food, Sleep, Training, Body and Longevity](docs/img/tour.gif)
+
 You tell an AI assistant like Claude what you ate, send it a photo of a label or a screenshot of your scale, and
 it writes everything into your own private git repository. Body Kaizen works out the macros, pulls in your
-Garmin, glucose and gym data, and shows how your day, week and months are going against the targets you set.
+Garmin, glucose and gym data, and shows how your day, week and months are going against the targets you set. The
+[live demo](https://demo.bodykaizen.app/) is the real dashboard on 90 days of made-up data:
+click anything.
 
 ![You send a message, Claude logs it and replies with your totals, and the dashboard updates](docs/img/claude-loop.gif)
 
-## A quick tour
+## Highlights
 
-![A tour of the dashboard: Day, Food, Sleep, Training, Body, Recovery, Trends and Longevity](docs/img/tour.gif)
+<table>
+<tr>
+<td width="33%" valign="top"><img src="docs/img/food.gif" alt="Food: searching, sorting and switching to the last 7 days"><br>
+<b>Know your food.</b> Where this week's saturated fat, protein and fibre came from, plants against 30, swaps from
+foods you already eat, and every food you've logged, searchable and sortable.</td>
+<td width="33%" valign="top"><img src="docs/img/sleep.gif" alt="Sleep: last night, the trend, stages and what goes with better nights"><br>
+<b>Fix your sleep.</b> Last night's stages, your sleep debt, when to be in bed tonight, and which of your own days
+go with the bad nights, with advice from what it finds.</td>
+<td width="33%" valign="top"><img src="docs/img/training.gif" alt="Training: workouts, the muscle map and calories burnt"><br>
+<b>Train with feedback.</b> Every session with coach notes and heart rate, lifts against last time, a muscle map of
+your hard sets, and calories burnt by activity.</td>
+</tr>
+</table>
+
+### Every tab
 
 | Tab | What it shows |
 |---|---|
@@ -32,7 +56,8 @@ Garmin, glucose and gym data, and shows how your day, week and months are going 
 | **Longevity** | VO2 max, lipids, HbA1c, grip and more against target bands, with a health score and retest dates |
 | **Advice, Week, Timeline, Wellbeing** | This week's top changes, a week at a glance, weight with what explains it, mood and symptoms |
 
-Every page in detail, with screenshots: **[docs/features.md](docs/features.md)**.
+Every page in detail, with screenshots: **[docs/features.md](docs/features.md)**. Or open it in the
+**[live demo](https://demo.bodykaizen.app/)**.
 
 **Works with** Claude (or any AI assistant that can edit files) · Garmin Connect · FreeStyle Libre (LibreLinkUp) ·
 Hevy · InBody · any smart scale or blood-pressure app you can screenshot.
@@ -277,7 +302,8 @@ Ideas and pull requests are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md).
 ```
 app/          dashboard server (server.py) and one module per tab; static/ holds the page
 scripts/      compute.py, food resolution (nutrition.py), sync and import scripts, Mac setup
-tools/        make_demo.py, which generates the demo/ folder
+tools/        make_demo.py (the demo/ folder), export_static.py (the live demo), readme_media.py (the README's GIFs
+              and screenshots)
 foods/        starter.yaml, the starter food database
 demo/         made-up data folder for trying it out
 docs/         guides, the CLAUDE.md template and screenshots
@@ -289,7 +315,9 @@ AI-GUIDE.md   the brief for your AI assistant: every input, where it goes, how t
 ## Contributing
 
 Contributions are welcome: bug fixes, new foods, docs, views, integrations and better instructions for AI
-assistants. Start with [CONTRIBUTING.md](CONTRIBUTING.md); for anything big, open an issue first. Everyone follows the
+assistants. Start with [CONTRIBUTING.md](CONTRIBUTING.md); for anything big, open an issue first. Changed how a page looks?
+`python tools/readme_media.py` remakes every GIF and screenshot from the demo, and the live demo rebuilds itself
+on every merge. Everyone follows the
 [Code of Conduct](CODE_OF_CONDUCT.md). **Never include your own health data in an issue or pull request**; use the
 demo data.
 
