@@ -1520,7 +1520,7 @@ async function renderEnergyBalance(){
 let FOODS = null, FSORT = {k:'times', dir:-1}, FQ = '', FWIN = 'all';
 const PE_CLS = v => v==null ? '' : v >= 15 ? 'good' : v >= 8 ? 'warn' : '';   // grams of protein per 100 kcal
 /* ---------- experiments ---------- */
-let XP = null, XP_AT = 0, XTRY = {var: 'night.bedtime', op: '<=', value: '22:30', outs: ['night.asleep', 'night.score', 'night.hrv']};
+let XP = null, XP_AT = 0, XTRY = {days: null, var: 'night.bedtime', op: '<=', value: '22:30', outs: ['night.asleep', 'night.score', 'night.hrv']};
 const XP_PILL = {running:['run','Running'], planned:['plan','Planned'], worked:['good','It worked'], 'no effect':['none','No clear effect'],
                  worse:['bad','Made it worse'], inconclusive:['none','Not enough data'], invalid:['bad','Needs fixing'], trend:['warn','Could be a trend']};
 const XP_TIME = k => k === 'time' || k === 'night_time';
@@ -1576,7 +1576,7 @@ function xpForAgent(yaml){
 
 1. Read the Experiments section of AI-GUIDE.md and the experiments.yaml section of SCHEMA.md first.
 2. Add the entry below under experiments: in experiments.yaml in my data folder (create the file if it isn't there). Keep the id unique.
-3. Set start to today if it begins tonight, or to the date I give you; days is the length I asked for (14 if I didn't say).
+3. Set start to today if it begins tonight, or to the date I give you. Keep days as it is (${(yaml.match(/days: (\d+)/) || [])[1] || XP.default_days}, the length I chose) unless I tell you otherwise.
 4. If another experiment is still running, ask me whether to stop it first: one experiment changes one thing.${habits.length ? `
 5. It uses ${habits.join(', ')}: make sure each is declared under habits: in experiments.yaml, and log it in the day file whenever I mention it.` : ''}
 ${habits.length ? 6 : 5}. Only use variables, operators and outcomes listed in SCHEMA.md. Then check the Experiments tab shows it as Planned or Running, not "Needs fixing".
@@ -1586,6 +1586,10 @@ ${habits.length ? 8 : 7}. Commit the change if my data folder is a git repositor
 ${yaml}
 `;
 }
+const XP_LENGTHS = [7, 10, 14, 21, 28, 42];
+const xpDaysSel = (cls, v, unit) => `<label class="xp-len"><span class="sub">for</span> <select class="${cls}" aria-label="How long">${[...new Set([...XP_LENGTHS, +v])].sort((a, b) => a - b)
+  .map(d => `<option value="${d}"${d === +v ? ' selected' : ''}>${d} ${unit}${d % 7 ? '' : ` (${d / 7} week${d > 7 ? 's' : ''})`}</option>`).join('')}</select></label>`;
+const xpWithDays = (yaml, d) => yaml.replace(/^(\s*days:) \d+/m, `$1 ${d}`);
 function xpCopy(text, msgEl, pre){
   (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
     .then(() => { msgEl.textContent = 'Copied, with instructions: paste it to your assistant.'; })
@@ -1627,12 +1631,13 @@ function xpTry(){
   const lab = meta.label.charAt(0).toLowerCase() + meta.label.slice(1);
   const phrase = meta.kind === 'bool' ? (((XTRY.op === '=') === x) ? lab : `no ${lab.replace(/^had /, '')}`)
     : XTRY.var === 'night.bedtime' ? `asleep ${words[XTRY.op]} ${val}` : `${lab} ${words[XTRY.op]} ${val}${meta.unit ? ' ' + meta.unit : ''}`;
-  const yaml = `- id: ${XTRY.var.split('.').pop().replace(/_/g, '-')}-test\n  title: ${phrase.charAt(0).toUpperCase() + phrase.slice(1)}\n  start: ${todayISO()}\n  days: ${XP.default_days}\n  rule:\n    all:\n      - {var: ${XTRY.var}, op: "${XTRY.op}", value: ${meta.kind === 'bool' ? x : XP_TIME(meta.kind) ? `"${XTRY.value}"` : x}}\n  outcomes: [${XTRY.outs.join(', ')}]`;
+  const yaml = `- id: ${XTRY.var.split('.').pop().replace(/_/g, '-')}-test\n  title: ${phrase.charAt(0).toUpperCase() + phrase.slice(1)}\n  start: ${todayISO()}\n  days: ${XTRY.days || XP.default_days}\n  rule:\n    all:\n      - {var: ${XTRY.var}, op: "${XTRY.op}", value: ${meta.kind === 'bool' ? x : XP_TIME(meta.kind) ? `"${XTRY.value}"` : x}}\n  outcomes: [${XTRY.outs.join(', ')}]`;
   el.innerHTML = `<p class="xp-v">In your last ${esc(T.dates.length)} nights, the rule held on <b>${yes.length}</b> and didn't on <b>${no.length}</b>${T.dates.length - yes.length - no.length ? ` (${T.dates.length - yes.length - no.length} with no data)` : ''}. Nights when it held, against nights when it didn't:</p>
     ${xpResults(res, 'nights when it held', 'nights when it didn\'t')}
     <p class="sub">These are nights that happened to differ, so other things may differ too (a late session is often a busy day). To test it properly, run it as an experiment.</p>
-    <div class="xtry-go"><button id="xtry-copy" title="Copies the entry with instructions for your assistant">Copy as an experiment</button><span class="sub" id="xtry-msg">or tell your assistant: "start an experiment: ${esc(phrase)}, for ${esc(XP.default_days)} nights"</span></div>
+    <div class="xtry-go">${xpDaysSel('xtry-days', XTRY.days || XP.default_days, 'nights')}<button id="xtry-copy" title="Copies the entry with instructions for your assistant">Copy as an experiment</button><span class="sub" id="xtry-msg">or tell your assistant: "start an experiment: ${esc(phrase)}, for ${esc(XTRY.days || XP.default_days)} nights"</span></div>
     <pre class="xtry-yaml" hidden>${esc(yaml)}</pre>`;
+  el.querySelector('.xtry-days').onchange = e => { XTRY.days = +e.target.value; xpTry(); };
   $('#xtry-copy').onclick = () => { const pre = el.querySelector('.xtry-yaml'); pre.hidden = false; xpCopy(xpForAgent(yaml), $('#xtry-msg'), pre); };
 }
 function xpTryForm(){
@@ -1736,7 +1741,7 @@ async function renderExperiments(){
       <p class="sub">Patterns your own nights already show, and the test that would settle each one. The evidence so far compares nights that happened to differ; a test where you change one thing on purpose is much stronger.</p>
       <div class="xs-grid">${XP.suggestions.map(s => `<div class="fs xs"><h3>${esc(s.title)}</h3><p>${esc(s.why)}</p><p class="sub">${esc(s.hypothesis)}</p>
         <p class="xs-go">Tell your assistant: <b>“start the ${esc(s.name)} experiment”</b></p>
-        <p class="xs-copy"><button class="xs-cp" data-i="${XP.suggestions.indexOf(s)}" title="Copies the entry with instructions for your assistant">Copy for your assistant</button> <span class="sub"></span></p>
+        <p class="xs-copy">${xpDaysSel('xs-days', (s.yaml.match(/days: (\d+)/) || [])[1] || XP.default_days, 'nights')} <button class="xs-cp" data-i="${XP.suggestions.indexOf(s)}" title="Copies the entry with instructions for your assistant">Copy for your assistant</button> <span class="sub"></span></p>
         <details><summary>or add it to experiments.yaml yourself</summary><pre>${esc(s.yaml)}</pre></details></div>`).join('')}</div>` : ''}
     <h2>Try a rule</h2>
     <p class="sub">Ask your history a question: how did your nights go when this held, against when it didn't? Nothing is saved.</p>
@@ -1757,7 +1762,7 @@ async function renderExperiments(){
       <li>The bar shows the difference and a 90% range for it, from resampling those nights. It only counts as better or worse when the whole range is on one side of zero; otherwise it's unclear.</li>
       <li>A finished experiment needs ${Math.round(XP.enough_kept * 100)}% of nights kept, and at least ${esc(XP.min_nights)}, to give a verdict. One person, one experiment: treat a result as strong evidence for you, not proof for everyone, and repeat it if it matters.</li>
     </ul>`;
-  el.querySelectorAll('.xs-cp').forEach(b => b.onclick = () => xpCopy(xpForAgent(XP.suggestions[+b.dataset.i].yaml), b.nextElementSibling,
+  el.querySelectorAll('.xs-cp').forEach(b => b.onclick = () => xpCopy(xpForAgent(xpWithDays(XP.suggestions[+b.dataset.i].yaml, b.parentNode.querySelector('.xs-days').value)), b.nextElementSibling,
     b.closest('.xs').querySelector('details pre')));
   xpTryForm(); xpRelForm();
 }
