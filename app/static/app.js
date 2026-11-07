@@ -1532,6 +1532,7 @@ async function renderSleep(){
     <h2>Every night, last ${esc(S.nights.length)}</h2>
     <p class="sub">Time asleep against your target, with Garmin's sleep need and your sleep debt over the 7 nights to each date.</p>
     <div id="sl-trend" class="chart" style="height:400px"></div>
+    ${sleepStagesHtml(S.stages)}
     <h2>When you sleep</h2>
     <p class="sub">Each bar runs from falling asleep to waking. Lately your bedtime is ${esc(G.bed_median ?? '–')} give or take ${esc(G.bed_sd ?? '–')} min, waking ${esc(G.wake_median ?? '–')} give or take ${esc(G.wake_sd ?? '–')} min.${G.social_jetlag_min!=null?` At weekends your sleep runs ${esc(Math.abs(G.social_jetlag_min))} min ${G.social_jetlag_min>=0?'later':'earlier'}.`:''} Weekend mornings in blue.${TN?` Dashed: tonight’s bedtime.`:''}</p>
     <div id="sl-when" class="chart" style="height:360px"></div>
@@ -1581,6 +1582,7 @@ async function renderSleep(){
         areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(200,55,45,.25)'},{offset:1,color:'rgba(0,0,0,0)'}])},
         markLine:{symbol:'none',silent:true,data:[{yAxis:0}],lineStyle:{color:c.muted,type:'solid',opacity:.6},label:{show:false}}}]});
 
+  if(S.stages && S.stages.available) sleepStageCharts(S, c, ax);
   // when: floating bars from sleep start to wake, minutes from the wake day's midnight (negative = before midnight)
   const base = 60 * Math.floor((Math.min(...N.map(n => n.start), TN ? hmToMin(TN.in_bed) : 0) - 20) / 60);
   const top = 60 * Math.ceil((Math.max(...N.map(n => n.end)) + 20) / 60) - base;
@@ -1591,6 +1593,42 @@ async function renderSleep(){
     tooltip:{trigger:'axis',...tip(c),formatter: ps => { const n = N[ps[0].dataIndex]; return `<b>${esc(fmtDate(n.date))}</b><br>Asleep ${clk(n.start)} to ${clk(n.end)}<br>${esc(mh(n.asleep))} asleep`; }},
     series:[{type:'bar',stack:'w',silent:true,itemStyle:{color:'transparent'},data:N.map(n => n.start - base)},
       {type:'bar',stack:'w',barMaxWidth:14,data:N.map(n => ({value:n.end - n.start,itemStyle:{color:n.weekend_morning?c.accent:c.muted,opacity:n.weekend_morning?.9:.55,borderRadius:3}})),...bedLine}]});
+}
+const STG = {deep:'Deep', light:'Light', rem:'REM', awake:'Awake'};
+function sleepStagesHtml(G){
+  if(!G || !G.available) return '';
+  const tile = k => { const [lo, hi] = G.typical[k] || [], v = G.pct[k], cls = lo == null ? '' : v < lo ? 'bad' : v > hi && k !== 'deep' ? 'warn' : 'good';
+    return `<div class="t"><div class="lab"><i class="stg-dot" style="background:${SLEEP_COL[k]}"></i>${STG[k]}</div><div class="v ${cls}">${fmt(v, 0)}%</div><div class="s">${esc(G.avg[k])} min a night · typical ${lo}–${hi}%</div></div>`; };
+  const cmp = (title, rows) => { const mx = Math.max(...rows.map(r => Math.max(r.deep || 0, r.rem || 0)), 1);
+    return `<div class="fs"><h3>${esc(title)}</h3>${rows.map(r => `<div class="stg-c"><span class="nm">${esc(r.label)} <span class="sub">${esc(r.n)} nights</span></span>
+      <span class="stg-b"><i style="width:${Math.round((r.deep||0)/mx*100)}%;background:${SLEEP_COL.deep}"></i><b>${esc(r.deep ?? '–')}</b></span>
+      <span class="stg-b"><i style="width:${Math.round((r.rem||0)/mx*100)}%;background:${SLEEP_COL.rem}"></i><b>${esc(r.rem ?? '–')}</b></span></div>`).join('')}</div>`; };
+  return `<h2>Sleep stages</h2>
+    <p class="sub">Your average over ${esc(G.n)} nights, as a share of time asleep, against what healthy adults typically get. Watches estimate stages from movement and heart rate, so read these as trends rather than lab numbers.</p>
+    <div class="wk-grid">${['deep','rem','light'].map(tile).join('')}
+      <div class="t"><div class="lab"><i class="stg-dot" style="background:${SLEEP_COL.awake}"></i>Wake-ups</div><div class="v">${fmt(G.wake.per_night, 1)}</div><div class="s">a night · ${esc(G.wake.long_nights)} nights with 20+ min awake</div></div></div>
+    <div class="sl-pat">${G.patterns.map(p => `<div class="sl-p sl-p-${esc(p.kind)}"><b>${esc(p.title)}</b><span>${esc(p.text)}</span></div>`).join('')}</div>
+    <h3 class="sl-h3">Minutes of each stage, every night</h3>
+    <div id="sl-stg" class="chart" style="height:260px"></div>
+    <h3 class="sl-h3">Deep and REM minutes, by the kind of night</h3>
+    <div class="stg-key"><span><i style="background:${SLEEP_COL.deep}"></i>Deep</span><span><i style="background:${SLEEP_COL.rem}"></i>REM</span></div>
+    <div class="sw-grid">${cmp('How long you slept', G.by_length)}${cmp('Training the day before', G.by_session)}${cmp('When you fell asleep', G.by_bedtime)}</div>
+    <h3 class="sl-h3">When you wake in the night</h3>
+    <p class="sub">Spells awake after you first fall asleep, by the hour they start, across ${esc(G.wake.nights)} nights.</p>
+    <div id="sl-wake" class="chart" style="height:220px"></div>`;
+}
+function sleepStageCharts(S, c, ax){
+  const N = S.nights, x = N.map(n => shortDate(n.date)), G = S.stages;
+  chart('sl-stg').setOption({animation:MOTION,animationDuration:400,textStyle:{fontFamily:'Archivo'},grid:{left:52,right:20,top:28,bottom:28},
+    legend:{top:0,right:10,textStyle:{color:c.muted,fontSize:11},itemWidth:10,itemHeight:10},
+    xAxis:{type:'category',data:x,...ax},yAxis:{type:'value',...ax,axisLabel:{...ax.axisLabel,formatter:v => v/60 + 'h'},interval:120},
+    tooltip:{trigger:'axis',...tip(c),formatter: ps => { const n = N[ps[0].dataIndex]; return `<b>${esc(fmtDate(n.date))}</b><br>` + ['deep','rem','light','awake'].map(k => `${STG[k]} ${n[k] ?? '–'} min`).join('<br>') + `<br>REM ${n.rem && n.asleep ? Math.round(100*n.rem/n.asleep) : '–'}% of sleep`; }},
+    series:['deep','rem','light','awake'].map(k => ({type:'bar',name:STG[k],stack:'s',barMaxWidth:14,itemStyle:{color:SLEEP_COL[k]},data:N.map(n => n[k] ?? 0)}))});
+  const H = G.wake.by_hour;
+  chart('sl-wake').setOption({animation:MOTION,animationDuration:400,textStyle:{fontFamily:'Archivo'},grid:{left:52,right:20,top:12,bottom:28},
+    xAxis:{type:'category',data:H.map(h => `${String(h.h).padStart(2,'0')}:00`),...ax},yAxis:{type:'value',...ax,minInterval:1},
+    tooltip:{trigger:'axis',...tip(c),formatter: ps => { const h = H[ps[0].dataIndex]; return `<b>${String(h.h).padStart(2,'0')}:00–${String((h.h+1)%24).padStart(2,'0')}:00</b><br>${h.count} wake-ups over ${G.wake.nights} nights<br>about ${h.per10} in every 10 nights`; }},
+    series:[{type:'bar',barMaxWidth:28,data:H.map(h => ({value:h.count,itemStyle:{color:SLEEP_COL.awake,borderRadius:[3,3,0,0]}}))}]});
 }
 // One row per factor: a verdict, then the difference on four measures as small bars around zero.
 function sleepFactors(F){

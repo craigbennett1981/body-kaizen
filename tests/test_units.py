@@ -251,6 +251,11 @@ class SleepPage(unittest.TestCase):
         for f in S["factors"]:
             self.assertGreater(f["a"]["n"], 0); self.assertGreater(f["b"]["n"], 0)
         self.assertTrue(S["general"])
+        G = S["stages"]
+        if G["available"]:
+            self.assertAlmostEqual(sum(G["pct"].values()), 100, delta=3)   # deep + light + REM share of time asleep
+            self.assertTrue(all(p["title"] and p["text"] for p in G["patterns"]))
+            self.assertEqual(sum(h["count"] for h in G["wake"]["by_hour"]), sum(h["count"] for h in G["wake"]["by_hours_in"]))
         T = S["tonight"]
         if T: self.assertRegex(T["in_bed"], r"^\d\d:\d\d$")
 

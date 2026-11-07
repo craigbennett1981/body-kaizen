@@ -256,7 +256,102 @@ def build():
                        "on_target": sum(r["asleep"] >= target for r in recent), "need": _avg([r["need"] for r in recent]),
                        "debt7": sum(target - r["asleep"] for r in recent[-7:])},
             "regularity": reg, "tonight": tn, "factors": F, "window_n": len(rows),
+            "stages": stage_analysis(rows),
             "advice": advice(rows, recent, target, F, reg, tn), "general": [{"title": t, "text": x} for t, x in GENERAL]}
+
+
+# ---------- stages: how much of each, where in the night, and what goes with more or less ----------
+
+# Roughly what healthy adults get, as a share of time asleep. Watches estimate stages from movement and heart rate,
+# so treat your numbers as a trend, not a lab measurement; deep sleep also falls with age.
+TYPICAL = {"deep": (15, 25), "rem": (20, 25), "light": (50, 60)}
+
+
+def _segments(day):
+    """Last night's stages as (start, end, stage) in minutes from the wake day's midnight."""
+    import daytimeline as T
+    out = []
+    for x in ((_raw(day).get("sleep") or {}).get("sleepLevels") or []):
+        try: out.append((T._gmt_min(x["startGMT"], day), T._gmt_min(x["endGMT"], day), T.STAGE.get(int(x.get("activityLevel", 1)), "light")))
+        except Exception: continue
+    return out
+
+
+def stage_analysis(rows):
+    have = [r for r in rows if r["deep"] is not None and r["rem"] is not None and r["light"] is not None]
+    if len(have) < 5: return {"available": False}
+    A = lambda g, k: round(st.mean(r[k] for r in g if r[k] is not None)) if g else None
+    pct = {k: round(100 * st.mean(r[k] / r["asleep"] for r in have), 1) for k in ("deep", "light", "rem")}
+    groups = lambda spec: [{"label": lab, "n": len(g), **{k: A(g, k) for k in ("deep", "rem", "light", "awake", "score")}} for lab, g in spec if g]
+    by_length = groups([("Under 6h 30m", [r for r in have if r["asleep"] < 390]), ("6h 30m to 7h 30m", [r for r in have if 390 <= r["asleep"] < 450]),
+                        ("7h 30m or more", [r for r in have if r["asleep"] >= 450])])
+    se = lambda r: r["before"]["session_end"]
+    by_session = groups([("Session after 19:00", [r for r in have if se(r) and se(r) >= LATE_SESSION]),
+                         ("Session before 19:00", [r for r in have if se(r) and se(r) < LATE_SESSION]), ("Rest day", [r for r in have if not se(r)])])
+    by_bed = groups([("Asleep before midnight", [r for r in have if r["start"] < 0]), ("Midnight to 00:30", [r for r in have if 0 <= r["start"] < 30]),
+                     ("After 00:30", [r for r in have if r["start"] >= 30])])
+    # within the night: wake-ups, when they happen, and where deep and REM fall
+    hours, after, counts, longest, d1, r2, first_deep, nseg = {}, {}, [], [], [], [], [], 0
+    for r in have:
+        sg = _segments(r["date"])
+        if not sg: continue
+        nseg += 1
+        on, off = min(a for a, _, _ in sg), max(b for _, b, _ in sg); half = (on + off) / 2
+        aw = [(a, b) for a, b, k in sg if k == "awake" and a > on]
+        counts.append(len(aw)); longest.append(max([b - a for a, b in aw] or [0]))
+        for a, _ in aw:
+            h = (a // 60) % 24; hours[h] = hours.get(h, 0) + 1
+            k = int((a - on) // 60); after[k] = after.get(k, 0) + 1
+        D = sum(b - a for a, b, k in sg if k == "deep"); R = sum(b - a for a, b, k in sg if k == "rem")
+        if D: d1.append(sum(max(0, min(b, half) - a) for a, b, k in sg if k == "deep") / D)
+        if R: r2.append(sum(max(0, b - max(a, half)) for a, b, k in sg if k == "rem") / R)
+        deep0 = [a for a, _, k in sg if k == "deep"]
+        if deep0: first_deep.append(min(deep0) - on)
+    order = sorted(hours, key=lambda h: (h + 12) % 24)
+    wake = {"nights": nseg, "per_night": round(st.mean(counts), 1) if counts else None, "longest": round(st.mean(longest)) if longest else None,
+            "long_nights": sum(x >= 20 for x in longest),
+            "by_hour": [{"h": h, "count": hours[h], "per10": round(10 * hours[h] / nseg, 1)} for h in order] if nseg else [],
+            "by_hours_in": [{"h": k, "count": after[k]} for k in sorted(after)]}
+    arch = {"deep_first_half": round(100 * st.mean(d1)) if d1 else None, "rem_second_half": round(100 * st.mean(r2)) if r2 else None,
+            "first_deep_min": round(st.median(first_deep)) if first_deep else None}
+    out = {"available": True, "n": len(have), "avg": {k: A(have, k) for k in ("deep", "light", "rem", "awake", "asleep")}, "pct": pct,
+           "typical": TYPICAL, "by_length": by_length, "by_session": by_session, "by_bedtime": by_bed, "wake": wake, "arch": arch}
+    out["patterns"] = _stage_patterns(out)
+    return out
+
+
+def _stage_patterns(S):
+    """Plain sentences for what stands out, biggest first. Each names the numbers it's built on."""
+    P, pct, T = [], S["pct"], TYPICAL
+    g = lambda lst, lab: next((x for x in lst if x["label"] == lab), None)
+    if pct["rem"] < T["rem"][0]:
+        short, long_ = g(S["by_length"], "Under 6h 30m"), g(S["by_length"], "7h 30m or more")
+        tail = (f" Most of it comes late: {S['arch']['rem_second_half']}% of your REM is in the second half of the night, so the alarm cuts it."
+                if S["arch"]["rem_second_half"] and S["arch"]["rem_second_half"] >= 65 else "")
+        both = f" Short nights give you {short['rem']} min of REM; nights of 7h 30m or more give {long_['rem']} min." if short and long_ else ""
+        P.append({"kind": "bad", "title": f"REM is low: {pct['rem']}% of your sleep", "text": f"Healthy adults get about {T['rem'][0]}–{T['rem'][1]}%." + tail + both
+                  + " REM matters for memory, mood and learning skills, including new lifts. The surest way to get more is to sleep longer."})
+    elif pct["rem"] >= T["rem"][0]:
+        P.append({"kind": "good", "title": f"REM is in a healthy range: {pct['rem']}%", "text": f"Healthy adults get about {T['rem'][0]}–{T['rem'][1]}%."})
+    late, early = g(S["by_session"], "Session after 19:00"), g(S["by_session"], "Session before 19:00")
+    if late and early and late["n"] >= 3 and (early["rem"] - late["rem"] >= 10 or early["deep"] - late["deep"] >= 10):
+        P.append({"kind": "bad", "title": "Late sessions cost you deep sleep and REM",
+                  "text": f"After a session ending after 19:00: {late['deep']} min deep and {late['rem']} min REM, against {early['deep']} and {early['rem']} after an earlier one ({late['n']} vs {early['n']} nights)."})
+    lb, eb = g(S["by_bedtime"], "After 00:30"), g(S["by_bedtime"], "Asleep before midnight")
+    if lb and eb and lb["n"] >= 3 and eb["deep"] - lb["deep"] >= 10:
+        P.append({"kind": "bad", "title": "Late nights cost deep sleep",
+                  "text": f"Asleep after 00:30: {lb['deep']} min deep, against {eb['deep']} min when you're asleep before midnight ({lb['n']} vs {eb['n']} nights). Deep sleep comes early in the night and is strongest early in your body clock's night, so a late start loses some for good."})
+    if pct["deep"] >= T["deep"][0]:
+        P.append({"kind": "good", "title": f"Deep sleep is solid: {pct['deep']}%",
+                  "text": f"Healthy adults get about {T['deep'][0]}–{T['deep'][1]}%, and it falls with age. {S['arch']['deep_first_half'] or '–'}% of yours comes in the first half of the night, as it should; your first deep sleep starts about {S['arch']['first_deep_min'] or '–'} min after you fall asleep."})
+    W = S["wake"]
+    if W["per_night"] is not None:
+        peaks = sorted(W["by_hour"], key=lambda x: -x["count"])[:2]
+        pk = " and ".join(f"{x['h']:02d}:00–{(x['h'] + 1) % 24:02d}:00" for x in sorted(peaks, key=lambda x: (x["h"] + 12) % 24))
+        P.append({"kind": "bad" if W["long_nights"] >= W["nights"] * 0.25 else "info", "title": f"About {W['per_night']} wake-ups a night",
+                  "text": f"Most often {pk}. Waking briefly a few times a night is normal and you usually won't remember it. Your longest spell awake averages {W['longest']} min, and {W['long_nights']} of {W['nights']} nights had one of 20 min or more."
+                  + " If the same hour keeps showing up, look for a cause at that time: a toilet trip (fluids late), the aircon cycling, light, noise or a child."})
+    return P
 
 
 def _find(d, key):
