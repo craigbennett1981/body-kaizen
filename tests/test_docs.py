@@ -33,5 +33,17 @@ class Docs(unittest.TestCase):
                 self.assertIn(f"img/{f}", used, f"{f} is generated but nothing shows it")
 
 
+class IntegrationRequests(unittest.TestCase):
+    def test_requests_open_the_integration_form(self):
+        """Every "ask for an integration" link opens the form, not a blank issue (blank issues are turned off)."""
+        form = ROOT / ".github" / "ISSUE_TEMPLATE" / "integration_request.yml"
+        self.assertTrue(form.exists())
+        for f in (ROOT / "README.md", ROOT / "docs" / "integrations.md", ROOT / "app" / "static" / "connections.html"):
+            links = re.findall(r"https://github\.com/craigbennett1981/body-kaizen/issues/new[^\s)\"']*", f.read_text(encoding="utf-8"))
+            with self.subTest(file=f.name):
+                self.assertTrue(links, "no link to ask for an integration")
+                for l in links: self.assertIn(f"template={form.name}", l)
+
+
 if __name__ == "__main__":
     unittest.main()
