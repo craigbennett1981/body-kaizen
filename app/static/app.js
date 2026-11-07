@@ -1569,6 +1569,29 @@ function xpToday(E){
     return `<li class="xt ${esc(it.state.replace(' ', '-'))}" title="${esc(st)}${it.due && it.state !== 'done' ? ' · reminder from ' + it.due : ''}"><span class="xt-i" aria-hidden="true">${ic}</span>${esc(it.label)}<span class="sr-only"> (${esc(st)})</span></li>`; }).join('')}</ul>${base}</div>`;
 }
 
+// what "Copy" puts on the clipboard: the entry, wrapped in what the assistant should do with it
+function xpForAgent(yaml){
+  const habits = [...new Set((yaml.match(/habit\.[a-z0-9_]+/g) || []))];
+  return `Please start this Body Kaizen experiment for me.
+
+1. Read the Experiments section of AI-GUIDE.md and the experiments.yaml section of SCHEMA.md first.
+2. Add the entry below under experiments: in experiments.yaml in my data folder (create the file if it isn't there). Keep the id unique.
+3. Set start to today if it begins tonight, or to the date I give you; days is the length I asked for (14 if I didn't say).
+4. If another experiment is still running, ask me whether to stop it first: one experiment changes one thing.${habits.length ? `
+5. It uses ${habits.join(', ')}: make sure each is declared under habits: in experiments.yaml, and log it in the day file whenever I mention it.` : ''}
+${habits.length ? 6 : 5}. Only use variables, operators and outcomes listed in SCHEMA.md. Then check the Experiments tab shows it as Planned or Running, not "Needs fixing".
+${habits.length ? 7 : 6}. Tell me the rule, the start and end dates, and what I need to do each day (the readings it needs, anything to log). Don't change the rule or dates once it has started.
+${habits.length ? 8 : 7}. Commit the change if my data folder is a git repository.
+
+${yaml}
+`;
+}
+function xpCopy(text, msgEl, pre){
+  (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
+    .then(() => { msgEl.textContent = 'Copied, with instructions: paste it to your assistant.'; })
+    .catch(() => { if(pre){ pre.textContent = text; pre.hidden = false; const d = pre.closest("details"); if(d) d.open = true; } msgEl.textContent = 'Couldn\u2019t copy: select the text below and give it to your assistant.'; });
+}
+
 // ---- Try a rule: the same split and resampling as experiments.py, in the browser, over XP.table ----
 function xpRand(seed){ return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const xpMean = a => a.reduce((s, x) => s + x, 0) / a.length;
@@ -1608,11 +1631,9 @@ function xpTry(){
   el.innerHTML = `<p class="xp-v">In your last ${esc(T.dates.length)} nights, the rule held on <b>${yes.length}</b> and didn't on <b>${no.length}</b>${T.dates.length - yes.length - no.length ? ` (${T.dates.length - yes.length - no.length} with no data)` : ''}. Nights when it held, against nights when it didn't:</p>
     ${xpResults(res, 'nights when it held', 'nights when it didn\'t')}
     <p class="sub">These are nights that happened to differ, so other things may differ too (a late session is often a busy day). To test it properly, run it as an experiment.</p>
-    <div class="xtry-go"><button id="xtry-copy">Copy as an experiment</button><span class="sub" id="xtry-msg">or tell your assistant: "start an experiment: ${esc(phrase)}, for ${esc(XP.default_days)} nights"</span></div>
+    <div class="xtry-go"><button id="xtry-copy" title="Copies the entry with instructions for your assistant">Copy as an experiment</button><span class="sub" id="xtry-msg">or tell your assistant: "start an experiment: ${esc(phrase)}, for ${esc(XP.default_days)} nights"</span></div>
     <pre class="xtry-yaml" hidden>${esc(yaml)}</pre>`;
-  $('#xtry-copy').onclick = () => { const pre = el.querySelector('.xtry-yaml'); pre.hidden = false;
-    (navigator.clipboard ? navigator.clipboard.writeText(yaml) : Promise.reject()).then(() => { $('#xtry-msg').textContent = 'Copied: paste it into experiments.yaml, or give it to your assistant.'; })
-      .catch(() => { $('#xtry-msg').textContent = 'Copy the entry below into experiments.yaml.'; }); };
+  $('#xtry-copy').onclick = () => { const pre = el.querySelector('.xtry-yaml'); pre.hidden = false; xpCopy(xpForAgent(yaml), $('#xtry-msg'), pre); };
 }
 function xpTryForm(){
   const cat = XP.catalogue, T = XP.table, groups = {};
@@ -1715,6 +1736,7 @@ async function renderExperiments(){
       <p class="sub">Patterns your own nights already show, and the test that would settle each one. The evidence so far compares nights that happened to differ; a test where you change one thing on purpose is much stronger.</p>
       <div class="xs-grid">${XP.suggestions.map(s => `<div class="fs xs"><h3>${esc(s.title)}</h3><p>${esc(s.why)}</p><p class="sub">${esc(s.hypothesis)}</p>
         <p class="xs-go">Tell your assistant: <b>“start the ${esc(s.name)} experiment”</b></p>
+        <p class="xs-copy"><button class="xs-cp" data-i="${XP.suggestions.indexOf(s)}" title="Copies the entry with instructions for your assistant">Copy for your assistant</button> <span class="sub"></span></p>
         <details><summary>or add it to experiments.yaml yourself</summary><pre>${esc(s.yaml)}</pre></details></div>`).join('')}</div>` : ''}
     <h2>Try a rule</h2>
     <p class="sub">Ask your history a question: how did your nights go when this held, against when it didn't? Nothing is saved.</p>
@@ -1735,6 +1757,8 @@ async function renderExperiments(){
       <li>The bar shows the difference and a 90% range for it, from resampling those nights. It only counts as better or worse when the whole range is on one side of zero; otherwise it's unclear.</li>
       <li>A finished experiment needs ${Math.round(XP.enough_kept * 100)}% of nights kept, and at least ${esc(XP.min_nights)}, to give a verdict. One person, one experiment: treat a result as strong evidence for you, not proof for everyone, and repeat it if it matters.</li>
     </ul>`;
+  el.querySelectorAll('.xs-cp').forEach(b => b.onclick = () => xpCopy(xpForAgent(XP.suggestions[+b.dataset.i].yaml), b.nextElementSibling,
+    b.closest('.xs').querySelector('details pre')));
   xpTryForm(); xpRelForm();
 }
 

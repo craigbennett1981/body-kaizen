@@ -604,3 +604,4 @@ ol.sl-gen{padding-left:20px;line-height:1.5;font-size:14px} ol.sl-gen li{margin:
 .xp-today .xt.todo{border-color:var(--warn)} .xp-today .xt.todo .xt-i{color:var(--warn)} .xp-today .xt.tonight .xt-i{color:var(--accent)}
 .xp-today .sub{margin:6px 0 0}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.xs-copy{margin:6px 0} .xs-cp{background:none;border:1px solid var(--rule);border-radius:6px;padding:3px 10px;cursor:pointer;font-size:12.5px;color:inherit}
