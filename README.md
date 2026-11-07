@@ -227,6 +227,10 @@ Abbott, used at your own risk, and they can break when those services change. Se
 [docs/integrations.md](docs/integrations.md). Not sure what to buy? [docs/kit.md](docs/kit.md) ranks what's worth
 having, starting with a kitchen scale.
 
+**Use something that isn't here?** Oura, Withings, Apple Health, Strava, another CGM or gym app: if it would be
+useful to you, [open an issue on GitHub](https://github.com/craigbennett1981/body-kaizen/issues/new) saying what it is and what you'd want from it. Requests
+shape what gets built next.
+
 ## Keeping your data private in git
 
 Your food, weight, blood pressure, glucose and lab results are health data. Git gives you history and backups, but

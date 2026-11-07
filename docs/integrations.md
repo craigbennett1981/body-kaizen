@@ -87,3 +87,9 @@ line there for any exercise it doesn't know.
 
 These are logged by hand (or by an assistant reading a screenshot of the app) in the day file: see `weight:`
 and `vitals: bp:` in [SCHEMA.md](../SCHEMA.md). Any scale or monitor works.
+
+## Something missing?
+
+If there's a watch, ring, scale, CGM, gym app or health service you'd like Body Kaizen to read from,
+[open an issue on GitHub](https://github.com/craigbennett1981/body-kaizen/issues/new): say what it is, what data you'd want from it, and whether it has an export
+or an API. Requests shape what gets built next.
