@@ -39,7 +39,9 @@ ABOUT = """
   writes everything into plain files in your own private git repository. Body Kaizen works out calories and macros,
   pulls in your Garmin watch, FreeStyle Libre glucose and gym data, and shows how your day, week and months are going
   against the targets you set. No account, no cloud, no telemetry.</p>
-  <p>This page is a live demo on 90 days of made-up data for Sam, a fictional person. Every tab works:</p>
+  <p>This page is a live demo on 90 days of made-up data for Sam, a fictional person. It sets no cookies, has no
+  analytics or trackers, and sends nothing anywhere: everything you see comes from static files on this site.
+  Every tab works:</p>
   <ul>
     <li><strong>Day:</strong> macros paced through the day, readiness, energy balance and a timeline with glucose under each meal.</li>
     <li><strong>Food:</strong> where your saturated fat, protein and fibre come from, plants per week, and swaps from foods you already eat.</li>
@@ -49,7 +51,7 @@ ABOUT = """
   </ul>
   <p><a href="{repo}">Body Kaizen on GitHub</a> · <a href="{repo}#quick-start">Quick start</a> ·
   <a href="{repo}/blob/main/docs/features.md">Every page explained</a> · <a href="thresholds.html">How your numbers are judged</a> ·
-  <a href="{repo}/blob/main/DISCLAIMER.md">Disclaimer</a>. Not medical advice.</p>
+  <a href="{repo}/blob/main/DISCLAIMER.md">Disclaimer</a>. A wellness tool, not medical advice or a medical device.</p>
 </section>
 <noscript><p>The dashboard needs JavaScript to draw its charts. Everything above describes what it shows; the code and
 screenshots are on <a href="{repo}">GitHub</a>.</p></noscript>

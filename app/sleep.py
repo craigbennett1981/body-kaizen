@@ -200,12 +200,12 @@ def advice(rows, recent, target_min, F, reg, tn):
     if awake is not None and awake >= 40:
         add(2, "Long spells awake",
             f"About {awake} min awake a night lately.",
-            "If you're awake more than about 20 minutes, get up, keep the lights low, do something dull, and go back when sleepy. Bed is for sleep only. This is the core of CBT-I, the first-line treatment for insomnia.")
+            "If you're awake more than about 20 minutes, get up, keep the lights low, do something dull, and go back when sleepy. Bed is for sleep only. These habits come from CBT-I, a well-studied programme for poor sleep; if bad nights go on for weeks, ask a doctor about it.")
     lows = [r["spo2_low"] for r in recent if r["spo2_low"]]
     if len(lows) >= 5 and st.median(lows) < 88:
         add(4, "Low overnight oxygen readings",
             f"Your lowest SpO2 was a median {round(st.median(lows))}% over recent nights. Wrist readings are noisy, so this isn't a diagnosis.",
-            "If you snore, wake with headaches or feel sleepy in the day, mention it to a doctor: a home sleep test is simple.")
+            "If you snore, wake with headaches or feel sleepy in the day, mention it to a doctor.")
     debt7 = sum(target_min - r["asleep"] for r in recent[-7:])   # net: a long night pays some back
     if debt7 >= 300:
         add(3, "Big sleep debt this week",

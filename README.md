@@ -34,7 +34,7 @@ click anything.
 <b>Know your food.</b> Where this week's saturated fat, protein and fibre came from, plants against 30, swaps from
 foods you already eat, and every food you've logged, searchable and sortable.</td>
 <td width="33%" valign="top"><img src="docs/img/sleep.gif" alt="Sleep: last night, the trend, stages and what goes with better nights"><br>
-<b>Fix your sleep.</b> Last night's stages, your sleep debt, when to be in bed tonight, and which of your own days
+<b>Sleep better.</b> Last night's stages, your sleep debt, when to be in bed tonight, and which of your own days
 go with the bad nights, with advice from what it finds.</td>
 <td width="33%" valign="top"><img src="docs/img/training.gif" alt="Training: workouts, the muscle map and calories burnt"><br>
 <b>Train with feedback.</b> Every session with coach notes and heart rate, lifts against last time, a muscle map of
@@ -65,7 +65,9 @@ Hevy · InBody · any smart scale or blood-pressure app you can screenshot.
 > **Not medical advice, and no warranty.** Body Kaizen is a personal logging tool. Its scores, targets and
 > suggestions are rules of thumb, not a diagnosis or treatment plan. AI assistants make mistakes, so check what
 > yours logs. Integrations are unofficial, and you're responsible for your own health decisions, accounts and data.
-> Read the [Disclaimer](DISCLAIMER.md) before using it.
+> It's a wellness tool, not a medical device, and it isn't for under 18s, pregnancy, anyone with a history of eating
+> disorders, or anyone adjusting insulin or medication from its numbers. Read the [Disclaimer](DISCLAIMER.md) before
+> using it.
 
 ## Ask it anything about your data
 

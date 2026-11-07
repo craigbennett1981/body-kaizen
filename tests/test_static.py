@@ -49,6 +49,8 @@ class StaticDemo(unittest.TestCase):
             b = p.chromium.launch()
             pg = b.new_page(viewport={"width": 1280, "height": 900})
             pg.on("response", lambda r: r.status >= 400 and bad.append(f"{r.status} {r.url}"))
+            # the demo says it sends nothing anywhere: every request must stay on the site
+            pg.on("request", lambda r: not r.url.startswith(("http://127.0.0.1", "data:", "blob:")) and bad.append(f"off-site request: {r.url}"))
             pg.on("pageerror", lambda e: bad.append(f"page error: {e}"))
             pg.on("console", lambda m: m.type == "error" and "Failed to load resource" not in m.text and bad.append(f"console: {m.text}"))
             pg.goto(self.url); pg.wait_for_selector("#day h1", timeout=15000)
@@ -123,6 +125,7 @@ class StaticDemo(unittest.TestCase):
         ld = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', idx, re.S).group(1))
         self.assertIn("SoftwareApplication", [g["@type"] for g in ld["@graph"]])
         self.assertIn('id="bk-about-h"', idx)                        # real text for crawlers, visible to everyone
+        self.assertIn("sets no cookies", idx)
         self.assertIn("index,follow", meta(idx, "name", "robots"))
         for page in ("doctor.html", "connections.html", "404.html"):
             with self.subTest(page=page):

@@ -21,6 +21,24 @@ suggestions, including anything an AI assistant tells you while logging, are rul
 Glucose, blood pressure and lab values are shown for interest, never for diagnosis or treatment decisions. Talk to a
 doctor before changing your diet, training, medication or supplements, and about any reading that worries you.
 
+**A wellness tool, not a medical device.** Body Kaizen is for tracking food, training, sleep and general wellbeing,
+and for learning from your own numbers. It is not designed or tested to diagnose, prevent, monitor or treat any
+disease or condition, and nothing in it has been reviewed or approved by a health regulator.
+
+**Who it isn't for.** Don't use Body Kaizen, or use it only with your doctor's agreement, if you:
+
+- are under 18;
+- are pregnant or breastfeeding;
+- have, or have had, an eating disorder, or find that counting calories or weighing food makes you anxious or
+  obsessive. Calorie targets and deficits can make an eating disorder worse; if that's you, please talk to a
+  doctor or an eating-disorder service instead;
+- have diabetes or any condition where you adjust insulin or other medication from glucose readings. Glucose here
+  comes from an unofficial sync and is shown for interest: use your own meter and your care team's advice;
+- have a heart, kidney or other condition where diet, exercise or blood-pressure targets should be set by your
+  doctor. The dashboard's targets are general rules of thumb, not set for you.
+
+Stop and get help if tracking starts to feel like it's controlling you rather than helping.
+
 **Thresholds.** The bands and cut-offs the dashboard judges you against (listed on its "How your numbers are judged" page and in
 [docs/thresholds.md](docs/thresholds.md)) are taken from published guidelines where one exists and are otherwise
 judgement calls. We make a best effort to get them right and to say where each one comes from, but guidelines
