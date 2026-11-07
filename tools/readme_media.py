@@ -55,7 +55,7 @@ PREVIEW_OVERLAY = """(() => {
 })()"""
 
 # ---------- the social preview: a 1280 x 640 collage of six screenshots, each labelled ----------
-SOCIAL = ("social-preview.png", [("day.png", "Meals to macros, paced through the day"), ("experiments.png", "Experiments on yourself"),
+SOCIAL = ("social-preview.png", [("day.png", "Meals to macros, paced"), ("experiments.png", "Experiments on yourself"),
           ("readiness.png", "Sleep & recovery"), ("food.png", "Where your food comes from"),
           ("muscle-map.png", "Workouts and a muscle map"), ("trends.png", "Every day against its targets")])
 SOCIAL_HTML = """<!doctype html><html><head><meta charset="utf-8"><style>
