@@ -3,7 +3,11 @@
 What changed in each release. Earlier releases are described on the
 [releases page](https://github.com/craigbennett1981/body-kaizen/releases).
 
-## Unreleased
+## 0.7.0 (7 November 2026)
+
+### Dashboard
+- **Dates on the Week tab's Last 12 weeks grid:** each week's start date above its column (just the month starts on
+  a phone).
 
 ### Setting up
 - **Metric or imperial:** chosen at first-run setup (metric by default) and changeable from the profile icon.
