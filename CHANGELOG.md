@@ -3,7 +3,7 @@
 What changed in each release. Earlier releases are described on the
 [releases page](https://github.com/craigbennett1981/body-kaizen/releases).
 
-## Unreleased
+## 0.8.0 (12 November 2026)
 
 ### Sleep & recovery
 - **Garmin's sleep need is the target:** each night is judged against Garmin's need for it (its baseline moved up
@@ -21,6 +21,10 @@ What changed in each release. Earlier releases are described on the
   changes on its own: ask your assistant to switch targets.
 
 ### Training tab
+- **Intensity minutes:** Garmin's count (moderate plus vigorous counted twice) per day, week or month, against your
+  Garmin weekly goal (150 when the watch reports none; a seventh of it a day, pro rata for months). A 4-week average
+  line, this week's progress and what's left to do, how the last 4 full weeks compare with the 4 before, and how many
+  of the last 12 weeks met the goal. Weeks with too few days of watch data are faded and left out of the trend.
 - **Heart-rate zones:** minutes per zone for the period at the top, the share that was easy against the 80/20 line,
   and whether your easy runs were really easy, with a note when the watch's zones look set too low.
 - **One period for the top of the tab:** the 7 days, 30 days, 60 days and All buttons beside the title now set the
@@ -30,10 +34,6 @@ What changed in each release. Earlier releases are described on the
   for short periods. The Intensity chart shrinks to the calendar's height, and its note is down to this week and the
   trend (the rest is on hover).
 - **Muscles worked opens on this workout**, the one picked above it, instead of the last 7 days.
-- **Intensity minutes per week or month:** Garmin's count (moderate plus vigorous counted twice) against your Garmin
-  weekly goal (150 when the watch reports none), pro rata for months. A 4-week average line, this week's progress and
-  what's left to do, how the last 4 full weeks compare with the 4 before, and how many of the last 12 weeks met the
-  goal. Weeks with too few days of watch data are faded and left out of the trend.
 
 ### Setting up
 - **Choose how your data is kept:** a second setup step offers plain files (simplest, no history or backup), plain
@@ -59,6 +59,8 @@ What changed in each release. Earlier releases are described on the
   are the only thing served before signing in.
 
 ### Fixes
+- **Releases reach PyPI again:** the upload step was pinned to a commit of the publishing action that doesn't exist,
+  so 0.5.0 to 0.7.0 never got there. It's now pinned to the real v1.14.3.
 - **Without git:** syncs no longer fail when git isn't installed: they save your data and skip the commit. Setup
   refuses a history choice it can't make (before creating anything), and if git can't set up the history it says so
   and keeps plain files, without the GitHub to-do. On a Mac, git only counts once Apple's command line tools are
