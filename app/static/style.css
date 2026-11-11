@@ -628,3 +628,4 @@ ol.sl-gen{padding-left:20px;line-height:1.5;font-size:14px} ol.sl-gen li{margin:
 #assistant button{font:inherit;padding:8px 16px;border-radius:8px;border:1px solid var(--rule);background:transparent;color:var(--ink);cursor:pointer}
 #assistant button.primary{background:var(--accent);border-color:var(--accent);color:#fff} #assistant .ai-copy{justify-content:flex-start}
 #setupform button.link{border:0;padding-left:0;color:var(--accent)}
+.mt-wrap{overflow-x:auto} .mt-tgt td,.mt-tgt th{white-space:nowrap} .mt-tgt tr.mt-foot td{color:var(--muted)}

@@ -164,7 +164,9 @@ Test one change on yourself and see what it does to your own sleep, recovery, bl
 **Weight** with a 7-day trend. **Body composition:** a small chart for every measure your scale gives (fat mass,
 muscle, fat-free mass, visceral fat, water, BMR and more), each with its 30-day change and InBody scans alongside.
 **Energy balance:** 30 days of burnt minus eaten, and the weight change it should have caused against your actual
-trend. **Blood pressure** on the 2017 ACC/AHA bands, with pulse pressure.
+trend. **Your real maintenance:** what you actually burn, from 28 days of eating against what the weight trend did
+(with a 90% range and Garmin's figure beside it), your targets moved so a typical week lands on maintenance or a rate
+towards your weight target, and your trend weight at the next InBody scan for each. **Blood pressure** on the 2017 ACC/AHA bands, with pulse pressure.
 
 ![Body composition: a small chart for each measure the scale gives, with InBody scans alongside](img/composition.png)
 

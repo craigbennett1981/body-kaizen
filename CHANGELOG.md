@@ -5,6 +5,14 @@ What changed in each release. Earlier releases are described on the
 
 ## Unreleased
 
+### Body tab
+- **Your real maintenance:** what you actually burn, from the last 28 days of eating against what your fasted weight
+  trend did (7,700 kcal per kg), with a 90% range and Garmin's burn beside it, so you can see how far Garmin's figure
+  is out. Your calorie targets moved so a typical week of yours lands on maintenance, or on 0.25 or 0.5 kg a week
+  towards your weight target (never below your BMR), and your trend weight at the next InBody scan for each. A chart
+  shows the estimate week by week. Set `adaptive:` in targets.yaml for your own goal rate and scan date. Nothing
+  changes on its own: ask your assistant to switch targets.
+
 ### Training tab
 - **One period for the top of the tab:** the 7 days, 30 days, 60 days and All buttons beside the title now set the
   Activity calendar and Intensity minutes too, not just Calories burnt. Intensity minutes shows days for 7 days,

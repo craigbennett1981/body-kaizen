@@ -1510,7 +1510,7 @@ async function renderBody(){
   $('#inbodytable').innerHTML = `<table><tr><th>Date</th><th>Weight</th><th>Muscle (SMM)</th><th>Fat mass</th><th>Body fat</th><th>Fat-free</th><th>Visceral</th><th>Phase angle</th><th>Score</th></tr>` +
     BODY.inbody.map(b=>`<tr><td>${shortDate(b.date)} ${b.date.slice(0,4)}</td><td>${fmt(U.wv(b.weight_kg),1)}${b.clothed?'*':''}</td><td>${b.smm_kg!=null?fmt(U.wv(b.smm_kg),1):'–'}</td><td>${b.fat_kg!=null?fmt(U.wv(b.fat_kg),1):'–'}</td><td>${b.pbf_pct!=null?b.pbf_pct+'%':'–'}</td><td>${b.ffm_kg!=null?fmt(U.wv(b.ffm_kg),1):'–'}</td><td>${b.visceral_level??'–'}</td><td>${b.phase_angle??'–'}</td><td>${b.score??'–'}</td></tr>`).join('') +
     `</table><p class="sub">* clothed. InBody reads about 1.7 points higher body fat and ${U.w(0.8)} lower fat-free mass than the home scale. Home-scale body fat moves ±0.3% day to day with hydration, so read the trend, not single days.</p>`;
-  renderBP(); renderEnergyBalance(); renderComposition();
+  renderBP(); renderEnergyBalance(); renderMaintenance(); renderComposition();
 }
 
 /* ---------- body composition: one small chart per measure the scale (and InBody) gives ---------- */
@@ -1598,6 +1598,62 @@ async function renderEnergyBalance(){
       {type:'line',name:'Expected',xAxisIndex:1,yAxisIndex:1,data:(H.expected_line||[]).map(([d,v])=>[d,U.wv(v)]),symbol:'none',lineStyle:{color:c.good,type:'dashed',width:2},itemStyle:{color:c.good}},
       {type:'line',name:'Actual trend',xAxisIndex:1,yAxisIndex:1,data:(H.trend||[]).map(([d,v])=>[d,U.wv(v)]),symbol:'none',lineStyle:{color:c.accent,width:3},itemStyle:{color:c.accent}},
       {type:'scatter',name:'Fasted',xAxisIndex:1,yAxisIndex:1,data:(H.weights||[]).map(([d,v])=>[d,U.wv(v)]),symbolSize:8,itemStyle:{color:c.accent,opacity:.5}},
+    ]});
+}
+
+/* ---------- your real maintenance: intake minus what the weight trend says, not Garmin's burn ---------- */
+async function renderMaintenance(){
+  const M = await api('/api/maintenance').catch(()=>null), N = M && M.now, el = $('#mtbody'), ch = $('#mtchart');
+  if(!N){ $('#mtnote').textContent = 'Not available.'; return; }
+  if(N.maintenance == null){
+    $('#mtnote').innerHTML = `Works out what you really burn from what you eat and what the scale does. It needs ${esc(M.min_days)} closed days of food and ${esc(M.min_weigh_ins)} fasted weigh-ins in the last ${esc(M.window)} days: so far ${esc(N.logged_days)} and ${esc(N.weigh_ins)}.`;
+    el.innerHTML = ''; ch.hidden = true; return;
+  }
+  const kc = v => `${fmt(v)}<small> kcal/day</small>`, perWk = v => `${v>0?'+':v<0?'−':'±'}${U.w(Math.abs(v),2)}`;
+  const bal = N.balance, T = M.targets, P = M.projection;
+  $('#mtnote').innerHTML = `Over the last ${esc(N.days)} days you ate <b>${fmt(N.intake)} kcal a day</b> on average (${esc(N.logged_days)} closed days) and your fasted weight trend moved <b>${perWk(N.kg_per_week)} a week</b> (${esc(N.weigh_ins)} weigh-ins). ` +
+    `At ${fmt(IMP() ? M.kcal_per_kg/LB : M.kcal_per_kg)} kcal per ${U.wu()}, that's a ${Math.abs(bal) < 25 ? 'balance of about zero' : bal > 0 ? `surplus of about ${fmt(bal)}` : `deficit of about ${fmt(-bal)}`} kcal a day, so you maintain on about <b>${fmt(N.maintenance)} kcal</b>.` +
+    (N.garmin_gap!=null ? ` Garmin puts your burn on those days at ${fmt(N.garmin_burn)}: ${Math.abs(N.garmin_gap) < 75 ? 'close to what the scale says.' : `<b>${fmt(Math.abs(N.garmin_gap))} kcal a day ${N.garmin_gap>0?'higher':'lower'}</b> than the scale says. Plan from this number, not Garmin's.`}` : '');
+  const tile = (lab, v, sub='') => `<div class="t"><div class="lab">${lab}</div><div class="v">${v}</div>${sub?`<div class="s">${sub}</div>`:''}</div>`;
+  const tiles = [tile('Maintenance, from the scale', kc(N.maintenance), N.low!=null ? `90% range ${fmt(N.low)}–${fmt(N.high)}` : ''),
+    tile('Eating lately', kc(N.intake), `${bal>=0?'+':'−'}${fmt(Math.abs(bal))} against maintenance`)];
+  if(N.garmin_burn!=null) tiles.push(tile("Garmin's burn", kc(N.garmin_burn), `${N.garmin_gap>=0?'+':'−'}${fmt(Math.abs(N.garmin_gap))} against the scale`));
+  if(P) tiles.push(tile(`InBody ${esc(shortDate(P.date))}`, `${fmt(U.wv(P.as_now),1)}<small> ${U.wu()}</small>`,
+    `trend weight eating as now${P.as_now_range?` (${fmt(U.wv(P.as_now_range[0]),1)}–${fmt(U.wv(P.as_now_range[1]),1)})`:''}${P.source==='usual gap'?'; date from your usual gap between scans':''}`));
+  let h = `<div class="tiles-g wo-tiles">${tiles.join('')}</div>`;
+  if(T && T.options.length){
+    const rng = r => `${fmt(r[0])}–${fmt(r[1])}`, NAME = {rest:'Rest day', training:'Training day', big:'Big day'};
+    const gname = g => !g ? 'Maintain' : `${perWk(g)} a week`, O = T.options, keys = Object.keys(T.current);
+    const head = `<tr><th>Target, kcal</th><th>Days lately</th><th>Now</th>${O.map(o => `<th>${gname(o.goal_kg_per_week)}</th>`).join('')}</tr>`;
+    const rows = keys.map(k => `<tr><td>${NAME[k]||esc(k)}</td><td>${Math.round((T.mix[k]||0)*100)}%</td><td>${rng(T.current[k])}</td>${O.map(o => `<td><b>${rng(o.suggested[k])}</b></td>`).join('')}</tr>`).join('');
+    const avg = `<tr class="mt-foot"><td>Week's average</td><td></td><td>${fmt(T.current_avg)}</td>${O.map(o => `<td>${fmt(o.goal_avg)}</td>`).join('')}</tr>`;
+    const scan = P && P.at_targets!=null ? `<tr class="mt-foot"><td>Trend weight ${esc(shortDate(P.date))}</td><td></td><td>${U.w(P.at_targets)}</td>${O.map(o => `<td>${U.w(o.at_scan)}</td>`).join('')}</tr>` : '';
+    h += `<div class="mt-wrap"><table class="wo-lifts mt-tgt">${head}${rows}${avg}${scan}</table></div>`;
+    const one = O.length === 1 ? O[0] : null;
+    h += `<p class="sub">${T.label?`Now: ${esc(T.label)}. `:''}Each column moves every target by the same amount, so a typical week of yours (that mix of day types) averages maintenance${O.length>1?' or the rate above it':''}. ` +
+      (one && Math.abs(one.shift) < 50 ? 'Your targets already fit: no change needed. ' : one ? `That's each target <b>${one.shift>0?'up':'down'} ${fmt(Math.abs(one.shift))}</b>. ` : '') +
+      (T.dropped && T.dropped.length ? `Faster rates (${T.dropped.map(gname).join(', ')}) are left out: they'd average under ${fmt(T.floor)} kcal a day (${T.floor_source==='InBody BMR'?'your BMR from the last InBody':'the usual minimum'}). ` : '') +
+      (T.chosen ? '' : `To show just your goal, set <code>adaptive: {goal_kg_per_week: -0.25}</code> in targets.yaml. `) +
+      (P && P.source==='usual gap' ? `The scan date is a guess from your usual gap between scans: set <code>next_scan:</code> under <code>adaptive</code> for the real one. ` : '') +
+      `Nothing changes on its own: ask your assistant to switch targets.</p>`;
+  }
+  el.innerHTML = h;
+  const W = (M.weeks||[]).filter(w => w.maintenance != null);
+  ch.hidden = W.length < 2; if(ch.hidden) return;
+  const c = theme(), ax = {axisLine:{lineStyle:{color:c.rule}},axisLabel:{color:c.muted,fontSize:11},splitLine:{lineStyle:{color:c.rule,opacity:.5}}};
+  chart('mtchart').setOption({animation:MOTION,animationDuration:500,textStyle:{fontFamily:'Archivo'},
+    title:{text:`Maintenance, kcal/day: each point from the ${M.window} days before it`,left:52,top:0,textStyle:{fontSize:12.5,fontWeight:600,color:c.ink}},
+    legend:{bottom:0,left:52,textStyle:{color:c.muted},data:['From the scale',"Garmin's burn",'Eaten']},
+    grid:{left:52,right:40,top:30,bottom:34},
+    xAxis:{type:'category',data:W.map(w => shortDate(w.end)),...ax}, yAxis:{type:'value',scale:true,...ax},
+    tooltip:{trigger:'axis',...tip(c),formatter:ps => { const w = W[ps[0].dataIndex];
+      return `<b>${M.window} days to ${shortDate(w.end)}</b><br>From the scale <b>${fmt(w.maintenance)}</b>${w.low!=null?` (${fmt(w.low)}–${fmt(w.high)})`:''}<br>Garmin ${fmt(w.garmin_burn)}<br>Eaten ${fmt(w.intake)}`; }},
+    series:[
+      {type:'line',name:'Range low',data:W.map(w => w.low),stack:'r',symbol:'none',lineStyle:{opacity:0},tooltip:{show:false}},
+      {type:'line',name:'Range',data:W.map(w => w.low!=null && w.high!=null ? w.high - w.low : null),stack:'r',symbol:'none',lineStyle:{opacity:0},areaStyle:{color:c.accent,opacity:.15},tooltip:{show:false}},
+      {type:'line',name:'From the scale',data:W.map(w => w.maintenance),symbolSize:6,lineStyle:{color:c.accent,width:3},itemStyle:{color:c.accent}},
+      {type:'line',name:"Garmin's burn",data:W.map(w => w.garmin_burn),symbolSize:5,lineStyle:{color:c.muted,type:'dashed',width:2},itemStyle:{color:c.muted}},
+      {type:'line',name:'Eaten',data:W.map(w => w.intake),symbolSize:5,lineStyle:{color:c.good,width:2},itemStyle:{color:c.good}},
     ]});
 }
 
