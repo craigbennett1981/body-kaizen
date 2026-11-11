@@ -13,22 +13,57 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff;fo
 .msg{margin:10px 0 0;font-size:13.5px;min-height:1.4em} .msg.ok{color:var(--good)} .msg.err{color:var(--bad)}
 .opt{display:flex;gap:8px;align-items:flex-start;margin-top:14px;font-size:14px} .opt input{margin-top:3px}
 .foot{margin-top:18px;font-size:12.5px;color:var(--muted)} .linkish{background:none;border:0;padding:0;color:var(--accent);text-decoration:underline;cursor:pointer}
+.step{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+.card h2{margin:0 0 4px;font-size:18px} .card .sub{margin:0 0 14px}
+fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:10px} legend{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.choice{display:flex;gap:12px;align-items:flex-start;margin:0;padding:14px 16px;border:1px solid var(--rule);border-radius:10px;cursor:pointer;font-weight:400}
+.choice:has(input:checked){border-color:var(--accent);background:var(--accent-soft)} .choice:has(input:disabled){opacity:.55;cursor:default}
+.choice input{margin-top:4px;accent-color:var(--accent)} .choice>span>b{display:block;font-size:15px;margin-bottom:2px}
+.choice .tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:99px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;vertical-align:1px}
+.choice ul{margin:6px 0 0;padding-left:18px;font-size:13.5px;color:var(--muted)} .choice li{margin:2px 0}
+.choice .yes::marker{content:"+  ";color:var(--good)} .choice .no::marker{content:"−  ";color:var(--bad)}
+.howto{margin:12px 0 0;font-size:13.5px}
 </style></head>
 <body><main>
 <img src="favicon.svg" alt="" width="48" height="48" style="display:block;margin-bottom:14px">
 <h1>Welcome to Body Kaizen</h1>
-<p class="sub">First, choose where your personal data will live: your food log, workouts, measurements and targets.
-It's a normal folder of text files on this computer, kept separate from the Body Kaizen code. Nothing is uploaded anywhere.</p>
+<p class="sub">Two quick choices about your personal data: your food log, workouts, measurements and targets. It's a
+normal folder of text files on this computer, kept separate from the Body Kaizen code. Nothing is uploaded unless you choose to.</p>
 <div class="card">
+  <p class="step">Step 1 of 2</p>
+  <h2>Where it lives</h2>
   <label for="path">Data folder</label>
   <div class="row"><input type="text" id="path" autocomplete="off" spellcheck="false"><button id="pick" hidden>Choose folder…</button></div>
   <p class="msg" id="msg" role="status" aria-live="polite"></p>
-  <label class="opt" id="gitopt" hidden><input type="checkbox" id="git" checked><span>Keep a history of changes with git (recommended). If you ever
-    copy it online, use a <b>private</b> repository: this is your health data.</span></label>
   <p class="msg err" id="envwarn" hidden></p>
-  <div class="row" style="margin-top:16px"><button class="primary" id="go" disabled>Use this folder</button></div>
 </div>
-<p class="foot">You can move it later: the choice is saved in <code>~/.body-kaizen/config.json</code>. Next you'll be asked for your name, start date and timezone.</p>
+<div class="card" id="storecard" hidden>
+  <p class="step">Step 2 of 2</p>
+  <h2>How it's kept</h2>
+  <p class="sub">Your assistant and the dashboard work the same either way. The difference is what happens when something goes wrong.</p>
+  <fieldset>
+    <legend>How your data is kept</legend>
+    <label class="choice"><input type="radio" name="store" value="files">
+      <span><b>Plain files</b>The simplest: just the folder, nothing else to install or learn.
+        <ul><li class="yes">Nothing to set up</li><li class="no">No history: an overwritten or deleted file is gone</li>
+        <li class="no">No backup unless you make one (Time Machine, File History, an external drive)</li></ul></span></label>
+    <label class="choice"><input type="radio" name="store" value="git" checked>
+      <span><b>Plain files with history<span class="tag">Recommended</span></b>The same folder, kept as a git repository on this computer.
+        <ul><li class="yes">Every change saved as a version: see what changed and undo it</li><li class="yes">Nothing leaves this computer</li>
+        <li class="no">Still only on this computer: a lost or broken computer loses it</li></ul></span></label>
+    <label class="choice"><input type="radio" name="store" value="github">
+      <span><b>History, plus a private backup on GitHub</b>As above, with a copy in a private GitHub repository you push to.
+        <ul><li class="yes">Versions and an off-computer backup</li><li class="no">Needs a free GitHub account and about 5 minutes after setup</li>
+        <li class="no">A copy of your health data is stored on GitHub: keep the repository <b>private</b></li></ul></span></label>
+  </fieldset>
+  <p class="msg err" id="nogit" hidden>git isn't installed on this computer, so only plain files are available.
+    <a href="https://git-scm.com/downloads" target="_blank" rel="noopener">Install git</a>, then reload this page to keep a history.</p>
+  <p class="howto">How each one works, and the GitHub steps: <a href="https://github.com/craigbennett1981/body-kaizen/blob/main/docs/data-folder.md#how-your-data-is-kept" target="_blank" rel="noopener">How your data is kept</a>
+    · <a href="https://github.com/craigbennett1981/body-kaizen/blob/main/docs/data-folder.md#a-private-backup-on-github" target="_blank" rel="noopener">Set up a private GitHub backup</a></p>
+</div>
+<div class="row" style="margin-top:18px"><button class="primary" id="go" disabled>Use this folder</button></div>
+<p class="foot">You can change both later: the folder is saved in <code>~/.body-kaizen/config.json</code>, and you can turn history on or off any time.
+Next you'll be asked for your name, start date and timezone.</p>
 </main>
 <script>
 const $ = s => document.querySelector(s);
@@ -42,7 +77,7 @@ const show = (c) => {
   if(!c.ok && c.suggest){ const btn = document.createElement('button'); btn.className = 'linkish'; btn.id = 'usesub';
     btn.textContent = `Use ${c.suggest_short} instead`; m.append(' ', btn); }
   if(c.suggest) $('#usesub').onclick = () => { $('#path').value = c.suggest; check(); };
-  $('#gitopt').hidden = !(c.ok && c.mode === 'new' && window.HAS_GIT);
+  $('#storecard').hidden = !(c.ok && c.mode === 'new');
   $('#go').disabled = !c.ok;
   $('#go').textContent = c.ok && c.mode === 'existing' ? 'Use this data folder' : 'Create my data folder';
 };
@@ -58,9 +93,11 @@ $('#go').onclick = async () => {
   if(!last || !last.ok) return;
   $('#go').disabled = true; $('#pick').disabled = true; $('#path').disabled = true;
   $('#msg').className = 'msg'; $('#msg').textContent = 'Setting up your data folder…';
-  const r = await post('/api/datasetup/create', {path: last.path, git: $('#git').checked}).catch(() => null);
+  const store = (document.querySelector('input[name=store]:checked') || {}).value || 'files';
+  document.querySelectorAll('input[name=store]').forEach(i => i.disabled = true);
+  const r = await post('/api/datasetup/create', {path: last.path, storage: last.mode === 'new' ? store : undefined}).catch(() => null);
   if(!r || !r.ok){ $('#path').disabled = false; $('#pick').disabled = false; return show(r || {ok:false, error:'Something went wrong; see the server log.'}); }
-  $('#msg').className = 'msg ok'; $('#msg').textContent = `Done: ${r.short}${r.git ? ' (with git history)' : ''}. Starting the dashboard…`;
+  $('#msg').className = 'msg ok'; $('#msg').textContent = `Done: ${r.short}${r.git ? ' (with git history)' : ''}${r.storage === 'github' ? '; the GitHub steps are on your to-do list' : ''}. Starting the dashboard…`;
   for(let i = 0; i < 60; i++){   // the server restarts on the new folder; wait for it, then open the dashboard
     await new Promise(res => setTimeout(res, 500));
     const ok = await fetch('/api/datasetup', {cache:'no-store'}).then(x => x.json()).then(x => !x.needs_setup).catch(() => false);
@@ -71,6 +108,7 @@ $('#go').onclick = async () => {
 fetch('/api/datasetup', {cache:'no-store'}).then(r => r.json()).then(I => {
   if(!I.needs_setup){ location.href = '/'; return; }
   window.HAS_GIT = I.git; $('#pick').hidden = !I.picker;
+  if(!I.git){ document.querySelectorAll('input[name=store]').forEach(i => { i.disabled = i.value !== 'files'; i.checked = i.value === 'files'; }); $('#nogit').hidden = false; }
   $('#path').value = I.suggested;
   if(I.env_override){ $('#envwarn').hidden = false; $('#envwarn').textContent = 'Note: FT_DATA is set when the dashboard starts, and it overrides this choice. Remove it (or point it at the folder you choose) for this to stick.'; }
   check();

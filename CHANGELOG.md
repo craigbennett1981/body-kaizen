@@ -11,6 +11,12 @@ What changed in each release. Earlier releases are described on the
   what's left to do, how the last 4 full weeks compare with the 4 before, and how many of the last 12 weeks met the
   goal. Weeks with too few days of watch data are faded and left out of the trend.
 
+### Setting up
+- **Choose how your data is kept:** a second setup step offers plain files (simplest, no history or backup), plain
+  files with git history (recommended: every change a version, nothing leaves the computer) or history plus a private
+  GitHub backup, whose steps go on the to-do list. Without git installed, plain files are offered and git is linked.
+  [docs/data-folder.md](docs/data-folder.md#how-your-data-is-kept) explains each one and the GitHub steps.
+
 ### Dashboard
 - **A logo of its own:** three rising steps with a dot on the top one, in the dashboard's blue. It is the browser-tab
   icon (SVG, plus `favicon.ico` and an Apple touch icon), the demo's icon and the installer's app icon. The icon files

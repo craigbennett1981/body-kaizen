@@ -120,8 +120,10 @@ powershell -ExecutionPolicy ByPass -c "irm https://raw.githubusercontent.com/cra
 It installs Body Kaizen with the Garmin and LibreLinkUp syncs, starts it whenever you log in, adds a **Body Kaizen**
 launcher, and opens the dashboard in your browser. Want a look first? Try the [live demo](https://demo.bodykaizen.app/).
 
-**2. Choose your data folder.** The first page asks where to keep your data (as a private git repository if you tick
-the box), then your name, start date, timezone and units: metric (kg, km, g, ml) or imperial (lb, mi, oz, fl oz).
+**2. Choose your data folder.** The first page asks where to keep your data and how: plain files, plain files with
+a git history (every change saved as a version), or that plus a private GitHub backup
+([the differences](docs/data-folder.md#how-your-data-is-kept)). Then your name, start date, timezone and units: metric
+(kg, km, g, ml) or imperial (lb, mi, oz, fl oz).
 Change any of them later from the profile icon. Set your targets and defaults in `targets.yaml` and `settings.yaml`:
 see [docs/data-folder.md](docs/data-folder.md).
 
