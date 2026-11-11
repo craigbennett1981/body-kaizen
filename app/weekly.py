@@ -49,7 +49,8 @@ def week(start=None):
     # recovery
     ref = data.reference()
     sl = [_hrs((d.get("recovery") or {}).get("sleep")) for d in days]
-    recovery = {"sleep_avg_h": _avg(sl), "nights_ok": sum(1 for v in sl if v is not None and v >= ref.get("sleep_hours_min", 7.5)),
+    import sleep; own = sleep.own_target_min()   # each night against its own target: Garmin's need, or yours
+    recovery = {"sleep_avg_h": _avg(sl), "nights_ok": sum(1 for d, v in zip(days, sl) if v is not None and v >= sleep.target_for(d["date"], own)[0] / 60),
                 "nights": sum(1 for v in sl if v is not None),
                 "hrv_avg": _avg([(d.get("recovery") or {}).get("hrv_ms") for d in days]),
                 "rhr_avg": _avg([(d.get("recovery") or {}).get("rhr") for d in days]),

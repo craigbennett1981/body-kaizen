@@ -25,7 +25,12 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install
-        run: pip install -r requirements.txt playwright && python -m playwright install --with-deps chromium
+        run: |
+          pip install -r requirements.txt playwright
+          # The browser's system packages (mostly fonts) come from Ubuntu's servers. When those can't be reached, the
+          # runner image already has the libraries headless Chromium needs, so install just the browser and carry on.
+          timeout 90 sudo apt-get update -q || echo "apt-get update failed or timed out: using the package list as it is"
+          timeout 300 python -m playwright install --with-deps chromium || python -m playwright install chromium
       - name: Export the static demo
         # The project's own demo lives at demo.bodykaizen.app (set as the Pages custom domain in the repo's
         # settings); a fork publishes to its own github.io address instead.

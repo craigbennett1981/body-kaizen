@@ -92,7 +92,9 @@ table sits underneath.
   through the night.
 - **Tonight:** when to be in bed, worked back from your usual weekday alarm, your target, how long you're usually
   awake in the night and time to fall asleep. It always uses the weekday alarm, so it never builds in a lie-in.
-- **Every night:** time asleep against your target and Garmin's sleep need, and your sleep debt over 7 nights.
+- **Every night:** time asleep against that night's target, and your sleep debt over 7 nights. The target is Garmin's
+  sleep need for the night (raised after hard training or poor sleep, with the reason shown), and your own target on
+  nights without one. Set `sleep_need: own` under `reference:` in targets.yaml to use yours every night.
 - **Sleep stages:** deep, REM and light sleep as a share of the night against typical adult ranges, how each
   changes with short nights, late sessions and late bedtimes, and the hours you tend to wake.
 - **When you sleep:** a bar per night from falling asleep to waking, so you can see how regular you are and how far
@@ -154,6 +156,10 @@ Test one change on yourself and see what it does to your own sleep, recovery, bl
 - **An activity calendar:** a year of sessions, GitHub-style, each day shaded by calories burnt.
 - **Intensity minutes** per week or month, counted Garmin's way (vigorous minutes double) against your weekly goal,
   with a 4-week average, this week's progress and the trend against the 4 weeks before.
+- **Heart-rate zones:** minutes in each of Garmin's five zones per day, week or month (following the period at the
+  top), the share that was easy (zones 1–2) against the 80/20 line, and how many easy runs stayed under your easy
+  heart-rate cap. If easy runs stay under the cap but the watch puts them in zone 3 or above, it says your watch's
+  zones may be set too low.
 
 ![Muscle map: front and back diagrams shaded by hard sets over the last 7 days](img/muscle-map.png)
 

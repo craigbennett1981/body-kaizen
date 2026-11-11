@@ -404,6 +404,51 @@ class SleepPage(unittest.TestCase):
         self.assertEqual(T["in_bed"], "21:55")   # 06:00 - 7h30 - 20 min awake - 15 min to fall asleep
 
 
+class SleepNeed(unittest.TestCase):
+    """Each night's target is Garmin's sleep need for it, with your own target on nights without one."""
+    def setUp(self):
+        import sleep; self.s = sleep
+        self.old = sleep._raw, sleep.use_garmin_need, sleep.data.bkenv.today
+        need = lambda a, **k: {"actual": a, "baseline": 470, "trainingFeedback": "NO_CHANGE", "sleepHistoryAdjustment": "NO_CHANGE",
+                               "hrvAdjustment": "NO_CHANGE", "napAdjustment": "NO_CHANGE", **k}
+        self.files = {"2026-11-10": {"sleep": {"dailySleepDTO": {"sleepNeed": need(470)}}},
+                      "2026-11-11": {"sleep": {"dailySleepDTO": {"sleepNeed": need(510, trainingFeedback="HIGH_ACWR"),
+                          "nextSleepNeed": need(530, calendarDate="2026-11-12", trainingFeedback="HIGH_ACWR_AND_CHRONIC", sleepHistoryAdjustment="INCREASING_LOW_QUALITY")}}}}
+        sleep._raw = lambda d: self.files.get(d, {})
+        sleep.data.bkenv.today = lambda: dt.date(2026, 11, 11)
+
+    def tearDown(self):
+        self.s._raw, self.s.use_garmin_need, self.s.data.bkenv.today = self.old
+
+    def test_nightly_target_and_reasons(self):
+        s = self.s
+        self.assertEqual(s.target_for("2026-11-11", 450), (510, "garmin"))
+        self.assertEqual(s.need_for("2026-11-11")["why"], ["a jump in training load"])
+        self.assertEqual(s.target_for("2026-11-09", 450), (450, "yours"))           # no need that night: your target
+        n, src, why = s.tonight_target(450)
+        self.assertEqual((n, src), (530, "garmin")); self.assertEqual(why["why"], ["high training load", "poor sleep lately"])
+
+    def test_own_target_when_asked(self):
+        s = self.s; s.use_garmin_need = lambda: False
+        self.assertEqual(s.target_for("2026-11-11", 450), (450, "yours"))
+        self.assertEqual(s.tonight_target(450)[:2], (450, "yours"))
+
+    def test_stale_tonight_need_is_ignored(self):
+        s = self.s; s.data.bkenv.today = lambda: dt.date(2026, 11, 13)   # the files say nothing about the night of 13-14 Nov
+        self.assertIsNone(s.need_tonight())
+
+
+class Zones(unittest.TestCase):
+    def test_zones_add_up_from_the_demo(self):
+        import zones
+        Z = zones.build()
+        self.assertTrue(Z["days"])
+        for d in Z["days"]: self.assertGreaterEqual(d["sessions"], 1); self.assertTrue(sum(d[k] for k in zones.ZONES) > 0)
+        for r in Z["runs"]:
+            self.assertLessEqual(r["easy_min"], r["minutes"])
+            if r["hr_avg"] is not None: self.assertEqual(r["under_cap"], r["hr_avg"] <= Z["easy_cap"])
+
+
 class PrivateFiles(unittest.TestCase):
     """Logins, tokens and the sign-in key live in folders only you can open, in files only you can read."""
 

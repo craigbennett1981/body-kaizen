@@ -630,6 +630,18 @@ ol.sl-gen{padding-left:20px;line-height:1.5;font-size:14px} ol.sl-gen li{margin:
 #assistant button.primary{background:var(--accent);border-color:var(--accent);color:#fff} #assistant .ai-copy{justify-content:flex-start}
 #setupform button.link{border:0;padding-left:0;color:var(--accent)}
 .mt-wrap{overflow-x:auto} .mt-tgt td,.mt-tgt th{white-space:nowrap} .mt-tgt tr.mt-foot td{color:var(--muted)}
+/* sub-tabs: groups inside a long tab */
+.subtabs{display:flex;gap:4px;margin:14px 0 4px;border-bottom:1px solid var(--rule);overflow-x:auto}
+.subtabs button{font:inherit;font-size:14px;font-weight:600;padding:8px 14px;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;
+  background:none;color:var(--muted);cursor:pointer;white-space:nowrap}
+.subtabs button:hover{color:var(--ink)}
+.subtabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.subtabs button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:6px 6px 0 0}
+.sub-group>h2:first-child,.sub-group>.row:first-child h2,.sub-group>div:first-child>h2:first-child{margin-top:18px}
+.sub-group>.wo-pick:first-child{margin-top:16px}
+#tab-training:not([data-sub="overview"]) #trange{visibility:hidden}
+.sg-off{display:none!important}
+#tab-week [data-sg="trends"]>.row:first-child h2{margin-top:18px}
 /* feedback: a tab fixed halfway down the left edge, whatever the scroll */
 .fb{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:40;display:flex;align-items:center}
 .fb-tab{writing-mode:vertical-rl;transform:rotate(180deg);font:inherit;font-size:12.5px;font-weight:600;letter-spacing:.02em;

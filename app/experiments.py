@@ -638,8 +638,7 @@ def _yaml(key, title, conds, days=DEFAULT_DAYS):
 def suggestions(nights, taken, cat):
     out = []
     F = {f["name"]: f for f in sleep.factors(nights)}
-    tf = data.ROOT / "targets.yaml"
-    target = round((sleep._find(data._jsonable(data._load(tf)) if tf.exists() else {}, "sleep_hours_min") or 7.5) * 60)
+    target = sleep.tonight_target()[0]
     rec = nights[-sleep.RECENT:]; tn = sleep.tonight(nights, target, rec) if rec else None
 
     def add(key, name, conds, why, hyp, strength):

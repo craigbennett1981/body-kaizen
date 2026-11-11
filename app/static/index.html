@@ -65,102 +65,162 @@
     <div id="day"></div>
   </section>
   <section id="tab-longevity" hidden>
+    <div class="subtabs" role="tablist" aria-label="Longevity" data-tab="longevity">
+      <button role="tab" data-g="overview">Overview</button><button role="tab" data-g="markers">Markers</button><button role="tab" data-g="schedule">Test schedule</button>
+    </div>
     <div id="longevity"></div>
     <dialog id="mk-dlg" aria-labelledby="mk-title"><div id="mk-body"></div></dialog>
   </section>
-  <section id="tab-experiments" hidden><h1>Experiments</h1><div id="experiments"></div></section>
+  <section id="tab-experiments" hidden>
+    <h1>Experiments</h1>
+    <div class="subtabs" role="tablist" aria-label="Experiments" data-tab="experiments">
+      <button role="tab" data-g="running">Running</button><button role="tab" data-g="ideas">Ideas</button><button role="tab" data-g="how">How it works</button>
+    </div>
+    <div id="experiments"></div>
+  </section>
   <section id="tab-sleep" hidden>
     <h1>Sleep &amp; recovery</h1>
-    <h2>Readiness</h2>
-    <p class="sub" id="readynote"></p>
-    <div id="readychart" class="chart" style="height:260px"></div>
-    <h2>HRV and resting heart rate</h2>
-    <p class="sub" id="recnote"></p>
-    <div id="recchart" class="chart" style="height:340px"></div>
-    <div id="sleep"></div>
+    <div class="subtabs" role="tablist" aria-label="Sleep and recovery" data-tab="sleep">
+      <button role="tab" data-g="today">Today</button><button role="tab" data-g="trends">Trends</button><button role="tab" data-g="helps">What helps</button>
+    </div>
+    <div class="sub-group" data-g="today">
+      <div id="sleep"></div>
+      <div id="sleep-lastnight"></div>
+      <h2>Readiness</h2>
+      <p class="sub" id="readynote"></p>
+      <div id="readychart" class="chart" style="height:260px"></div>
+    </div>
+    <div class="sub-group" data-g="trends" hidden>
+      <div id="sleep-every"></div>
+      <h2>HRV and resting heart rate</h2>
+      <p class="sub" id="recnote"></p>
+      <div id="recchart" class="chart" style="height:340px"></div>
+      <div id="sleep-pattern"></div>
+    </div>
+    <div class="sub-group" data-g="helps" hidden>
+      <div id="sleep-helps"></div>
+    </div>
   </section>
   <section id="tab-history" hidden>
     <h1>History</h1>
-    <p class="sub">What happened and when: your weight (7-day average) with blood tests, scans, target and training changes and off episodes (shaded), then the mood scores and symptoms you report. Tell your assistant about other events and they'll be added.</p>
-    <div id="tlchart" class="chart" style="height:300px"></div>
-    <h2>How you've felt</h2>
-    <div id="wb-head"></div>
-    <div id="wbchart" class="chart" style="height:280px"></div>
-    <div id="wb-body"></div>
-    <h2>Events</h2>
-    <div id="tllist"></div>
+    <div class="subtabs" role="tablist" aria-label="History" data-tab="history">
+      <button role="tab" data-g="timeline">Timeline</button><button role="tab" data-g="felt">How you've felt</button>
+    </div>
+    <div data-sg="timeline">
+      <p class="sub">What happened and when: your weight (7-day average) with blood tests, scans, target and training changes and off episodes (shaded), then the mood scores and symptoms you report. Tell your assistant about other events and they'll be added.</p>
+      <div id="tlchart" class="chart" style="height:300px"></div>
+      <h2>Events</h2>
+      <div id="tllist"></div>
+    </div>
+    <div data-sg="felt">
+      <h2>How you've felt</h2>
+      <div id="wb-head"></div>
+      <div id="wbchart" class="chart" style="height:280px"></div>
+      <div id="wb-body"></div>
+    </div>
   </section>
   <section id="tab-food" hidden>
     <h1>Food</h1>
+    <div class="subtabs" role="tablist" aria-label="Food" data-tab="food">
+      <button role="tab" data-g="week">This week</button><button role="tab" data-g="patterns">Patterns</button><button role="tab" data-g="foods">Your foods</button>
+    </div>
     <div id="food"></div>
   </section>
   <section id="tab-week" hidden>
-    <div class="daynav"><button id="wprev" aria-label="Previous week">‹</button><button id="wnext" aria-label="Next week">›</button><button id="wlatest">This week</button></div>
-    <div id="week"></div>
-    <div class="row"><h2>Trends</h2>
-      <div class="seg" id="range"><button data-d="14">14 days</button><button data-d="30" aria-pressed="true">30 days</button><button data-d="60">60 days</button><button data-d="0">All</button></div>
+    <div class="daynav" data-sg="week"><button id="wprev" aria-label="Previous week">‹</button><button id="wnext" aria-label="Next week">›</button><button id="wlatest">This week</button></div>
+    <div class="subtabs" role="tablist" aria-label="Week" data-tab="week">
+      <button role="tab" data-g="week">This week</button><button role="tab" data-g="trends">Trends</button><button role="tab" data-g="advice">Advice</button>
     </div>
-    <div class="legend-row"><span><i class="ok"></i>On target</span><span><i class="miss"></i>Missed</span><span><i class="part"></i>Partial day, not judged</span><span><i class="tgt"></i>Target zone</span><span><i class="ln"></i>Saturated fat</span><span class="sub">Click any day to open it.</span></div>
-    <div id="trend" class="chart"></div>
-    <div id="advice"></div>
+    <div id="week"></div>
+    <div data-sg="trends">
+      <div class="row"><h2>Trends</h2>
+        <div class="seg" id="range"><button data-d="14">14 days</button><button data-d="30" aria-pressed="true">30 days</button><button data-d="60">60 days</button><button data-d="0">All</button></div>
+      </div>
+      <div class="legend-row"><span><i class="ok"></i>On target</span><span><i class="miss"></i>Missed</span><span><i class="part"></i>Partial day, not judged</span><span><i class="tgt"></i>Target zone</span><span><i class="ln"></i>Saturated fat</span><span class="sub">Click any day to open it.</span></div>
+      <div id="trend" class="chart"></div>
+    </div>
+    <div id="advice" data-sg="advice"></div>
   </section>
   <section id="tab-training" hidden>
     <div class="row"><h1>Training</h1>
       <div class="seg" id="trange" aria-label="Period"><button data-d="7">7 days</button><button data-d="30">30 days</button><button data-d="60">60 days</button><button data-d="0" aria-pressed="true">All</button></div>
     </div>
-    <div class="tr-pair">
-      <div class="tr-col">
-        <h2>Activity</h2>
-        <p class="sub" id="calnote"></p>
-        <div class="cal-wrap"><div class="cal" id="actcal" aria-label="Workouts in the period, coloured by calories burnt"></div></div>
-      </div>
-      <div class="tr-col">
-        <h2>Intensity minutes</h2>
-        <p class="sub" id="inote"></p>
-        <div id="intchart" class="chart" style="height:300px" role="img" aria-label="Intensity minutes per day, week or month against the goal"></div>
-      </div>
+    <div class="subtabs" role="tablist" aria-label="Training" data-tab="training">
+      <button role="tab" data-g="overview">Overview</button><button role="tab" data-g="workouts">Workouts</button><button role="tab" data-g="progress">Progress</button>
     </div>
-    <h2>Workouts</h2>
-    <div class="wo-pick" id="wopick" role="tablist" aria-label="Workout"></div>
-    <div id="wodetail"></div>
-    <div class="row"><h2>Muscles worked</h2>
-      <div class="seg" id="mrange"><button data-m="session" aria-pressed="true">This workout</button><button data-m="7">7 days</button><button data-m="14">14 days</button><button data-m="28">28 days</button></div>
+    <div class="sub-group" data-g="overview">
+      <div class="tr-pair">
+        <div class="tr-col">
+          <h2>Activity</h2>
+          <p class="sub" id="calnote"></p>
+          <div class="cal-wrap"><div class="cal" id="actcal" aria-label="Workouts in the period, coloured by calories burnt"></div></div>
+        </div>
+        <div class="tr-col">
+          <h2>Intensity minutes</h2>
+          <p class="sub" id="inote"></p>
+          <div id="intchart" class="chart" style="height:300px" role="img" aria-label="Intensity minutes per day, week or month against the goal"></div>
+        </div>
+      </div>
+      <h2>Heart-rate zones</h2>
+      <p class="sub" id="znote"></p>
+      <div id="zchart" class="chart" style="height:260px" role="img" aria-label="Minutes in each heart-rate zone per day, week or month, and the share that was easy"></div>
+      <h2>Calories burnt</h2>
+      <p class="sub" id="trainnote"></p>
+      <div id="trainchart" class="chart" style="height:470px"></div>
+      <div id="traintable"></div>
     </div>
-    <p class="sub" id="mnote"></p>
-    <div class="mmap" id="musclemap"></div>
-    <h2>Calories burnt</h2>
-    <div class="chips" id="trainchips" role="tablist" aria-label="Chart"></div>
-    <p class="sub" id="trainnote"></p>
-    <div id="trainchart" class="chart" style="height:470px"></div>
-    <div id="traintable"></div>
-    <h2>Next session</h2>
-    <div id="plan"></div>
-    <h2>Lifts</h2>
-    <p class="sub">Click a lift to chart its progression above.</p>
-    <div id="lifttable"></div>
-    <h2>Runs</h2>
-    <p class="sub">Better aerobic fitness shows up as faster pace at the same or lower heart rate.</p>
-    <div id="runchart" class="chart" style="height:470px"></div>
+    <div class="sub-group" data-g="workouts" hidden>
+      <div class="wo-pick" id="wopick" role="tablist" aria-label="Workout"></div>
+      <div id="wodetail"></div>
+      <div class="row"><h2>Muscles worked</h2>
+        <div class="seg" id="mrange"><button data-m="session" aria-pressed="true">This workout</button><button data-m="7">7 days</button><button data-m="14">14 days</button><button data-m="28">28 days</button></div>
+      </div>
+      <p class="sub" id="mnote"></p>
+      <div class="mmap" id="musclemap"></div>
+    </div>
+    <div class="sub-group" data-g="progress" hidden>
+      <h2>Next session</h2>
+      <div id="plan"></div>
+      <h2>Lift progression</h2>
+      <div class="chips" id="trainchips" role="tablist" aria-label="Lift"></div>
+      <p class="sub" id="liftnote"></p>
+      <div id="liftchart" class="chart" style="height:400px"></div>
+      <h2>Lifts</h2>
+      <p class="sub">Click a lift to chart it above.</p>
+      <div id="lifttable"></div>
+      <h2>Runs</h2>
+      <p class="sub">Better aerobic fitness shows up as faster pace at the same or lower heart rate.</p>
+      <div id="runchart" class="chart" style="height:470px"></div>
+    </div>
   </section>
   <section id="tab-body" hidden>
     <h1>Body</h1>
-    <div id="bodychart" class="chart" style="height:420px"></div>
-    <h2>Body composition</h2>
-    <p class="sub" id="bcnote"></p>
-    <div id="bcgrid" class="bc-grid"></div>
-    <h2>Energy balance</h2>
-    <p class="sub" id="ebnote"></p>
-    <div id="ebchart" class="chart" style="height:400px"></div>
-    <h2>Your real maintenance</h2>
-    <p class="sub" id="mtnote"></p>
-    <div id="mtbody"></div>
-    <div id="mtchart" class="chart" style="height:230px" hidden></div>
-    <h2>InBody scans</h2>
-    <div id="inbodytable"></div>
-    <h2>Blood pressure</h2>
-    <p class="sub" id="bpnote"></p>
-    <div id="bpchart" class="chart" style="height:300px"></div>
-    <div id="bptable"></div>
+    <div class="subtabs" role="tablist" aria-label="Body" data-tab="body">
+      <button role="tab" data-g="weight">Weight</button><button role="tab" data-g="energy">Energy</button><button role="tab" data-g="bp">Blood pressure</button>
+    </div>
+    <div data-sg="weight">
+      <div id="bodychart" class="chart" style="height:420px"></div>
+      <h2>Body composition</h2>
+      <p class="sub" id="bcnote"></p>
+      <div id="bcgrid" class="bc-grid"></div>
+      <h2>InBody scans</h2>
+      <div id="inbodytable"></div>
+    </div>
+    <div data-sg="energy">
+      <h2>Energy balance</h2>
+      <p class="sub" id="ebnote"></p>
+      <div id="ebchart" class="chart" style="height:400px"></div>
+      <h2>Your real maintenance</h2>
+      <p class="sub" id="mtnote"></p>
+      <div id="mtbody"></div>
+      <div id="mtchart" class="chart" style="height:230px" hidden></div>
+    </div>
+    <div data-sg="bp">
+      <h2>Blood pressure</h2>
+      <p class="sub" id="bpnote"></p>
+      <div id="bpchart" class="chart" style="height:300px"></div>
+      <div id="bptable"></div>
+    </div>
   </section>
 </main>
 <footer class="site-foot"><a href="/thresholds.html">How your numbers are judged</a><span>Every target, band and score the dashboard uses, and where each one comes from.</span><a href="/connections.html">Connections</a><span>Log in to Libre and Garmin.</span></footer>

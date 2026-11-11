@@ -100,9 +100,12 @@ class Page:
         self.pg.evaluate("document.querySelectorAll('.toast,#bk-demo-banner').forEach(e => e.remove())")
 
     def el(self, sel):
-        if sel.startswith("h2:"):
-            return self.pg.locator("main > section:not([hidden]) h2", has_text=sel[3:]).first
-        return self.pg.locator(sel).first
+        loc = self.pg.locator("main > section:not([hidden]) h2", has_text=sel[3:]).first if sel.startswith("h2:") else self.pg.locator(sel).first
+        # inside a sub-tab that isn't showing: open that sub-tab first
+        if self.pg.evaluate("""e => { const g = e && e.closest('.sub-group'); if(!g || !g.hidden) return false;
+                showSub(g.closest('section').id.slice(4), g.dataset.g); return true; }""", loc.element_handle()):
+            self.pg.wait_for_timeout(700)
+        return loc
 
     def y(self, sel):
         return self.pg.evaluate("e => e.getBoundingClientRect().top + scrollY", self.el(sel).element_handle())

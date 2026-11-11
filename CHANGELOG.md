@@ -5,6 +5,13 @@ What changed in each release. Earlier releases are described on the
 
 ## Unreleased
 
+### Sleep & recovery
+- **Garmin's sleep need is the target:** each night is judged against Garmin's need for it (its baseline moved up
+  after hard training, poor sleep or low HRV, with the reason in the tooltip), and your own `sleep_hours_min` is used
+  on nights without one. Sleep debt, "on target" counts and tonight's bedtime follow it, and tonight's bedtime works
+  back from Garmin's need for tonight. The Day notes, Week and advice use the same target. Set `sleep_need: own`
+  under `reference:` in targets.yaml to keep your own target every night.
+
 ### Body tab
 - **Your real maintenance:** what you actually burn, from the last 28 days of eating against what your fasted weight
   trend did (7,700 kcal per kg), with a 90% range and Garmin's burn beside it, so you can see how far Garmin's figure
@@ -14,6 +21,8 @@ What changed in each release. Earlier releases are described on the
   changes on its own: ask your assistant to switch targets.
 
 ### Training tab
+- **Heart-rate zones:** minutes per zone for the period at the top, the share that was easy against the 80/20 line,
+  and whether your easy runs were really easy, with a note when the watch's zones look set too low.
 - **One period for the top of the tab:** the 7 days, 30 days, 60 days and All buttons beside the title now set the
   Activity calendar and Intensity minutes too, not just Calories burnt. Intensity minutes shows days for 7 days,
   weeks for 30 and 60, and months for All. Its own Weeks and Months buttons are gone.
@@ -33,6 +42,15 @@ What changed in each release. Earlier releases are described on the
   [docs/data-folder.md](docs/data-folder.md#how-your-data-is-kept) explains each one and the GitHub steps.
 
 ### Dashboard
+- **Sub-tabs on every tab but Day:** each tab is split into groups, one on screen at a time. Body: weight,
+  energy, blood pressure. Experiments: running, ideas, how it works. Food: this week, patterns, your foods. History:
+  timeline, how you've felt. Longevity: overview, markers, test schedule. Week: this week, trends, advice.
+  Training has Overview (activity, intensity minutes, heart-rate zones, calories burnt), Workouts (a session in
+  detail and the muscles it worked) and Progress (next session, lift progression, lifts and runs). Sleep & recovery
+  has Today (the summary and tonight's bedtime, last night, readiness), Trends (every night, HRV and resting heart rate, when you
+  sleep, stages) and What helps (what goes with better nights, your advice, the habits that work). Each tab opens
+  on the group you used last, and links like `#training/progress` open one directly. Lift progression has its own
+  chart under Progress, next to the Lifts table.
 - **Feedback button:** a tab halfway down the left edge, there whatever you scroll. It opens GitHub's form to report
   a problem or suggest an idea, filled in with the version, your operating system and the page you're on, and none of
   your health data.
