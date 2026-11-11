@@ -56,8 +56,10 @@ SIGNIN_KEY = data.bkenv.session_key()
 COOKIE = f"bk_session_{PORT}"   # one per port: a demo on another port has its own
 COOKIE_AGE = 365 * 86400
 # The logo, served to anyone (it holds no data): browsers ask for it before and after signing in.
-ICONS = {"/favicon.ico": "image/x-icon", "/favicon.svg": "image/svg+xml", "/apple-touch-icon.png": "image/png",
-         "/icon-192.png": "image/png", "/icon-512.png": "image/png"}
+# Each address maps to a fixed file name, so nothing from the request goes into the path that's opened.
+ICONS = {"/favicon.ico": ("favicon.ico", "image/x-icon"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
+         "/apple-touch-icon.png": ("apple-touch-icon.png", "image/png"),
+         "/icon-192.png": ("icon-192.png", "image/png"), "/icon-512.png": ("icon-512.png", "image/png")}
 PAGES = ("/",) + tuple("/" + f.name for f in sorted(STATIC.glob("*.html")))   # where the sign-in link may lead
 SIGNIN_PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -241,8 +243,9 @@ class Handler(BaseHTTPRequestHandler):
         self._send(303, "", "text/plain", headers=[("Location", to), ("Set-Cookie", cookie)])
 
     def _icon(self, path):
-        with open(STATIC / path.lstrip("/"), "rb") as fh: body = fh.read()
-        self._send(200, body, ICONS[path], headers=[("Cache-Control", "max-age=86400")])
+        name, ctype = ICONS[path]
+        with open(STATIC / name, "rb") as fh: body = fh.read()
+        self._send(200, body, ctype, headers=[("Cache-Control", "max-age=86400")])
 
     def _needs_signin(self, u):
         if u.path.startswith("/api/"): return self._send(401, '{"error":"not signed in","signin":true}', "application/json")
