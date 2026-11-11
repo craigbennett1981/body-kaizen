@@ -30,6 +30,12 @@ What changed in each release. Earlier releases are described on the
   icon (SVG, plus `favicon.ico` and an Apple touch icon), the demo's icon and the installer's app icon. The icon files
   are the only thing served before signing in.
 
+### Fixes
+- **Without git:** syncs no longer fail when git isn't installed: they save your data and skip the commit. Setup
+  refuses a history choice it can't make (before creating anything), and if git can't set up the history it says so
+  and keeps plain files, without the GitHub to-do. On a Mac, git only counts once Apple's command line tools are
+  installed; on Windows, a git installed while the dashboard is running is found without restarting it.
+
 ## 0.7.0 (7 November 2026)
 
 ### Dashboard

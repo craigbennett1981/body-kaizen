@@ -198,8 +198,13 @@ def apply(d, raw):
     return p, changes
 
 def git(*args, check=True):
+    exe = bkenv.git_exe()
+    if not exe:   # no git on this computer: behave like a failed command, never crash the sync
+        r = subprocess.CompletedProcess(["git", *args], 127, "", "git isn't installed")
+        if check: raise RuntimeError(f"git {' '.join(args)}: git isn't installed")
+        return r
     for attempt in range(6):
-        r = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=90)
+        r = subprocess.run([exe, *args], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=90)
         if r.returncode == 0 or "index.lock" not in (r.stderr or ""): break
         time.sleep(2)   # another commit (e.g. from chat) holds the lock
     if check and r.returncode != 0: raise RuntimeError(f"git {' '.join(args)}: {r.stderr.strip()}")
@@ -212,6 +217,8 @@ def commit_and_push(paths, summary, prefix="garmin"):
     if not opts["auto_commit"]: return None
     if bkenv.in_code_repo():   # e.g. demo/ or a stray demo/demo/: its git repo is the code repo, so never commit there
         log("data folder is inside the code repository: not committing"); return None
+    if not bkenv.git_exe():
+        log("git isn't installed: not committing"); return None
     if git("rev-parse", "--is-inside-work-tree", check=False).returncode != 0:
         log("data folder isn't a git repository: not committing"); return None
     rel = [str(pathlib.Path(p).relative_to(ROOT)) for p in paths]

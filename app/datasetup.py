@@ -19,7 +19,7 @@ def _home(p):
 
 def info():
     return {"needs_setup": bkenv.needs_data_setup(), "current": str(bkenv.DATA), "suggested": str(DEFAULT),
-            "suggested_short": _home(DEFAULT), "picker": _picker() is not None, "git": shutil.which("git") is not None,
+            "suggested_short": _home(DEFAULT), "picker": _picker() is not None, "git": bkenv.git_exe() is not None,
             "env_override": bool(os.environ.get("FT_DATA"))}
 
 
@@ -90,15 +90,24 @@ def create(body):
     p = pathlib.Path(c["path"])
     storage = body.get("storage") or ("git" if body.get("git") else "files")   # `git: true` from older pages
     if storage not in STORAGE: return {**c, "ok": False, "error": "Choose how your data is kept."}
+    git = bkenv.git_exe() if c["mode"] == "new" and storage != "files" else None
+    if c["mode"] == "new" and storage != "files" and not git:   # before anything is created, so they can choose again
+        return {**c, "ok": False, "error": "git isn't installed on this computer (or doesn't run yet), so history isn't "
+                "available. Choose plain files, or install git and reload this page."}
+    warning = None
     if c["mode"] == "new":
         bkenv.init_data_folder(p)
-        if storage != "files" and shutil.which("git") and not (p / ".git").exists():
-            if subprocess.run(["git", "init", "-q", "-b", "main"], cwd=p, check=False).returncode:   # git older than 2.28
-                subprocess.run(["git", "init", "-q"], cwd=p, check=False)
+        if git and not (p / ".git").exists():
+            run = lambda *a: subprocess.run([git, "init", "-q", *a], cwd=p, capture_output=True, check=False).returncode
+            if run("-b", "main"): run()   # git older than 2.28 has no -b
+            if not (p / ".git").exists():
+                storage, warning = "files", "git couldn't set up a history in the folder, so it's plain files for now. " \
+                    "Run git init in the folder to add one later."
         if storage == "github": _github_todo(p)
     bkenv.save_config(data_dir=str(p))
     threading.Timer(0.6, _restart, (p,)).start()   # after the reply has gone out
-    return {**c, "ok": True, "restarting": True, "git": bool((p / ".git").exists()), "storage": storage if c["mode"] == "new" else None}
+    return {**c, "ok": True, "restarting": True, "git": bool((p / ".git").exists()),
+            "storage": storage if c["mode"] == "new" else None, "warning": warning}
 
 
 STORAGE = ("files", "git", "github")
