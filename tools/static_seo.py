@@ -29,10 +29,7 @@ PAGES = {
     "connections.html": dict(title="Body Kaizen: connections (demo)", description="Garmin and LibreLinkUp logins. Not available in the demo.", index=False),
 }
 
-FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#2F5BEA"/>
-<path d="M14 44 L26 32 L34 40 L50 22" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M40 21 H51 V32" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-"""
+ICONS = ("favicon.ico", "favicon.svg", "apple-touch-icon.png", "icon-192.png", "icon-512.png")   # the logo, from app/static
 
 ABOUT = """
 <section class="bk-about" aria-labelledby="bk-about-h">
@@ -97,7 +94,7 @@ def head(page, base):
     t, d = H.escape(m["title"]), H.escape(m["description"])
     tags = [f"<title>{t}</title>", f'<meta name="description" content="{d}">',
             f'<meta name="robots" content="{"index,follow,max-image-preview:large" if m["index"] else "noindex,follow"}">',
-            f'<link rel="canonical" href="{url}">', '<link rel="icon" href="favicon.svg" type="image/svg+xml">',
+            f'<link rel="canonical" href="{url}">',
             '<meta name="theme-color" content="#111318">', '<meta name="color-scheme" content="dark">',
             '<meta property="og:type" content="website">', '<meta property="og:site_name" content="Body Kaizen">',
             f'<meta property="og:title" content="{t}">', f'<meta property="og:description" content="{d}">',
@@ -131,10 +128,10 @@ def apply(html, page, base):
 
 
 def extras(out, base, built):
-    """favicon, sitemap, a 404 page, and the share image."""
+    """The logo files, sitemap, a 404 page, and the share image."""
     import shutil, pathlib
     code = pathlib.Path(__file__).resolve().parent.parent
-    (out / "favicon.svg").write_text(FAVICON, encoding="utf-8")
+    for f in ICONS: shutil.copy(code / "app" / "static" / f, out / f)
     shutil.copy(code / "docs" / "img" / "social-preview.png", out / "social-preview.png")
     urls = [base + ("" if p == "index.html" else p) for p, m in PAGES.items() if m["index"]]
     (out / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +

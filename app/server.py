@@ -54,8 +54,12 @@ SESSION_TOKEN = secrets.token_urlsafe(32)
 SIGNIN_KEY = data.bkenv.session_key()
 COOKIE = f"bk_session_{PORT}"   # one per port: a demo on another port has its own
 COOKIE_AGE = 365 * 86400
+# The logo, served to anyone (it holds no data): browsers ask for it before and after signing in.
+ICONS = {"/favicon.ico": "image/x-icon", "/favicon.svg": "image/svg+xml", "/apple-touch-icon.png": "image/png",
+         "/icon-192.png": "image/png", "/icon-512.png": "image/png"}
 PAGES = ("/",) + tuple("/" + f.name for f in sorted(STATIC.glob("*.html")))   # where the sign-in link may lead
 SIGNIN_PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <title>Body Kaizen: open from your account</title><style>
 body{margin:0;min-height:100vh;display:grid;place-items:center;background:#111318;color:#EBEEF5;font:16px/1.5 system-ui,sans-serif}
 main{max-width:520px;padding:28px} h1{font-size:24px;margin:0 0 12px} p{color:#AEB5C2} code{background:#1E222B;padding:2px 7px;border-radius:6px;color:#EBEEF5}
@@ -234,6 +238,10 @@ class Handler(BaseHTTPRequestHandler):
         cookie = f"{COOKIE}={SIGNIN_KEY}; Path=/; Max-Age={COOKIE_AGE}; HttpOnly; SameSite=Strict"
         self._send(303, "", "text/plain", headers=[("Location", to), ("Set-Cookie", cookie)])
 
+    def _icon(self, path):
+        with open(STATIC / path.lstrip("/"), "rb") as fh: body = fh.read()
+        self._send(200, body, ICONS[path], headers=[("Cache-Control", "max-age=86400")])
+
     def _needs_signin(self, u):
         if u.path.startswith("/api/"): return self._send(401, '{"error":"not signed in","signin":true}', "application/json")
         self._send(401, SIGNIN_PAGE, "text/html; charset=utf-8")
@@ -242,6 +250,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self._host_ok(): return
         u = urllib.parse.urlparse(self.path)
         if "key" in urllib.parse.parse_qs(u.query): return self._signin(u)
+        if u.path in ICONS: return self._icon(u.path)        # the logo only: public, so the sign-in page has it too
         if not self._signed_in(): return self._needs_signin(u)
         try:
             if u.path == "/api/datasetup":
@@ -261,7 +270,8 @@ class Handler(BaseHTTPRequestHandler):
             f = os.path.realpath(os.path.join(STATIC, name))
             if f.startswith(str(STATIC) + os.sep) and os.path.isfile(f):
                 ctype = {"html": "text/html; charset=utf-8", "js": "text/javascript; charset=utf-8", "css": "text/css; charset=utf-8",
-                         "woff2": "font/woff2", "txt": "text/plain; charset=utf-8"}.get(os.path.splitext(f)[1][1:], "application/octet-stream")
+                         "woff2": "font/woff2", "txt": "text/plain; charset=utf-8",
+                         "svg": "image/svg+xml", "png": "image/png", "ico": "image/x-icon"}.get(os.path.splitext(f)[1][1:], "application/octet-stream")
                 with open(f, "rb") as fh: body = fh.read()
                 nonce = None
                 if name.endswith(".html"):

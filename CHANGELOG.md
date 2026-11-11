@@ -3,6 +3,13 @@
 What changed in each release. Earlier releases are described on the
 [releases page](https://github.com/craigbennett1981/body-kaizen/releases).
 
+## Unreleased
+
+### Dashboard
+- **A logo of its own:** three rising steps with a dot on the top one, in the dashboard's blue. It is the browser-tab
+  icon (SVG, plus `favicon.ico` and an Apple touch icon), the demo's icon and the installer's app icon. The icon files
+  are the only thing served before signing in.
+
 ## 0.7.0 (7 November 2026)
 
 ### Dashboard
