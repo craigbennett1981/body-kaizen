@@ -5,6 +5,12 @@ What changed in each release. Earlier releases are described on the
 
 ## Unreleased
 
+### Fixes
+- **Without git:** syncs no longer fail when git isn't installed: they save your data and skip the commit. Setup
+  refuses a history choice it can't make (before creating anything), and if git can't set up the history it says so
+  and keeps plain files, without the GitHub to-do. On a Mac, git only counts once Apple's command line tools are
+  installed; on Windows, a git installed while the dashboard is running is found without restarting it.
+
 ### Training tab
 - **Intensity minutes per week or month:** Garmin's count (moderate plus vigorous counted twice) against your Garmin
   weekly goal (150 when the watch reports none), pro rata for months. A 4-week average line, this week's progress and

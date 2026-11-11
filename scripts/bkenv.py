@@ -81,6 +81,35 @@ def start_date():
     s = profile().get("start_date") or first_day()
     return dt.date.fromisoformat(str(s)) if s else today()
 
+_GIT = None
+
+def git_exe():
+    """The git program to run, or None when there isn't a working one. Checked properly, not just looked up:
+    - macOS has a /usr/bin/git stand-in that only works once Apple's command line tools are installed (and running
+      it without them opens their installer), so that one counts only when `xcode-select -p` finds the tools.
+    - On Windows a git installed after the dashboard started isn't on its PATH until it restarts, so the usual
+      install folders are looked in too.
+    A found git is remembered; a missing one is looked for again next time, so installing it needs no restart."""
+    global _GIT
+    if _GIT: return _GIT
+    import shutil, subprocess
+    cands = [shutil.which("git")]
+    if sys.platform == "win32":
+        for base in (os.environ.get("ProgramFiles"), os.environ.get("ProgramW6432"), os.environ.get("ProgramFiles(x86)"),
+                     os.path.join(os.environ.get("LOCALAPPDATA") or "", "Programs")):
+            if base: cands.append(os.path.join(base, "Git", "cmd", "git.exe"))
+    for c in cands:
+        if not c or not os.path.isfile(c): continue
+        if sys.platform == "darwin" and os.path.realpath(c) == "/usr/bin/git":
+            try:
+                if subprocess.run(["xcode-select", "-p"], capture_output=True, timeout=10).returncode != 0: continue
+            except (OSError, subprocess.SubprocessError): continue
+        try:
+            if subprocess.run([c, "--version"], capture_output=True, timeout=10).returncode == 0:
+                _GIT = c; return c
+        except (OSError, subprocess.SubprocessError): pass
+    return None
+
 def git_options():
     g = settings().get("git") or {}
     return {"auto_commit": g.get("auto_commit", True), "auto_push": g.get("auto_push", False)}

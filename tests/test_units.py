@@ -191,6 +191,27 @@ class DemoNeverSyncs(unittest.TestCase):
         self.assertEqual(child_data(bkenv.child_env()), str(bkenv.DATA))
 
 
+class NoGit(unittest.TestCase):
+    """Without git on the computer, syncs skip their commit instead of failing."""
+    def test_commit_skipped_and_git_calls_fail_softly(self):
+        old = bkenv.git_exe; bkenv.git_exe = lambda: None
+        try:
+            self.assertIsNone(garmin_pull.commit_and_push([garmin_pull.ROOT / "targets.yaml"], "test"))
+            r = garmin_pull.git("status", "--porcelain", check=False)
+            self.assertEqual((r.returncode, r.stdout), (127, ""))
+            with self.assertRaises(RuntimeError): garmin_pull.git("status")
+        finally: bkenv.git_exe = old
+
+    @unittest.skipUnless(sys.platform == "darwin", "macOS only")
+    def test_mac_stand_in_needs_the_command_line_tools(self):
+        import shutil as sh
+        old = bkenv._GIT, sh.which, subprocess.run
+        bkenv._GIT = None; sh.which = lambda c: "/usr/bin/git"
+        subprocess.run = lambda cmd, **k: subprocess.CompletedProcess(cmd, 2 if cmd[0] == "xcode-select" else 0)
+        try: self.assertIsNone(bkenv.git_exe())
+        finally: bkenv._GIT, sh.which, subprocess.run = old
+
+
 class EnergyBalance(unittest.TestCase):
     def test_fit_and_history(self):
         b, a = energybalance._fit([(0, 76.0), (10, 75.0), (20, 74.0), (30, 73.0)])

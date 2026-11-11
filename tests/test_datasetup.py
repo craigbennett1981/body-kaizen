@@ -63,6 +63,27 @@ class Storage(unittest.TestCase):
         todo = {t["id"]: t for t in yaml.safe_load((g / "todo.yaml").read_text(encoding="utf-8"))}
         self.assertIn("private", todo["github-backup"]["title"]); self.assertIn("git push", todo["github-backup"]["detail"])
 
+    def test_history_without_git_is_refused_before_anything_is_made(self):
+        old = bkenv.git_exe; bkenv.git_exe = lambda: None
+        try:
+            for storage in ("git", "github"):
+                res = self.ds.create({"path": str(pathlib.Path(self.tmp.name) / storage), "storage": storage})
+                self.assertFalse(res["ok"]); self.assertIn("git isn't installed", res["error"])
+                self.assertFalse((pathlib.Path(self.tmp.name) / storage).exists())
+            self.assertFalse(self.ds.info()["git"])
+            p, res = self.make("files")   # plain files still work
+            self.assertTrue(res["ok"])
+        finally: bkenv.git_exe = old
+
+    def test_git_that_fails_falls_back_to_plain_files_and_says_so(self):
+        old = bkenv.git_exe; bkenv.git_exe = lambda: sys.executable   # "runs", but `python init -q` makes no .git
+        try:
+            p, res = self.make("github")
+            self.assertTrue(res["ok"]); self.assertFalse((p / ".git").exists())
+            self.assertEqual(res["storage"], "files"); self.assertIn("plain files", res["warning"])
+            self.assertNotIn("github-backup", (p / "todo.yaml").read_text(encoding="utf-8"))   # its steps need git
+        finally: bkenv.git_exe = old
+
     def test_unknown_choice_is_refused(self):
         res = self.ds.create({"path": str(pathlib.Path(self.tmp.name) / "x"), "storage": "dropbox"})
         self.assertFalse(res["ok"]); self.assertFalse((pathlib.Path(self.tmp.name) / "x").exists())
