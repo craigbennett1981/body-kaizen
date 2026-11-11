@@ -119,7 +119,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install
-        run: pip install -r requirements.txt playwright && python -m playwright install --with-deps chromium
+        run: sudo apt-get update -q && pip install -r requirements.txt playwright && python -m playwright install --with-deps chromium
       - name: Export the static demo
         run: python tools/export_static.py _site
       - name: Click through it
