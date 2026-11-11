@@ -19,6 +19,16 @@ body:
     attributes:
       label: Evidence (for health metrics and targets)
       description: For a new score, marker or target, link the research it's based on.
+  - type: input
+    id: page
+    attributes:
+      label: Page
+      description: The tab it's about, if any (filled in by the dashboard's Feedback button).
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: v0.7.0
   - type: checkboxes
     id: willing
     attributes:

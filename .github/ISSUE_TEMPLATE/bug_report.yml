@@ -40,3 +40,8 @@ body:
     attributes:
       label: Python version
       placeholder: "3.12"
+  - type: input
+    id: page
+    attributes:
+      label: Page
+      description: Which tab it happened on (filled in by the dashboard's Feedback button).

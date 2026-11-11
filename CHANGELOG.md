@@ -51,6 +51,9 @@ What changed in each release. Earlier releases are described on the
   sleep, stages) and What helps (what goes with better nights, your advice, the habits that work). Each tab opens
   on the group you used last, and links like `#training/progress` open one directly. Lift progression has its own
   chart under Progress, next to the Lifts table.
+- **Feedback button:** a tab halfway down the left edge, there whatever you scroll. It opens GitHub's form to report
+  a problem or suggest an idea, filled in with the version, your operating system and the page you're on, and none of
+  your health data.
 - **A logo of its own:** three rising steps with a dot on the top one, in the dashboard's blue. It is the browser-tab
   icon (SVG, plus `favicon.ico` and an Apple touch icon), the demo's icon and the installer's app icon. The icon files
   are the only thing served before signing in.
