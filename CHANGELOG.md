@@ -5,6 +5,12 @@ What changed in each release. Earlier releases are described on the
 
 ## Unreleased
 
+### Training tab
+- **Intensity minutes per week or month:** Garmin's count (moderate plus vigorous counted twice) against your Garmin
+  weekly goal (150 when the watch reports none), pro rata for months. A 4-week average line, this week's progress and
+  what's left to do, how the last 4 full weeks compare with the 4 before, and how many of the last 12 weeks met the
+  goal. Weeks with too few days of watch data are faded and left out of the trend.
+
 ### Dashboard
 - **A logo of its own:** three rising steps with a dot on the top one, in the dashboard's blue. It is the browser-tab
   icon (SVG, plus `favicon.ico` and an Apple touch icon), the demo's icon and the installer's app icon. The icon files

@@ -1014,6 +1014,55 @@ function renderTrainChips(){
 async function renderTraining(){
   TRAIN = TRAIN || await api('/api/training');
   renderTrainChips(); renderTrainChart(); renderPlan(); renderLiftTable(); renderRuns(); renderWorkouts().then(() => { renderCalendar(); renderMuscles(); });
+  renderIntensity();
+}
+/* ---------- intensity minutes: per week or month, Garmin's way (moderate + 2 x vigorous), against the goal ---------- */
+let INT = null, IMODE = 'weeks';
+async function renderIntensity(){
+  INT = INT || await api('/api/intensity').catch(() => null);
+  const note = $('#inote'), el = $('#intchart'); if(!note || !el) return;
+  if(!INT || !INT.weeks.length){ note.textContent = 'No intensity minutes from the watch yet.'; el.hidden = true; return; }
+  el.hidden = false;
+  document.querySelectorAll('#irange button').forEach(b => { b.setAttribute('aria-pressed', b.dataset.i === IMODE);
+    b.onclick = () => { IMODE = b.dataset.i; renderIntensity(); }; });
+  const c = theme(), G = INT.goal, T = INT.trend, W = INT.this_week, rows = IMODE === 'weeks' ? INT.weeks : INT.months;
+  const parts = [];
+  if(W) parts.push(W.need ? `This week so far: <b>${fmt(W.total)}</b> of ${fmt(G)}, ${fmt(W.need)} to go (about ${fmt(W.per_day)} a day for the ${W.days_left} day${W.days_left===1?'':'s'} left).`
+                          : `This week so far: <b class="good">${fmt(W.total)}</b>, goal of ${fmt(G)} reached.`);
+  if(T){
+    const arrow = T.direction === 'up' ? '<span class="good">▲</span>' : T.direction === 'down' ? '<span class="bad">▼</span>' : '▬';
+    parts.push(`Last ${T.weeks_in_avg} full weeks: <b>${fmt(T.avg_4w)}</b> a week${T.avg_prev_4w ? `, ${arrow} ${T.change_pct > 0 ? '+' : ''}${fmt(T.change_pct)}% on the ${fmt(T.avg_prev_4w)} before` : ''}. Goal met in ${T.met} of the last ${T.of} full weeks.`);
+  }
+  parts.push(`Garmin counts a vigorous minute as two. ${INT.goal_source === 'garmin' ? 'The goal is your Garmin weekly goal' : 'The goal is 150 a week, the minimum for adults'}${IMODE === 'months' ? ', pro rata for each month' : ''}. Faded bars had too few days of watch data${IMODE === 'weeks' ? ` (under ${INT.full_week_days})` : ''}; the hatched one is still in progress.`);
+  note.innerHTML = parts.join(' ');
+  const x = rows.map(r => IMODE === 'weeks' ? shortDate(r.start) : new Date(r.start + 'T00:00').toLocaleDateString('en-GB', {month:'short', year:'2-digit'}));
+  const look = (r, colour) => ({value: r.total == null ? null : 0, itemStyle:{color: colour, opacity: r.partial_data ? .35 : 1,
+    decal: r.current ? {symbol:'rect', dashArrayX:[1,0], dashArrayY:[3,3], rotation:-Math.PI/4, color:'rgba(255,255,255,.35)'} : null}});
+  const MOD = '#8FA9F5', VIG = c.accent;
+  const mod = rows.map(r => ({...look(r, MOD), value: r.total == null ? null : r.moderate}));
+  const vig = rows.map(r => ({...look(r, VIG), value: r.total == null ? null : 2 * r.vigorous}));
+  const goal = rows.map(r => r.goal);
+  const ax = {axisLine:{lineStyle:{color:c.rule}}, axisLabel:{color:c.muted, fontSize:11}, splitLine:{lineStyle:{color:c.rule}}};
+  const top = Math.max(...rows.map(r => r.total || 0), ...goal);
+  const avg4 = IMODE === 'weeks' ? rows.map((r, i) => { const xs = rows.slice(Math.max(0, i - 3), i + 1).filter(w => !w.current && !w.partial_data && w.total != null);
+    return xs.length >= 3 && !r.current ? Math.round(xs.reduce((a, w) => a + w.total, 0) / xs.length) : null; }) : null;
+  const series = [
+    {type:'bar', name:'Moderate', stack:'im', data:mod, barMaxWidth:28, itemStyle:{color:MOD}},
+    {type:'bar', name:'Vigorous (counted twice)', stack:'im', data:vig, barMaxWidth:28, itemStyle:{color:VIG, borderRadius:[4,4,0,0]}},
+    {type:'line', name:IMODE === 'weeks' ? `Goal ${fmt(G)} a week` : 'Goal (pro rata)', data:goal, step:IMODE === 'months' ? 'middle' : false, symbol:'none',
+      lineStyle:{color:c.good, type:'dashed', width:2}, itemStyle:{color:c.good}, z:4}];
+  if(avg4) series.push({type:'line', name:'4-week average', data:avg4, symbol:'none', smooth:.3, connectNulls:false, lineStyle:{color:c.ink, width:2}, itemStyle:{color:c.ink}, z:5});
+  chart('intchart').setOption({animation:MOTION, animationDuration:400, textStyle:{fontFamily:'Archivo'},
+    legend:{top:0, left:56, textStyle:{color:c.muted, fontSize:11}, itemWidth:14, itemHeight:8},
+    grid:{left:56, right:24, top:36, bottom:28},
+    xAxis:{type:'category', data:x, ...ax, axisTick:{show:false}},
+    yAxis:{type:'value', ...ax, ...niceRange(0, top * 1.1, 3, true)},
+    tooltip:{trigger:'axis', ...tip(c), formatter: ps => { const r = rows[ps[0].dataIndex];
+      const head = IMODE === 'weeks' ? `Week of ${fmtDate(r.start)}` : new Date(r.start + 'T00:00').toLocaleDateString('en-GB', {month:'long', year:'numeric'});
+      if(r.total == null) return `<b>${head}</b><br>No watch data`;
+      return `<b>${head}</b>${r.current ? ' (so far)' : ''}<br><b>${fmt(r.total)}</b> intensity minutes of ${fmt(r.goal)}<br>${fmt(r.moderate)} moderate + ${fmt(r.vigorous)} vigorous × 2` +
+        `<br>${r.days_with_data} of ${r.days} days with watch data`; }},
+    series});
 }
 /* ---------- workouts: one session in detail, Hevy + Garmin ---------- */
 let WO = null, WO_SEL = null;

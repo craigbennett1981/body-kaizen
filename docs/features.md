@@ -152,6 +152,8 @@ Test one change on yourself and see what it does to your own sleep, recovery, bl
 - **A muscle map:** front and back diagrams shaded by hard sets per muscle, for one workout or the last 7, 14 or 28
   days. Hover a muscle for the lifts and runs behind it.
 - **An activity calendar:** a year of sessions, GitHub-style, each day shaded by calories burnt.
+- **Intensity minutes** per week or month, counted Garmin's way (vigorous minutes double) against your weekly goal,
+  with a 4-week average, this week's progress and the trend against the 4 weeks before.
 
 ![Muscle map: front and back diagrams shaded by hard sets over the last 7 days](img/muscle-map.png)
 
