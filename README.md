@@ -1,4 +1,4 @@
-# Body Kaizen
+# <img src="app/static/favicon.svg" alt="" width="40" height="40" valign="middle"> Body Kaizen
 
 [![Tests](https://github.com/craigbennett1981/body-kaizen/actions/workflows/ci.yml/badge.svg)](https://github.com/craigbennett1981/body-kaizen/actions/workflows/ci.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)

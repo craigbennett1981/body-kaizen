@@ -117,10 +117,10 @@ def apply(html, page, base):
     if PAGES[page].get("heading"):
         # The page's top heading: the brand in the header becomes the h1, naming what the page is (the visible text
         # stays "Body Kaizen"; the rest is read by screen readers and search engines, and it describes the page honestly).
-        html = re.sub(r'<div class="brand">Body Kaizen(.*?)</div>',
-                      lambda m: f'<h1 class="brand" style="margin:0;font-size:22px;line-height:inherit">Body Kaizen'
+        html = re.sub(r'<div class="brand">(<img [^>]*>)?Body Kaizen(.*?)</div>',
+                      lambda m: f'<h1 class="brand" style="margin:0;font-size:22px;line-height:inherit">{m.group(1) or ""}Body Kaizen'
                                 f'<span class="bk-sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">'
-                                f'{H.escape(PAGES[page]["heading"][len("Body Kaizen"):])}</span>{m.group(1)}</h1>', html, count=1, flags=re.S)
+                                f'{H.escape(PAGES[page]["heading"][len("Body Kaizen"):])}</span>{m.group(2)}</h1>', html, count=1, flags=re.S)
     if PAGES[page].get("about"):
         anchor = '<footer class="site-foot">' if '<footer class="site-foot">' in html else '<script src="app.js"></script>'
         html = html.replace(anchor, ABOUT.format(repo=REPO) + anchor, 1)   # after the dashboard, before its footer
