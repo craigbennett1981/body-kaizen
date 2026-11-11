@@ -115,12 +115,14 @@ def for_day(date):
     r = day.get("recovery") or {}
     sl = _hrs(r.get("sleep"))
     if sl is not None:
-        tgt = ref.get("sleep_hours_min", 7.5)
+        import sleep   # the night's target: Garmin's sleep need for it, or yours
+        own = sleep.own_target_min(); tgt_m, src = sleep.target_for(date, own); tgt = tgt_m / 60
+        whose = " (Garmin's need for that night)" if src == "garmin" else ""
         if sl >= tgt: add("good", f"Slept {_hm(sl)}" + (f", score {r['sleep_score']}" if r.get("sleep_score") else "") + ".")
         else:
-            week = [_hrs((d.get("recovery") or {}).get("sleep")) for d in S[max(0, idx - 6): idx + 1]]
-            short = sum(1 for v in week if v is not None and v < tgt)
-            add("bad", f"Slept {_hm(sl)}, under {_hm(tgt)}" + (f" — {short} short nights in the last 7" if short > 1 else "") + ".")
+            week = [(d["date"], _hrs((d.get("recovery") or {}).get("sleep"))) for d in S[max(0, idx - 6): idx + 1]]
+            short = sum(1 for dd, v in week if v is not None and v < sleep.target_for(dd, own)[0] / 60)
+            add("bad", f"Slept {_hm(sl)}, under {_hm(tgt)}{whose}" + (f" — {short} short nights in the last 7" if short > 1 else "") + ".")
     if r.get("rhr") and r["rhr"] >= ref.get("rhr_walk_only", 52):
         add("bad", f"Resting HR {r['rhr']}, at or above {ref.get('rhr_walk_only', 52)}: walk only today.")
     base = ref.get("hrv_baseline_ms")

@@ -145,8 +145,11 @@ def compute():
     rec = [d["recovery"] for d in last30 if d.get("recovery")]
     sl = _mean([_hrs(r.get("sleep")) for r in rec], 2)
     short = sum(1 for r in rec if (_hrs(r.get("sleep")) or 9) < 7)
-    if sl is not None and sl < ref.get("sleep_hours_min", 7.5):
-        add("Sleep & recovery", "act", "Get more sleep", f"Average {int(sl)}h{round(sl % 1 * 60):02d} a night; under 7 hours on {short} of {len(rec)} nights. Your target is 7h30.",
+    import sleep; own = sleep.own_target_min()
+    tg = _mean([sleep.target_for(d["date"], own)[0] / 60 for d in last30 if d.get("recovery")], 2) or own / 60   # Garmin's needs, or yours
+    if sl is not None and sl < tg:
+        add("Sleep & recovery", "act", "Get more sleep", f"Average {int(sl)}h{round(sl % 1 * 60):02d} a night; under 7 hours on {short} of {len(rec)} nights. "
+            f"{'Garmin put your need at' if sleep.use_garmin_need() and tg * 60 != own else 'Your target is'} {int(tg)}h{round(tg % 1 * 60):02d} on average.",
             ["Move lights-out 30 minutes earlier: wake time is fixed, so bedtime is the lever.", "Screens away and room cool (24–26 °C) 30 minutes before bed.",
              "No caffeine after 2 pm."], 2)
     elif sl is not None:

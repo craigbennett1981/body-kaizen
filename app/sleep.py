@@ -44,6 +44,59 @@ def _raw(day):
     except Exception: return {}
 
 
+# ---------- the target: Garmin's sleep need for each night, or your own ----------
+# Garmin works out a sleep need for every night: a baseline (from your age and history) moved up or down by your
+# recent training load, recent sleep, HRV and naps. Each morning's file holds the need for the night just gone
+# (sleepNeed) and for tonight (nextSleepNeed). targets.yaml reference.sleep_hours_min is used on nights without one,
+# and for every night when reference.sleep_need is "own".
+NEED_WHY = {
+    ("trainingFeedback", "HIGH_ACWR"): "a jump in training load", ("trainingFeedback", "HIGH_ACWR_AND_CHRONIC"): "high training load",
+    ("trainingFeedback", "HIGH_CHRONIC"): "high training load", ("trainingFeedback", "LOW"): "lighter training",
+    ("sleepHistoryAdjustment", "INCREASING"): "short nights lately", ("sleepHistoryAdjustment", "INCREASING_LOW_QUALITY"): "poor sleep lately",
+    ("sleepHistoryAdjustment", "DECREASING"): "good sleep lately",
+    ("hrvAdjustment", "INCREASING"): "low HRV", ("hrvAdjustment", "DECREASING"): "high HRV",
+    ("napAdjustment", "DECREASING"): "a nap", ("napAdjustment", "INCREASING"): "no nap",
+}
+
+
+def own_target_min():
+    tf = data.ROOT / "targets.yaml"
+    return round((_find(data._jsonable(data._load(tf)) if tf.exists() else {}, "sleep_hours_min") or 7.5) * 60)
+
+
+def use_garmin_need():
+    return str((data.reference() or {}).get("sleep_need", "garmin")).lower() != "own"
+
+
+def _need(n):
+    """Garmin's need record -> {min, baseline, why[]}; None without one."""
+    if not isinstance(n, dict) or not n.get("actual"): return None
+    why = [NEED_WHY[(k, n.get(k))] for k in ("trainingFeedback", "sleepHistoryAdjustment", "hrvAdjustment", "napAdjustment") if (k, n.get(k)) in NEED_WHY]
+    return {"min": int(n["actual"]), "baseline": int(n["baseline"]) if n.get("baseline") else None, "why": why}
+
+
+def need_for(day):
+    """Garmin's need for the night you woke up from on `day`."""
+    return _need(((_raw(day).get("sleep") or {}).get("dailySleepDTO") or {}).get("sleepNeed"))
+
+
+def need_tonight():
+    """Tonight's need: in this morning's file (nextSleepNeed), else yesterday's, else None."""
+    t = data.bkenv.today()
+    for d in (t, t - dt.timedelta(days=1)):
+        dto = (_raw(d.isoformat()).get("sleep") or {}).get("dailySleepDTO") or {}
+        n = _need(dto.get("nextSleepNeed"))
+        if n and str((dto.get("nextSleepNeed") or {}).get("calendarDate", ""))[:10] in ("", (t + dt.timedelta(days=1)).isoformat()): return n
+    return None
+
+
+def target_for(day, own=None):
+    """The target for the night you woke up from on `day`, in minutes, and where it came from."""
+    own = own if own is not None else own_target_min()
+    n = need_for(day) if use_garmin_need() else None
+    return (n["min"], "garmin") if n else (own, "yours")
+
+
 def _before_day(d):
     """What happened on the day before a night, from its day file and Garmin: session end, last meal, late caffeine."""
     n = data._nutrition()
@@ -86,13 +139,13 @@ def nights(days=WINDOW, end=None):
         mid = dt.datetime.combine(dt.date.fromisoformat(d), dt.time())
         st_ = r.get("sleep_stages_min") or {}
         dto = ((_raw(d).get("sleep") or {}).get("dailySleepDTO") or {})
-        need = (dto.get("sleepNeed") or {}).get("actual") if isinstance(dto.get("sleepNeed"), dict) else None
+        nd = _need(dto.get("sleepNeed")); need = nd["min"] if nd else None
         out.append({"date": d, "weekend_morning": dt.date.fromisoformat(d).weekday() >= 5,
                     "start": int((s - mid).total_seconds() // 60), "end": int((e - mid).total_seconds() // 60),   # minutes from the wake day's midnight
                     "asleep": asleep, "deep": st_.get("deep"), "light": st_.get("light"), "rem": st_.get("rem"), "awake": r.get("awake_min"),
                     "score": r.get("sleep_score"), "hrv": r.get("hrv_ms"), "rhr": r.get("rhr"), "spo2_low": r.get("spo2_low"),
                     "spo2_avg": r.get("spo2_avg"), "resp": r.get("respiration"), "stress": r.get("stress_avg"), "bb": r.get("body_battery"),
-                    "need": need, "before": _before_day((dt.date.fromisoformat(d) - dt.timedelta(days=1)).isoformat())})
+                    "need": need, "need_why": nd["why"] if nd else [], "before": _before_day((dt.date.fromisoformat(d) - dt.timedelta(days=1)).isoformat())})
     return out
 
 
@@ -209,7 +262,7 @@ def advice(rows, recent, target_min, F, reg, tn):
         add(4, "Low overnight oxygen readings",
             f"Your lowest SpO2 was a median {round(st.median(lows))}% over recent nights. Wrist readings are noisy, so this isn't a diagnosis.",
             "If you snore, wake with headaches or feel sleepy in the day, mention it to a doctor.")
-    debt7 = sum(target_min - r["asleep"] for r in recent[-7:])   # net: a long night pays some back
+    debt7 = sum(r.get("target", target_min) - r["asleep"] for r in recent[-7:])   # net: a long night pays some back
     if debt7 >= 300:
         add(3, "Big sleep debt this week",
             f"{debt7 // 60}h {debt7 % 60:02d}m under target over the last 7 nights.",
@@ -230,15 +283,23 @@ GENERAL = [
 ]
 
 
+def tonight_target(own=None):
+    """Tonight's target in minutes, where it came from, and Garmin's reasons for changing it."""
+    own = own if own is not None else own_target_min()
+    n = need_tonight() if use_garmin_need() else None
+    return (n["min"], "garmin", n) if n else (own, "yours", None)
+
+
 def build():
-    tf = data.ROOT / "targets.yaml"
-    target_h = _find(data._jsonable(data._load(tf)) if tf.exists() else {}, "sleep_hours_min") or 7.5
-    target = round(target_h * 60)
+    own = own_target_min(); garmin = use_garmin_need()
     rows = nights()
-    if not rows: return {"available": False, "target_min": target}
+    for r in rows: r["target"] = r["need"] if garmin and r["need"] else own
+    t_min, t_src, t_need = tonight_target(own)
+    if not rows: return {"available": False, "target_min": t_min, "own_target_min": own}
     recent = rows[-RECENT:]
     reg = regularity(recent)
-    tn = tonight(rows, target, recent)
+    tn = tonight(rows, t_min, recent)
+    if tn: tn.update({"source": t_src, "need": t_need})
     F = factors(rows)
     last = rows[-1]
     stages = []
@@ -250,14 +311,16 @@ def build():
         except Exception: continue
     debt = 0; series = []
     for r in rows:
-        debt += target - r["asleep"]; series.append({**{k: v for k, v in r.items() if k != "before"}, "debt": debt})
-    return {"available": True, "target_min": target, "last": {**{k: v for k, v in last.items() if k != "before"}, "stages": stages,
+        debt += r["target"] - r["asleep"]; series.append({**{k: v for k, v in r.items() if k != "before"}, "debt": debt})
+    target = _avg([r["target"] for r in recent])   # lately's average target: the Garmin needs, or yours
+    return {"available": True, "target_min": target, "own_target_min": own, "target_source": "garmin" if garmin and any(r["need"] for r in recent) else "yours",
+            "garmin_nights": sum(1 for r in recent if garmin and r["need"]), "last": {**{k: v for k, v in last.items() if k != "before"}, "stages": stages,
             "before": last["before"]},
             "nights": series[-60:], "recent_n": len(recent),
             "recent": {"asleep": _avg([r["asleep"] for r in recent]), "score": _avg([r["score"] for r in recent]),
                        "awake": _avg([r["awake"] for r in recent]), "hrv": _avg([r["hrv"] for r in recent]),
-                       "on_target": sum(r["asleep"] >= target for r in recent), "need": _avg([r["need"] for r in recent]),
-                       "debt7": sum(target - r["asleep"] for r in recent[-7:])},
+                       "on_target": sum(r["asleep"] >= r["target"] for r in recent), "need": _avg([r["need"] for r in recent]),
+                       "debt7": sum(r["target"] - r["asleep"] for r in recent[-7:])},
             "regularity": reg, "tonight": tn, "factors": F, "window_n": len(rows),
             "stages": stage_analysis(rows),
             "advice": advice(rows, recent, target, F, reg, tn), "general": [{"title": t, "text": x} for t, x in GENERAL]}

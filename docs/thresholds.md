@@ -69,6 +69,17 @@ problem, please [raise a GitHub issue](https://github.com/craigbennett1981/body-
 | Short night | Under 7 h counts as short | AASM/SRS adult minimum of 7 h (inferred) | Week advice | `advice.py` |
 | Irregular bedtime | Sleep-onset standard deviation over 30 min = advice; over 60 min = alert | heuristic | Week advice, Day notes, toasts | `advice.py, alerts.py` |
 | Bedtime habit | Asleep within 30 min of the median of the previous 14 nights | heuristic | Week | `habits.py` |
+| Sleep target | Each night's Garmin sleep need (its baseline moved for training load, recent sleep, HRV and naps); your `reference.sleep_hours_min` on nights without one, or every night with `reference.sleep_need: own` | Garmin's sleep need | Sleep & recovery, Day notes, Week, advice | `sleep.py target_for` |
+| Sleep debt | Sum over 7 nights of (that night's target − time asleep); a long night pays some back | design rule | Sleep & recovery | `sleep.py` |
+| Tonight's target | Garmin's need for tonight (`nextSleepNeed` in this morning's file), else your own | Garmin's sleep need | Sleep & recovery | `sleep.py tonight_target` |
+
+## Heart-rate zones (`app/zones.py`)
+
+| Threshold | Rule | Basis | Shown on | Defined in |
+|---|---|---|---|---|
+| Easy share | Zones 1–2 as a share of all workout minutes; the line sits at 80% | 80/20 polarised-training pattern (Seiler), simplified to Garmin's five zones | Training | `zones.py EASY_SHARE` |
+| Easy run | A run logged `effort: easy` averaging under `reference.easy_run_avg_hr_max` | your own cap | Training | `zones.py` |
+| Zones set low | 70%+ of easy runs under the cap but under half their time in zones 1–2 = a note to check the watch's zones | heuristic | Training | `app.js renderZones` |
 
 ## Recovery and readiness
 

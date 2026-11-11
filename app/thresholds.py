@@ -185,7 +185,7 @@ def build():
     pace = tf.get("pace") or {}
     ref = tf.get("reference") or {}
     REF_LABEL = {"easy_run_avg_hr_max": ("Easy runs average under", "bpm"), "hrv_baseline_ms": ("HRV baseline", "ms"),
-                 "sleep_hours_min": ("Sleep target", "h"), "rhr_walk_only": ("Walk only when morning resting HR is at or above", "bpm"),
+                 "sleep_hours_min": ("Sleep target (on nights without Garmin's need)", "h"), "sleep_need": ("Nightly sleep target from", ""), "rhr_walk_only": ("Walk only when morning resting HR is at or above", "bpm"),
                  "steps_daily": ("Steps line on the charts (not judged)", "a day")}
     personal = [[REF_LABEL.get(k, (k, ""))[0], f"{v} {REF_LABEL.get(k, ('', ''))[1]}".strip()] for k, v in ref.items()]
     tp = (data._load(data.ROOT / "exercises.yaml") or {}).get("training_plan") or {}

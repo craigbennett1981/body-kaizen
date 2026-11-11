@@ -35,14 +35,75 @@ document.querySelectorAll('nav button').forEach(b => b.onclick = () => showTab(b
 // tabs that were merged into others: old links land on the new home
 const TAB_MOVED = {recovery:'sleep', trends:'week', advice:'week', wellbeing:'history', timeline:'history'};
 function showTab(t){
+  let sub; [t, sub] = String(t).split('/');   // #training/progress opens a group inside the tab
   t = TAB_MOVED[t] || t;
   if(!document.getElementById('tab-'+t)) t = 'day';
   document.querySelectorAll('nav button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab===t));
   document.querySelectorAll('main > section').forEach(s => s.hidden = s.id !== 'tab-'+t);
   placeSync(t);
   history.replaceState(null,'','#'+t);
+  showSub(t, sub);
   renderTab(t);
 }
+/* ---------- sub-tabs: one group of a long tab at a time; the last one opened is remembered ---------- */
+const subKey = t => 'bk-sub-' + t;
+// Charts that size their layout from their box can't draw in a hidden sub-tab: they wait here and draw when it opens.
+const DRAW_LATER = new Map();
+function drawWhenShown(el, fn){
+  if(el.offsetParent || el.getClientRects().length){ DRAW_LATER.delete(el); return false; }
+  DRAW_LATER.set(el, fn); return true;
+}
+// every bar, kept from page load: some sit inside a container that re-rendering replaces, and are put back by sgApply
+const SUB_BARS = Object.fromEntries([...document.querySelectorAll('.subtabs')].map(b => [b.dataset.tab, b]));
+function showSub(t, g){
+  const bar = SUB_BARS[t]; if(!bar || !bar.isConnected) return;
+  const groups = [...bar.querySelectorAll('button')].filter(b => !b.hidden).map(b => b.dataset.g);
+  if(!groups.includes(g)){ try { g = localStorage.getItem(subKey(t)); } catch(e){ g = null; } }
+  if(!groups.includes(g)) g = groups[0];
+  bar.querySelectorAll('button').forEach(b => { b.setAttribute('aria-selected', b.dataset.g === g); b.tabIndex = b.dataset.g === g ? 0 : -1; });
+  const sec = bar.closest('section');
+  sec.querySelectorAll(':scope > .sub-group').forEach(s => s.hidden = s.dataset.g !== g);
+  sec.querySelectorAll('[data-sg]').forEach(el => el.classList.toggle('sg-off', el.dataset.sg !== g));   // a class, so renderers' own hidden flags stay theirs
+  sec.dataset.sub = g;
+  try { localStorage.setItem(subKey(t), g); } catch(e){}
+  history.replaceState(null, '', `#${t}/${g}`);
+  // charts drawn while their group was hidden have no size: fit them now it shows
+  requestAnimationFrame(() => { Object.values(charts).forEach(c => { const el = c.getDom(); if(el && el.offsetParent && sec.contains(el)) c.resize(); });
+    for(const [el, fn] of [...DRAW_LATER]) if(sec.contains(el) && el.getClientRects().length){ DRAW_LATER.delete(el); fn(); }
+    if(t === 'training' && typeof fitIntensity === 'function') fitIntensity(); });
+}
+// Tabs whose sections are built in one container: after each render, every element is tagged with the group of the
+// heading above it (h2 text starting with one of the group's prefixes). Nothing is moved, so renderers keep working.
+// `after`: the element the bar sits after (it stays above the groups); `place`: classes that go to a given group.
+const SUBS = {
+  experiments: {src:'#experiments', groups:[['running',['Running now']], ['ideas',['Worth testing','Try a rule','Look for a relationship']], ['how',['What you can test',"How it's judged"]]]},
+  food: {src:'#food', groups:[['week',['Where it came from','Plants this week','Swaps']], ['patterns',['Your meals','Weekdays and weekends','Glucose']], ['foods',['Your staples','Every food']]]},
+  longevity: {src:'#longevity', after:'.lv-title', place:{'lv-head':'markers'}, groups:[['overview',['Blood results']], ['markers',['Top levers']], ['schedule',['Test schedule']]]},
+  week: {src:'#week', after:'h1 + div', groups:[['week',['Focus','Habits','New bests','Days']], ['trends',['Last 12 weeks']]]},
+};
+function sgApply(tab){
+  const S = SUBS[tab], src = S && $(S.src), bar = SUB_BARS[tab]; if(!src || !bar) return;
+  const after = S.after ? src.querySelector(':scope > ' + S.after) : null;
+  if(after) after.after(bar);   // re-rendering replaces the container's contents: put the bar back each time
+  else if(!bar.isConnected) src.before(bar);   // nothing to sit after (an error or empty state): above the container
+  let cur = S.groups[0][0], head = !!after;
+  for(const el of [...src.children]){
+    if(el === bar) continue;
+    if(head){ delete el.dataset.sg; if(el === after) head = false; continue; }
+    if(el.tagName === 'H2'){ const hit = S.groups.find(([, ps]) => ps.some(p => el.textContent.trim().startsWith(p))); if(hit) cur = hit[0]; }
+    const pl = Object.entries(S.place || {}).find(([cls]) => el.classList.contains(cls));
+    el.dataset.sg = pl ? pl[1] : cur;
+  }
+  const sec = bar.closest('section');
+  bar.querySelectorAll('button').forEach(b => b.hidden = !sec.querySelector(`[data-sg="${b.dataset.g}"]`));   // no section for it today
+  if(!sec.hidden) showSub(tab, sec.dataset.sub);
+}
+document.querySelectorAll('.subtabs').forEach(bar => {
+  const t = bar.dataset.tab, btns = [...bar.querySelectorAll('button')];
+  btns.forEach((b, i) => { b.onclick = () => showSub(t, b.dataset.g);
+    b.onkeydown = e => { const k = {ArrowRight: 1, ArrowLeft: -1}[e.key]; if(!k) return; e.preventDefault();
+      const n = btns[(i + k + btns.length) % btns.length]; showSub(t, n.dataset.g); n.focus(); }; });
+});
 // The sync status sits at the right of the page's top row, never on a row of its own under the header:
 // on Day and Week at the end of the date row, on the other tabs beside the page title.
 function placeSync(t){
@@ -146,6 +207,7 @@ function wallNow(){
   } catch(e){ const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset()*60000); }
 }
 const todayISO = () => wallNow().toISOString().slice(0,10);
+const mondayOf = iso => { const d = new Date(iso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - (d.getUTCDay() + 6) % 7); return d.toISOString().slice(0,10); };
 const daysAgoISO = n => { const d = new Date(todayISO() + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - n); return d.toISOString().slice(0,10); };
 let currentDate = null;
 async function renderDay(date){
@@ -915,6 +977,7 @@ function renderTrends(){
   // the chart draws inside the box's padding, so lay the panels out in that height (clientHeight includes the padding,
   // which cut the bottom axis's dates off)
   const tEl = $('#trend'), tCs = getComputedStyle(tEl);
+  if(drawWhenShown(tEl, renderTrends)) return;   // its panels are laid out in its real height: wait until it shows
   const H = (tEl.clientHeight - parseFloat(tCs.paddingTop) - parseFloat(tCs.paddingBottom)) || 1020;
   const n = panels.length, top = 34, gap = 36, h = (H - top - 36 - gap*(n-1)) / n;
   const grids = [], xAxes = [], yAxes = [], series = [], titles = [];
@@ -998,24 +1061,24 @@ function renderTrends(){
 }
 
 /* ---------- training ---------- */
-let TRAIN = null, TVIEW = 'energy', TRANGE = 0;   // 0 = All
+let TRAIN = null, LVIEW = null, TRANGE = 0;   // TRANGE 0 = All; LVIEW = the lift charted under Progress
 const TYPE_LABEL = {gym:'Gym', run:'Run', swim:'Swim', ruck:'Ruck', yoga:'Yoga', walk:'Walking (steps)', other:'Other'};
 const typeCol = t => css('--t-'+t);
 document.querySelectorAll('#trange button').forEach(b => b.onclick = () => {
-  document.querySelectorAll('#trange button').forEach(x => x.setAttribute('aria-pressed', x===b)); TRANGE = +b.dataset.d; renderTrainChart(); renderCalendar(); renderIntensity(); });
-function showTrainView(v){ TVIEW = v; renderTrainChips(); renderTrainChart(); renderLiftTable();
-  const el = $('#trainchart'); if(el.getBoundingClientRect().top < 0) el.scrollIntoView({behavior: MOTION?'smooth':'auto', block:'center'}); }
+  document.querySelectorAll('#trange button').forEach(x => x.setAttribute('aria-pressed', x===b)); TRANGE = +b.dataset.d; renderTrainChart(); renderCalendar(); renderIntensity(); renderZones(); });
+function showTrainView(v){ LVIEW = v; renderTrainChips(); renderLift(v); renderLiftTable();
+  const el = $('#liftchart'); if(el.getBoundingClientRect().top < 0) el.scrollIntoView({behavior: MOTION?'smooth':'auto', block:'center'}); }
 function liftNames(){ return Object.keys(TRAIN.lifts).sort((a,b)=>TRAIN.lifts[b].length-TRAIN.lifts[a].length || a.localeCompare(b)); }
 function renderTrainChips(){
   const lifts = liftNames();
-  $('#trainchips').innerHTML = `<button role="tab" data-v="energy" aria-selected="${TVIEW==='energy'}">Energy burnt</button><span class="sep"></span>` +
-    lifts.map(n => `<button role="tab" data-v="${n}" aria-selected="${TVIEW===n}">${n.replace(/-/g,' ')}</button>`).join('');
+  if(!LVIEW || !lifts.includes(LVIEW)) LVIEW = lifts[0] || null;
+  $('#trainchips').innerHTML = lifts.map(n => `<button role="tab" data-v="${n}" aria-selected="${LVIEW===n}">${n.replace(/-/g,' ')}</button>`).join('');
   document.querySelectorAll('#trainchips button').forEach(b => b.onclick = () => showTrainView(b.dataset.v));
 }
 async function renderTraining(){
   TRAIN = TRAIN || await api('/api/training');
-  renderTrainChips(); renderTrainChart(); renderPlan(); renderLiftTable(); renderRuns(); renderWorkouts().then(() => { renderCalendar(); renderMuscles(); });
-  renderIntensity();
+  renderTrainChips(); renderTrainChart(); if(LVIEW) renderLift(LVIEW); renderPlan(); renderLiftTable(); renderRuns(); renderWorkouts().then(() => { renderCalendar(); renderMuscles(); });
+  renderIntensity(); renderZones();
 }
 /* ---------- intensity minutes: per week or month, Garmin's way (moderate + 2 x vigorous), against the goal ---------- */
 let INT = null;
@@ -1072,6 +1135,59 @@ async function renderIntensity(){
     series});
   fitIntensity();
 }
+/* ---------- heart-rate zones: minutes per zone for the Training period, and how easy the easy runs were ---------- */
+let ZN = null;
+// Garmin's zone colours (grey, blue, green, orange, red), saturated so neighbouring zones stand apart
+const Z_COL = ['#9aa5b8', '#2f7bf5', '#12b76a', '#f79009', '#e5372b'];
+async function renderZones(){
+  ZN = ZN || await api('/api/zones').catch(() => null);
+  const note = $('#znote'), el = $('#zchart'); if(!note || !el) return;
+  if(!ZN || !ZN.days.length){ note.textContent = 'No heart-rate zones from the watch yet: they come with each Garmin workout.'; el.hidden = true; return; }
+  const mode = intMode(), from = TRANGE ? daysAgoISO(TRANGE - 1) : '', today = todayISO();
+  const keyOf = d => mode === 'days' ? d : mode === 'months' ? d.slice(0, 7) + '-01' : mondayOf(d);
+  // every bucket in the period, so a week without workouts shows as a gap, not missing
+  const keys = [];
+  if(mode === 'days') for(let i = TRANGE - 1; i >= 0; i--) keys.push(daysAgoISO(i));
+  else { const first = from || ZN.days[0].date; let k = keyOf(first);
+    while(k <= today){ keys.push(k); const d = new Date(k + 'T00:00:00Z');
+      if(mode === 'months') d.setUTCMonth(d.getUTCMonth() + 1); else d.setUTCDate(d.getUTCDate() + 7); k = d.toISOString().slice(0, 10); } }
+  const B = Object.fromEntries(keys.map(k => [k, {z:[0,0,0,0,0], sessions:0}]));
+  const start = mode === 'days' ? from : keys[0];   // weeks and months count in full, so the first one isn't cut short
+  ZN.days.filter(d => d.date >= start && d.date <= today).forEach(d => { const b = B[keyOf(d.date)]; if(!b) return;
+    ['z1','z2','z3','z4','z5'].forEach((z, i) => b.z[i] += d[z]); b.sessions += d.sessions; });
+  const rows = keys.map(k => ({k, ...B[k], tot: B[k].z.reduce((a, v) => a + v, 0)}));
+  const sum = rows.reduce((a, r) => a.map((v, i) => v + r.z[i]), [0,0,0,0,0]), all = sum.reduce((a, v) => a + v, 0);
+  const easy = all ? (sum[0] + sum[1]) / all : null;
+  const runs = ZN.runs.filter(r => r.date >= start && r.date <= today && r.effort === 'easy');
+  const under = runs.filter(r => r.under_cap).length, rMin = runs.reduce((a, r) => a + r.minutes, 0), rEasy = runs.reduce((a, r) => a + r.easy_min, 0);
+  const parts = [];
+  if(all) parts.push(`Zones 1–2 were <b class="${easy >= ZN.easy_share - .05 ? 'good' : ''}">${Math.round(easy * 100)}%</b> of ${fmt(all)} minutes of training${TRANGE ? '' : ' in all'}; the usual aim is about ${Math.round(ZN.easy_share * 100)}% easy.`);
+  if(runs.length) parts.push(`Easy runs: <b>${under} of ${runs.length}</b> averaged under ${ZN.easy_cap} bpm, with ${rMin ? Math.round(rEasy / rMin * 100) : 0}% of their time in zones 1–2.`);
+  if(runs.length >= 2 && under / runs.length >= .7 && rMin && rEasy / rMin < .5)
+    parts.push(`<span class="warn">Your easy runs stay under ${ZN.easy_cap} bpm but the watch puts most of them in zone 3 or above: your Garmin heart-rate zones may be set too low.</span>`);
+  note.innerHTML = parts.join(' ');
+  note.title = `From the time-in-zone Garmin records for each workout, using the zones set on your watch. Zones 1–2 count as easy and 3–5 as hard. An easy run is one logged with effort: easy; the ${ZN.easy_cap} bpm cap is reference.easy_run_avg_hr_max in targets.yaml.`;
+  el.hidden = false;
+  const c = theme(), ax = {axisLine:{lineStyle:{color:c.rule}}, axisLabel:{color:c.muted, fontSize:11}, splitLine:{lineStyle:{color:c.rule}}};
+  const x = rows.map(r => mode === 'days' ? new Date(r.k + 'T00:00').toLocaleDateString('en-GB', {weekday:'short', day:'numeric'})
+    : mode === 'weeks' ? shortDate(r.k) : new Date(r.k + 'T00:00').toLocaleDateString('en-GB', {month:'short', year:'2-digit'}));
+  const top = Math.max(1, ...rows.map(r => r.tot));
+  chart('zchart').setOption({animation:MOTION, animationDuration:400, textStyle:{fontFamily:'Archivo'},
+    legend:{top:0, left:56, textStyle:{color:c.muted, fontSize:11}, itemWidth:14, itemHeight:8},
+    grid:{left:56, right:48, top:32, bottom:28},
+    xAxis:{type:'category', data:x, ...ax, axisTick:{show:false}},
+    yAxis:[{type:'value', ...ax, min:0, max:top, interval:niceRange(0, top, 3, true).interval, axisLabel:{...ax.axisLabel, showMaxLabel:false, formatter:v => v + 'm'}},
+           {type:'value', min:0, max:100, interval:20, splitLine:{show:false}, axisLine:{show:false}, axisLabel:{color:c.muted, fontSize:11, formatter:v => v + '%'}}],
+    tooltip:{trigger:'axis', ...tip(c), formatter: ps => { const r = rows[ps[0].dataIndex];
+      if(!r.tot) return `<b>${esc(ps[0].axisValue)}</b><br>No workouts with heart-rate data`;
+      return `<b>${esc(ps[0].axisValue)}</b> · ${r.sessions} workout${r.sessions === 1 ? '' : 's'}<br>` + r.z.map((v, i) => `Zone ${i + 1}: ${fmt(v)} min`).join('<br>') +
+        `<br><b>${Math.round((r.z[0] + r.z[1]) / r.tot * 100)}%</b> easy (zones 1–2)`; }},
+    series:[...[0,1,2,3,4].map(i => ({type:'bar', name:`Zone ${i + 1}`, stack:'z', barMaxWidth:28, data:rows.map(r => r.z[i] || null),
+        itemStyle:{color:Z_COL[i], borderRadius:i === 4 ? [4,4,0,0] : 0}})),
+      {type:'line', name:'% easy', yAxisIndex:1, data:rows.map(r => r.tot ? Math.round((r.z[0] + r.z[1]) / r.tot * 100) : null), connectNulls:true,
+        symbolSize:5, lineStyle:{color:c.ink, width:2}, itemStyle:{color:c.ink}, z:5,
+        markLine:{symbol:'none', silent:true, data:[{yAxis:ZN.easy_share * 100}], lineStyle:{color:c.good, type:'dashed'}, label:{formatter:`${Math.round(ZN.easy_share * 100)}% easy`, color:c.good, position:'insideEndTop'}}}]});
+}
 /* ---------- workouts: one session in detail, Hevy + Garmin ---------- */
 let WO = null, WO_SEL = null;
 const WO_IC = {gym:'🏋', run:'🏃', swim:'🏊', ruck:'🎒', yoga:'🧘', other:'•'};
@@ -1104,7 +1220,7 @@ async function renderWorkouts(){
   if(T && (T.aerobic_te!=null)) tiles.push(tile('Training effect', `${fmt(T.aerobic_te,1)} <small>/</small> ${fmt(T.anaerobic_te,1)}`,
     `aerobic / anaerobic${T.te_label?' · '+T.te_label.toLowerCase().replace(/_/g,' '):''}`)); if(T && T.body_battery_change!=null) tiles.push(tile('Body battery', `${esc(T.body_battery_change)}`, 'cost of the session'));
   const Z = D.zones_min;
-  const zbar = Z ? (() => { const tot = Object.values(Z).reduce((a,b)=>a+b,0)||1, ZC = ['#7a8597','#2a78d6','#1baf7a','#eda100','#eb6834','#C8372D'];
+  const zbar = Z ? (() => { const tot = Object.values(Z).reduce((a,b)=>a+b,0)||1, ZC = [null, ...Z_COL];
     return `<div class="zbar">${[1,2,3,4,5].map(k => Z['z'+k] ? `<i style="flex:${Z['z'+k]};background:${ZC[k]}" title="Zone ${k}: ${Z['z'+k]} min"><span>Z${k} ${Z['z'+k]}m</span></i>` : '').join('')}</div>`; })() : '';
   let h = `<div class="wo-head"><div><h3>${WO_IC[S.type]||''} ${esc(S.name)}</h3><span class="sub">${fmtDate(S.date)}${S.start?' · '+esc(S.start):''}${/^https:\/\//.test(D.hevy||'')?` · <a href="${esc(D.hevy)}" target="_blank" rel="noopener">Hevy</a>`:''}${D.prs?` · <span class="pr-star">★</span> ${esc(D.prs)} personal best${D.prs>1?'s':''}`:''}</span>
     ${D.note?`<div class="sub">${esc(D.note)}</div>`:''}</div></div>${coachList(D.coach)}<div class="tiles-g wo-tiles">${tiles.join('')}</div>${zbar}`;
@@ -1133,7 +1249,7 @@ async function renderWorkouts(){
   }
   box.innerHTML = h;
   if(T){
-    const B = D.zone_bounds, ZC = ['#7a8597','#2a78d6','#1baf7a','#eda100','#eb6834'];
+    const B = D.zone_bounds, ZC = Z_COL;
     const lo = Math.max(40, Math.min(...T.points.map(p=>p[1])) - 5), hi = Math.max(...T.points.map(p=>p[1])) + 8;
     const ax = {axisLine:{lineStyle:{color:c.rule}},axisLabel:{color:c.muted,fontSize:11,fontFamily:'Archivo'},splitLine:{lineStyle:{color:c.rule,opacity:.35}}};
     chart('wohr').setOption({animation:MOTION,grid:{left:44,right:16,top:10,bottom:26},
@@ -1145,7 +1261,7 @@ async function renderWorkouts(){
         const L = ei>=0 ? EL[ei] : null;
         return `${fmt(m,1)} min · <b>${p.value[1]}</b> bpm${z>=0?` <span style="color:${c.muted}">zone ${z+1}</span>`:''}${L?`<br><b>${esc(L.name)}</b> · set ${esc(L.set)} of ${esc(L.of)} · ${esc(L.raw.replace(/^0x/,'bw×'))}`:''}`; }},
       series:[{type:'line',name:'HR',data:T.points,showSymbol:false,lineStyle:{color:'#C8372D',width:1.8},
-        markArea:{silent:true,label:{show:true,position:'insideRight',color:c.muted,fontSize:10},data:[0,1,2,3,4].map(k=>[{yAxis:B[k],name:'Z'+(k+1),itemStyle:{color:ZC[k],opacity:.08}},{yAxis:B[k+1]}])}},
+        markArea:{silent:true,label:{show:true,position:'insideRight',color:c.muted,fontSize:10},data:[0,1,2,3,4].map(k=>[{yAxis:B[k],name:'Z'+(k+1),itemStyle:{color:ZC[k],opacity:.14}},{yAxis:B[k+1]}])}},
         {type:'scatter',name:'Efforts',data:T.efforts.map((q,k) => ({value:q, itemStyle:{color:(T.effort_labels||[])[k]||!CIRC?c.ink:c.muted, opacity:(T.effort_labels||[])[k]||!CIRC?1:.45}})),symbolSize:7,tooltip:{show:false}}]});
   }
 }
@@ -1247,9 +1363,7 @@ async function renderMuscles(){
   box.querySelectorAll('polygon.m').forEach(p => { p.onmouseenter = () => show(p.dataset.r); p.onclick = () => show(p.dataset.r); });
   if(top) show(top);
 }
-function renderTrainChart(){
-  if(TVIEW === 'energy') renderEnergy(); else renderLift(TVIEW);
-}
+function renderTrainChart(){ renderEnergy(); }
 function renderEnergy(){
   const c = theme(), E = TRAIN.energy;
   let days = E.days; if(TRANGE) days = days.slice(-TRANGE);
@@ -1306,12 +1420,11 @@ function renderLift(name){
   const c = theme();
   const pts = TRAIN.lifts[name] || [];
   const carry = pts.some(p => p.metres);
-  $('#trainnote').textContent = `${name.replace(/-/g,' ')}: ` + (carry ? 'load carried per set.' : 'top set each session, with estimated one-rep max dashed. Gold points are new bests.') + (pts.length < 4 ? ' History before 9 Oct is partial; pasted Hevy workouts fill it in.' : '');
-  $('#traintable').innerHTML = '';
+  $('#liftnote').textContent = `${name.replace(/-/g,' ')}: ` + (carry ? 'load carried per set.' : 'top set each session, with estimated one-rep max dashed. Gold points are new bests.') + (pts.length < 4 ? ' History before 9 Oct is partial; pasted Hevy workouts fill it in.' : '');
   const swapIdx = pts.findIndex(p=>p.epoch==='v2');
   const vals = [...pts.map(p=>U.wv(p.kg)), ...(carry?[]:pts.map(p=>U.wv(p.e1rm)))];
   const ax = {axisLine:{lineStyle:{color:c.rule}},axisLabel:{color:c.muted,fontSize:11},splitLine:{lineStyle:{color:c.rule}}};
-  chart('trainchart').setOption({animation:MOTION,animationDuration:500,textStyle:{fontFamily:'Archivo'},
+  chart('liftchart').setOption({animation:MOTION,animationDuration:500,textStyle:{fontFamily:'Archivo'},
     legend:{top:0,left:56,textStyle:{color:c.muted},data:carry?[]:[`Top set ${U.wu()}`,'Est. 1RM']},
     grid:{left:66,right:40,top:40,bottom:34},
     tooltip:{trigger:'axis',...tip(c),formatter: ps => { const p = pts[ps[0].dataIndex];
@@ -1351,7 +1464,7 @@ function renderLiftTable(){
   const names = liftNames();
   const rows = names.map(n => { const ps = TRAIN.lifts[n]; const best = ps.reduce((a,b)=>b.e1rm>a.e1rm?b:a); const last = ps[ps.length-1];
     const s = p => `${fmt(U.wv(p.kg),1)}${p.reps?' × '+p.reps:''}${p.metres?' '+U.wu()+', '+p.metres+' m':''}`;
-    return `<tr data-lift="${n}" aria-selected="${TVIEW===n}" tabindex="0"><td>${n.replace(/-/g,' ')}</td><td>${s(last)}</td><td>${shortDate(last.date)}</td><td>${s(best)}</td><td>${shortDate(best.date)}</td><td>${ps.length}</td></tr>`; });
+    return `<tr data-lift="${n}" aria-selected="${LVIEW===n}" tabindex="0"><td>${n.replace(/-/g,' ')}</td><td>${s(last)}</td><td>${shortDate(last.date)}</td><td>${s(best)}</td><td>${shortDate(best.date)}</td><td>${ps.length}</td></tr>`; });
   $('#lifttable').innerHTML = `<table><tr><th>Lift</th><th>Latest</th><th>When</th><th>Best</th><th>When</th><th>Sessions</th></tr>${rows.join('')}</table>`;
   document.querySelectorAll('#lifttable tr[data-lift]').forEach(r => {
     r.onclick = () => showTrainView(r.dataset.lift);
@@ -1952,28 +2065,35 @@ async function renderSleep(){
   const el = $('#sleep');
   if(!SLEEP){ el.innerHTML = '<p class="empty">Couldn’t load your sleep.</p>'; return; }
   if(!SLEEP.available){ el.innerHTML = '<p class="empty">No nights yet. Connect Garmin on the Connections page and sleep with your watch on.</p>'; return; }
-  const S = SLEEP, L = S.last, R = S.recent, G = S.regularity, TN = S.tonight, T = S.target_min;
+  const S = SLEEP, L = S.last, R = S.recent, G = S.regularity, TN = S.tonight, T = S.target_min, OWN = S.own_target_min, GN = S.target_source === 'garmin';
+  const LT = L.target ?? T, whose = GN ? "Garmin's need" : 'your target';
   const ok = (v, good) => v==null ? '' : good ? 'good' : 'bad';
   el.innerHTML = `
-    <p class="sub">Last night is the night you woke up on ${esc(fmtDate(L.date))}. Target ${esc(mh(T))} asleep${R.need?`; Garmin's sleep need lately ${esc(mh(R.need))}`:''}.</p>
+    <p class="sub">Last night is the night you woke up on ${esc(fmtDate(L.date))}. ${GN ? `Each night's target is Garmin's sleep need for it: ${esc(mh(LT))} last night, ${esc(mh(T))} on average lately${S.garmin_nights < S.recent_n ? `, and your own ${esc(mh(OWN))} on nights without one` : ''}. Your own target is ${esc(mh(OWN))}.`
+      : `Target ${esc(mh(T))} asleep${R.need ? `; Garmin's sleep need lately ${esc(mh(R.need))}` : ''}.`}</p>
     <div class="wk-grid">
-      <div class="t"><div class="lab">Last night</div><div class="v ${ok(L.asleep, L.asleep >= T)}">${esc(mh(L.asleep))}</div><div class="s">${clk(L.start)}–${clk(L.end)} · ${esc(L.awake ?? '–')} min awake</div></div>
+      <div class="t"><div class="lab">Last night</div><div class="v ${ok(L.asleep, L.asleep >= LT)}">${esc(mh(L.asleep))}</div><div class="s">${clk(L.start)}–${clk(L.end)} · ${esc(L.awake ?? '–')} min awake</div></div>
       <div class="t"><div class="lab">Sleep score</div><div class="v ${ok(L.score, L.score >= 80)}">${esc(L.score ?? '–')}</div><div class="s">HRV ${esc(L.hrv ?? '–')} ms · resting HR ${esc(L.rhr ?? '–')}</div></div>
       <div class="t"><div class="lab">Last ${esc(S.recent_n)} nights</div><div class="v ${ok(R.asleep, R.asleep >= T)}">${esc(mh(R.asleep))}</div><div class="s">${esc(R.on_target)} of ${esc(S.recent_n)} on target</div></div>
-      <div class="t"><div class="lab">Sleep debt, 7 nights</div><div class="v ${ok(R.debt7, R.debt7 <= 60)}">${R.debt7 > 0 ? esc(mh(R.debt7)) : 'none'}</div><div class="s">${R.debt7 > 0 ? 'under your target' : 'you’re at or over your target'}</div></div>
-      ${TN ? `<div class="t tn"><div class="lab">Tonight</div><div class="v">${esc(TN.in_bed)}</div><div class="s">in bed, for a ${esc(TN.wake)} wake-up${TN.weekend?' (your weekday time: no weekend lie-in)':''}. Wind down from ${esc(TN.wind_down)}.</div></div>` : ''}
-    </div>
+      <div class="t"><div class="lab">Sleep debt, 7 nights</div><div class="v ${ok(R.debt7, R.debt7 <= 60)}">${R.debt7 > 0 ? esc(mh(R.debt7)) : 'none'}</div><div class="s">${R.debt7 > 0 ? `under ${whose}` : `you’re at or over ${whose}`}</div></div>
+      ${TN ? `<div class="t tn"><div class="lab">Tonight</div><div class="v">${esc(TN.in_bed)}</div><div class="s">in bed, for a ${esc(TN.wake)} wake-up${TN.weekend?' (your weekday time: no weekend lie-in)':''}, to get ${esc(mh(TN.target_min))}${TN.source === 'garmin' ? ` (Garmin's need${TN.need && TN.need.why.length ? `, up for ${esc(TN.need.why.join(' and '))}` : ''})` : ''}. Wind down from ${esc(TN.wind_down)}.</div></div>` : ''}
+    </div>`;
+  $('#sleep-lastnight').innerHTML = `
     <h2>Last night</h2>
     <p class="sub">Your sleep stages through the night.${L.spo2_low?` Oxygen ${esc(L.spo2_avg ?? '–')}% average, ${esc(L.spo2_low)}% lowest; breathing ${esc(L.resp ?? '–')} a minute.`:''}${L.bb!=null?` Body battery ${esc(L.bb)} on waking.`:''}</p>
     <div class="st-legend">${['deep','light','rem','awake'].map(k => `<span><i style="background:${SLEEP_COL[k]}"></i>${({deep:'Deep',light:'Light',rem:'REM',awake:'Awake'})[k]} ${esc(L[k] ?? '–')} min</span>`).join('')}</div>
     <div id="sl-hyp" class="chart" style="height:170px"></div>
+`;
+  $('#sleep-every').innerHTML = `
     <h2>Every night, last ${esc(S.nights.length)}</h2>
     <p class="sub">Time asleep against your target, with Garmin's sleep need and your sleep debt over the 7 nights to each date.</p>
-    <div id="sl-trend" class="chart" style="height:400px"></div>
-    ${sleepStagesHtml(S.stages)}
+    <div id="sl-trend" class="chart" style="height:400px"></div>`;
+  $('#sleep-pattern').innerHTML = `
     <h2>When you sleep</h2>
     <p class="sub">Each bar runs from falling asleep to waking. Lately your bedtime is ${esc(G.bed_median ?? '–')} give or take ${esc(G.bed_sd ?? '–')} min, waking ${esc(G.wake_median ?? '–')} give or take ${esc(G.wake_sd ?? '–')} min.${G.social_jetlag_min!=null?` At weekends your sleep runs ${esc(Math.abs(G.social_jetlag_min))} min ${G.social_jetlag_min>=0?'later':'earlier'}.`:''} Weekend mornings in blue.${TN?` Dashed: tonight’s bedtime.`:''}</p>
     <div id="sl-when" class="chart" style="height:360px"></div>
+    ${sleepStagesHtml(S.stages)}`;
+  $('#sleep-helps').innerHTML = `
     <h2>What goes with better and worse nights</h2>
     <p class="sub">Each row compares your nights after that kind of day with the rest of your ${esc(S.window_n)} nights. Bars show the difference: green is better, red is worse. Hover a row for the numbers. These show what goes together, not proof of cause.</p>
     <div class="sl-fx">${sleepFactors(S.factors)}</div>
@@ -2002,20 +2122,22 @@ async function renderSleep(){
 
   // trend: asleep bars, need line, target line; 7-night debt below
   const N = S.nights, x = N.map(n => shortDate(n.date));
-  const debt7 = N.map((n, i) => { const w = N.slice(Math.max(0, i - 6), i + 1); return w.reduce((a, r) => a + (T - r.asleep), 0) / 60; });
+  const tg = n => n.target ?? T;   // each night's own target
+  const debt7 = N.map((n, i) => { const w = N.slice(Math.max(0, i - 6), i + 1); return w.reduce((a, r) => a + (tg(r) - r.asleep), 0) / 60; });
   chart('sl-trend').setOption({animation:MOTION,animationDuration:400,textStyle:{fontFamily:'Archivo'},
-    title:[{text:'Asleep, hours',left:52,top:0,textStyle:{fontSize:12.5,fontWeight:600,color:c.ink}},{text:'Sleep debt over 7 nights, hours',left:52,top:238,textStyle:{fontSize:12.5,fontWeight:600,color:c.ink}}],
+    title:[{text:GN ? "Asleep, hours, against Garmin's need (green line)" : 'Asleep, hours',left:52,top:0,textStyle:{fontSize:12.5,fontWeight:600,color:c.ink}},{text:'Sleep debt over 7 nights, hours',left:52,top:238,textStyle:{fontSize:12.5,fontWeight:600,color:c.ink}}],
     grid:[{left:52,right:20,top:24,height:190},{left:52,right:20,top:262,height:86}],
     xAxis:[0,1].map(i => ({type:'category',gridIndex:i,data:x,...ax,axisLabel:{...ax.axisLabel,show:i===1}})),
     yAxis:[{type:'value',gridIndex:0,...ax,...niceRange(0, Math.max(9, ...N.map(n => n.asleep/60)), 3, true),axisLabel:{...ax.axisLabel,formatter:v=>v+'h'}},
            {type:'value',gridIndex:1,...ax,...niceRange(Math.min(0, ...debt7), Math.max(1, ...debt7), 2),axisLabel:{...ax.axisLabel,formatter:v=>v+'h'}}],
     axisPointer:{link:[{xAxisIndex:'all'}],lineStyle:{color:c.muted}},
     tooltip:{trigger:'axis',...tip(c),formatter: ps => { const n = N[ps[0].dataIndex];
-      return `<b>${esc(fmtDate(n.date))}</b><br>Asleep ${esc(mh(n.asleep))} (${clk(n.start)}–${clk(n.end)})${n.score?`<br>Score ${esc(n.score)}`:''}${n.need?`<br>Garmin's need ${esc(mh(n.need))}`:''}${n.hrv?`<br>HRV ${esc(n.hrv)} ms`:''}<br>7-night debt ${esc(mh(Math.max(0, debt7[ps[0].dataIndex]*60)))}`; }},
+      return `<b>${esc(fmtDate(n.date))}</b><br>Asleep ${esc(mh(n.asleep))} (${clk(n.start)}–${clk(n.end)})${n.score?`<br>Score ${esc(n.score)}`:''}${n.need?`<br>Garmin's need ${esc(mh(n.need))}${n.need_why && n.need_why.length ? ` (up for ${esc(n.need_why.join(' and '))})` : ''}`:''}${n.hrv?`<br>HRV ${esc(n.hrv)} ms`:''}<br>7-night debt ${esc(mh(Math.max(0, debt7[ps[0].dataIndex]*60)))}`; }},
     series:[
-      {type:'bar',xAxisIndex:0,yAxisIndex:0,barMaxWidth:16,data:N.map(n => ({value:+(n.asleep/60).toFixed(2),itemStyle:{color:n.asleep>=T?c.good:hatch(c.bad,c.surface),borderRadius:[3,3,0,0]}})),
-        markLine:{symbol:'none',silent:true,data:[{yAxis:T/60}],lineStyle:{color:c.good,type:'dashed'},label:{formatter:`target ${mh(T)}`,color:c.good,position:'insideEndTop'}}},
-      {type:'line',name:'Need',xAxisIndex:0,yAxisIndex:0,data:N.map(n => n.need ? +(n.need/60).toFixed(2) : null),connectNulls:true,symbol:'none',lineStyle:{color:c.accent,width:1.5,type:'dotted'}},
+      {type:'bar',xAxisIndex:0,yAxisIndex:0,barMaxWidth:16,data:N.map(n => ({value:+(n.asleep/60).toFixed(2),itemStyle:{color:n.asleep>=tg(n)?c.good:hatch(c.bad,c.surface),borderRadius:[3,3,0,0]}})),
+        markLine:{symbol:'none',silent:true,data:[{yAxis:(GN ? OWN : T)/60}],lineStyle:{color:GN ? c.muted : c.good,type:'dashed'},label:{formatter:`${GN ? 'yours' : 'target'} ${mh(GN ? OWN : T)}`,color:GN ? c.muted : c.good,position:'insideEndTop'}}},
+      {type:'line',name:'Need',xAxisIndex:0,yAxisIndex:0,data:N.map(n => n.need ? +(n.need/60).toFixed(2) : null),connectNulls:true,symbol:'none',step:GN ? 'middle' : false,
+        lineStyle:GN ? {color:c.good,width:2} : {color:c.accent,width:1.5,type:'dotted'}},
       {type:'line',name:'Debt',xAxisIndex:1,yAxisIndex:1,data:debt7.map(v => +v.toFixed(1)),symbol:'none',smooth:.3,lineStyle:{color:c.bad,width:2},
         areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(200,55,45,.25)'},{offset:1,color:'rgba(0,0,0,0)'}])},
         markLine:{symbol:'none',silent:true,data:[{yAxis:0}],lineStyle:{color:c.muted,type:'solid',opacity:.6},label:{show:false}}}]});
@@ -2362,7 +2484,10 @@ function renderTab(t){
   if(t==='training') renderTraining();
   if(t==='body') renderBody();
 }
-function renderAll(){ const t = (location.hash||'#day').slice(1); renderTab(TAB_MOVED[t] || t); }
+for(const [tab, name] of [['experiments','renderExperiments'], ['food','renderFood'], ['longevity','renderLongevity'], ['week','renderWeek']]){
+  const f = window[name]; window[name] = async (...a) => { try { return await f(...a); } finally { sgApply(tab); } };
+}
+function renderAll(){ const t = (location.hash||'#day').slice(1).split('/')[0]; renderTab(TAB_MOVED[t] || t); }
 /* ---------- profile: first-run setup (name, start date, timezone -> settings.yaml) ---------- */
 let PROFILE = null;
 function showWho(){   // a small profile icon, not the name: the name made the header wrap and pushed the sync status down

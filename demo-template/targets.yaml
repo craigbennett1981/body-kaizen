@@ -24,7 +24,7 @@ weight:
 reference:
   easy_run_avg_hr_max: 145      # easy runs should average under this
   hrv_baseline_ms: 62           # overnight HRV 7-day baseline
-  sleep_hours_min: 7.5
+  sleep_hours_min: 7.5          # used on nights without Garmin's sleep need (or every night with sleep_need: own)
   rhr_walk_only: 58             # morning RHR at or above this = walk only
   steps_daily: 9000             # a reference line, not a target
 
