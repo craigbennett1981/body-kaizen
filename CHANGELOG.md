@@ -5,11 +5,6 @@ What changed in each release. Earlier releases are described on the
 
 ## Unreleased
 
-### Dashboard
-- **Feedback button:** a tab halfway down the left edge, there whatever you scroll. It opens GitHub's form to report
-  a problem or suggest an idea, filled in with the version, your operating system and the page you're on, and none of
-  your health data.
-
 ### Body tab
 - **Your real maintenance:** what you actually burn, from the last 28 days of eating against what your fasted weight
   trend did (7,700 kcal per kg), with a 90% range and Garmin's burn beside it, so you can see how far Garmin's figure
@@ -38,6 +33,9 @@ What changed in each release. Earlier releases are described on the
   [docs/data-folder.md](docs/data-folder.md#how-your-data-is-kept) explains each one and the GitHub steps.
 
 ### Dashboard
+- **Feedback button:** a tab halfway down the left edge, there whatever you scroll. It opens GitHub's form to report
+  a problem or suggest an idea, filled in with the version, your operating system and the page you're on, and none of
+  your health data.
 - **A logo of its own:** three rising steps with a dot on the top one, in the dashboard's blue. It is the browser-tab
   icon (SVG, plus `favicon.ico` and an Apple touch icon), the demo's icon and the installer's app icon. The icon files
   are the only thing served before signing in.
