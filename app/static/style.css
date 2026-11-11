@@ -102,6 +102,8 @@ td.low{color:var(--warn)}
 @keyframes pulse{to{opacity:.3}}
 .sync button{background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:3px 9px;cursor:pointer;font-size:12.5px}
 .sync button[disabled]{opacity:.5;cursor:default}
+.sync.in-title{float:right;margin:14px 0 0 16px}   /* beside the page title; the title row's own controls stay to its left */
+@media (max-width:640px){.sync.in-title{float:none;justify-content:flex-end;margin:0 0 4px}}
 
 .toasts{position:fixed;right:20px;bottom:20px;display:flex;flex-direction:column;gap:10px;z-index:50;max-width:min(420px,calc(100vw - 32px))}
 .toast{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--muted);
