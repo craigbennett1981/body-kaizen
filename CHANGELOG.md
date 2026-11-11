@@ -21,8 +21,6 @@ What changed in each release. Earlier releases are described on the
   for short periods. The Intensity chart shrinks to the calendar's height, and its note is down to this week and the
   trend (the rest is on hover).
 - **Muscles worked opens on this workout**, the one picked above it, instead of the last 7 days.
-
-### Training tab
 - **Intensity minutes per week or month:** Garmin's count (moderate plus vigorous counted twice) against your Garmin
   weekly goal (150 when the watch reports none), pro rata for months. A 4-week average line, this week's progress and
   what's left to do, how the last 4 full weeks compare with the 4 before, and how many of the last 12 weeks met the
