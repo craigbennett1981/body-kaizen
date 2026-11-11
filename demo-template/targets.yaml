@@ -18,6 +18,9 @@ intake:
 weight:
   - {from: 2026-07-01, kg: 77}
 
+# Optional, for "Your real maintenance" on the Body tab (see SCHEMA.md):
+# adaptive: {goal_kg_per_week: -0.25, next_scan: 2026-12-05}
+
 reference:
   easy_run_avg_hr_max: 145      # easy runs should average under this
   hrv_baseline_ms: 62           # overnight HRV 7-day baseline

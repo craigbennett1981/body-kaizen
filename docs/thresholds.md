@@ -133,6 +133,11 @@ problem, please [raise a GitHub issue](https://github.com/craigbennett1981/body-
 | Fat per kcal | 7,700 kcal of deficit = 1 kg of body fat | common rule of thumb (≈3,500 kcal per lb); early loss also includes water and glycogen | Body | `energybalance.py KCAL_PER_KG` |
 | Actual change | Least-squares trend through the last 30 days' fasted weigh-ins (4 or more) | design rule | Body | `energybalance.py` |
 | Logs vs scale | Within 75 kcal a day = consistent; otherwise the gap is shown | heuristic | Body | `app.js renderEnergyBalance` |
+| Real maintenance | Average intake on closed days − weight trend (kg/day) × 7,700, over 28 days; needs 14 closed days and 6 fasted weigh-ins; 90% range from the trend's standard error | design rule (the usual adaptive-TDEE method) | Body | `maintenance.py` |
+| Suggested targets | Every day-type target moved by the same amount (to 25 kcal) so your recent mix of rest, training and big days averages maintenance + the goal rate | design rule | Body | `maintenance.py suggest` |
+| Goal rates offered | Yours (`adaptive.goal_kg_per_week`), else 0, and ±0.25 and ±0.5 kg a week towards your weight target when the trend is over 0.5 kg from it | heuristic | Body | `maintenance.py goals` |
+| Lowest suggestion | No rate whose weekly average is under your latest InBody BMR (else 1,500 kcal for men, 1,200 otherwise) | common floor (heuristic) | Body | `maintenance.py floor` |
+| Next scan | `adaptive.next_scan`, else the last InBody + the median gap between scans | design rule | Body | `maintenance.py next_scan` |
 
 ## Longevity marker bands (`markers.yaml`)
 
