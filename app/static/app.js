@@ -1043,11 +1043,11 @@ async function renderIntensity(){
   const avg4 = IMODE === 'weeks' ? rows.map((r, i) => { const xs = rows.slice(Math.max(0, i - 3), i + 1).filter(w => !w.current && !w.partial_data && w.total != null);
     return xs.length >= 3 && !r.current ? Math.round(xs.reduce((a, w) => a + w.total, 0) / xs.length) : null; }) : null;
   const series = [
-    {type:'bar', name:'Moderate', stack:'im', data:mod, barMaxWidth:28},
-    {type:'bar', name:'Vigorous (counted twice)', stack:'im', data:vig, barMaxWidth:28, itemStyle:{borderRadius:[4,4,0,0]}},
+    {type:'bar', name:'Moderate', stack:'im', data:mod, barMaxWidth:28, itemStyle:{color:MOD}},
+    {type:'bar', name:'Vigorous (counted twice)', stack:'im', data:vig, barMaxWidth:28, itemStyle:{color:VIG, borderRadius:[4,4,0,0]}},
     {type:'line', name:IMODE === 'weeks' ? `Goal ${fmt(G)} a week` : 'Goal (pro rata)', data:goal, step:IMODE === 'months' ? 'middle' : false, symbol:'none',
-      lineStyle:{color:c.good, type:'dashed', width:2}, z:4}];
-  if(avg4) series.push({type:'line', name:'4-week average', data:avg4, symbol:'none', smooth:.3, connectNulls:false, lineStyle:{color:c.ink, width:2}, z:5});
+      lineStyle:{color:c.good, type:'dashed', width:2}, itemStyle:{color:c.good}, z:4}];
+  if(avg4) series.push({type:'line', name:'4-week average', data:avg4, symbol:'none', smooth:.3, connectNulls:false, lineStyle:{color:c.ink, width:2}, itemStyle:{color:c.ink}, z:5});
   chart('intchart').setOption({animation:MOTION, animationDuration:400, textStyle:{fontFamily:'Archivo'},
     legend:{top:0, left:56, textStyle:{color:c.muted, fontSize:11}, itemWidth:14, itemHeight:8},
     grid:{left:56, right:24, top:36, bottom:28},
