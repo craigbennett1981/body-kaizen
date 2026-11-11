@@ -6,7 +6,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 os.environ.setdefault("FT_DATA", str(ROOT / "demo"))
 sys.path[:0] = [str(ROOT / "scripts"), str(ROOT / "app")]
 import nutrition as N   # noqa: E402
-import pace, planner, muscles, workouts, thresholds, energybalance, intensity   # noqa: E402
+import pace, planner, muscles, workouts, thresholds, energybalance, intensity, maintenance   # noqa: E402
 import bkenv, garmin_pull, scheduler   # noqa: E402
 
 
@@ -210,6 +210,87 @@ class NoGit(unittest.TestCase):
         subprocess.run = lambda cmd, **k: subprocess.CompletedProcess(cmd, 2 if cmd[0] == "xcode-select" else 0)
         try: self.assertIsNone(bkenv.git_exe())
         finally: bkenv._GIT, sh.which, subprocess.run = old
+
+
+class Maintenance(unittest.TestCase):
+    """Real maintenance from intake and the weight trend, the targets shifted to it, and the InBody projection."""
+    def days(self, n=28, end="2026-10-29", kcal=2200, kg0=76.0, kg_per_day=-0.02, burn=2600, every=2):
+        d0 = dt.date.fromisoformat(end) - dt.timedelta(days=n)
+        S, scale = [], []
+        for i in range(n):
+            d = (d0 + dt.timedelta(days=i)).isoformat()
+            S.append({"date": d, "status": "complete", "totals": {"kcal": kcal}, "burn": burn, "day_type": "rest"})
+            if i % every == 0: scale.append({"date": d, "kg": round(kg0 + kg_per_day * i, 3), "fasted": True})
+        return S, scale
+
+    def test_maintenance_from_the_scale(self):
+        S, scale = self.days()   # 2,200 eaten, losing 0.02 kg a day = 154 kcal a day under maintenance
+        e = maintenance.estimate(S, scale, "2026-10-29")
+        self.assertEqual(e["intake"], 2200)
+        self.assertEqual(e["maintenance"], 2350)                # 2,200 + 0.02 x 7,700, to the nearest 10
+        self.assertEqual(e["balance"], -154)
+        self.assertEqual((e["low"], e["high"]), (2350, 2350))   # weigh-ins exactly on the line: no spread
+        self.assertEqual(e["garmin_gap"], 2600 - 2354)
+        self.assertAlmostEqual(e["kg_per_week"], -0.14)
+
+    def test_needs_enough_data(self):
+        S, scale = self.days(every=7)   # 4 weigh-ins
+        self.assertIn("weigh-ins", maintenance.estimate(S, scale, "2026-10-29")["needs"])
+        S, scale = self.days()
+        for d in S[:20]: d["status"] = "partial"
+        self.assertIn("closed days", maintenance.estimate(S, scale, "2026-10-29")["needs"])
+
+    def test_noisy_weights_widen_the_range(self):
+        S, scale = self.days()
+        for i, w in enumerate(scale): w["kg"] += 0.4 if i % 2 else -0.4
+        e = maintenance.estimate(S, scale, "2026-10-29")
+        self.assertLess(e["low"], e["maintenance"]); self.assertGreater(e["high"], e["maintenance"])
+
+    def test_targets_shift_to_maintenance(self):
+        S, _ = self.days(end="2026-10-20")
+        sg = maintenance.suggest(S, "2026-10-20", 2000, [0, -0.5])
+        self.assertEqual(sg["mix"]["rest"], 1.0)
+        self.assertEqual(sg["current_avg"], 1950)                    # demo rest days: 1,900-2,000
+        o0, o1 = sg["options"]
+        self.assertEqual((o0["shift"], o0["suggested"]["rest"]), (50, [1950, 2050]))
+        self.assertEqual(o1["goal_avg"], 1450)                       # 0.5 kg a week = 550 kcal a day
+
+    def test_goal_rates_offered(self):
+        old = maintenance._settings
+        try:
+            maintenance._settings = lambda: {}
+            self.assertEqual(maintenance.goals(76.0, 72.6), ([0.0, -0.25, -0.5], False))   # towards the target
+            self.assertEqual(maintenance.goals(76.0, 76.3), ([0.0], False))                # at it already
+            self.assertEqual(maintenance.goals(70.0, 72.0)[0], [0.0, 0.25, 0.5])
+            maintenance._settings = lambda: {"goal_kg_per_week": -0.25}
+            self.assertEqual(maintenance.goals(76.0, 72.6), ([-0.25], True))
+        finally: maintenance._settings = old
+
+    def test_floor(self):
+        old = maintenance.data.body
+        try:
+            maintenance.data.body = lambda: {"inbody": [{"date": "2026-08-01", "bmr_kcal": 1650}, {"date": "2026-10-01", "bmr_kcal": 1700}]}
+            self.assertEqual(maintenance.floor(), (1700, "InBody BMR"))
+            maintenance.data.body = lambda: {"inbody": []}
+            self.assertEqual(maintenance.floor(), (1500, "usual minimum"))   # the demo athlete is male
+        finally: maintenance.data.body = old
+
+    def test_next_scan_from_the_usual_gap(self):
+        old = maintenance._settings, maintenance.data.body
+        maintenance._settings = lambda: {}
+        maintenance.data.body = lambda: {"inbody": [{"date": "2026-07-01"}, {"date": "2026-08-01"}, {"date": "2026-09-01"}]}
+        try:
+            self.assertEqual(maintenance.next_scan("2026-09-10"), ("2026-10-02", "usual gap"))   # 31-day gap
+            self.assertEqual(maintenance.next_scan("2026-10-05")[0], "2026-11-02")               # past it: the one after
+            maintenance._settings = lambda: {"next_scan": "2026-12-05"}
+            self.assertEqual(maintenance.next_scan("2026-10-05"), ("2026-12-05", "planned"))
+        finally: maintenance._settings, maintenance.data.body = old
+
+    def test_build_on_the_demo(self):
+        r = maintenance.build(end="2026-10-24")
+        self.assertEqual(len(r["weeks"]), maintenance.WEEKS)
+        if r["now"].get("maintenance") is None: self.skipTest("demo too short for an estimate")
+        self.assertIn("targets", r)
 
 
 class EnergyBalance(unittest.TestCase):

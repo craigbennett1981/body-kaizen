@@ -5,11 +5,13 @@ What changed in each release. Earlier releases are described on the
 
 ## Unreleased
 
-### Fixes
-- **Without git:** syncs no longer fail when git isn't installed: they save your data and skip the commit. Setup
-  refuses a history choice it can't make (before creating anything), and if git can't set up the history it says so
-  and keeps plain files, without the GitHub to-do. On a Mac, git only counts once Apple's command line tools are
-  installed; on Windows, a git installed while the dashboard is running is found without restarting it.
+### Body tab
+- **Your real maintenance:** what you actually burn, from the last 28 days of eating against what your fasted weight
+  trend did (7,700 kcal per kg), with a 90% range and Garmin's burn beside it, so you can see how far Garmin's figure
+  is out. Your calorie targets moved so a typical week of yours lands on maintenance, or on 0.25 or 0.5 kg a week
+  towards your weight target (never below your BMR), and your trend weight at the next InBody scan for each. A chart
+  shows the estimate week by week. Set `adaptive:` in targets.yaml for your own goal rate and scan date. Nothing
+  changes on its own: ask your assistant to switch targets.
 
 ### Training tab
 - **Intensity minutes per week or month:** Garmin's count (moderate plus vigorous counted twice) against your Garmin
@@ -27,6 +29,12 @@ What changed in each release. Earlier releases are described on the
 - **A logo of its own:** three rising steps with a dot on the top one, in the dashboard's blue. It is the browser-tab
   icon (SVG, plus `favicon.ico` and an Apple touch icon), the demo's icon and the installer's app icon. The icon files
   are the only thing served before signing in.
+
+### Fixes
+- **Without git:** syncs no longer fail when git isn't installed: they save your data and skip the commit. Setup
+  refuses a history choice it can't make (before creating anything), and if git can't set up the history it says so
+  and keeps plain files, without the GitHub to-do. On a Mac, git only counts once Apple's command line tools are
+  installed; on Windows, a git installed while the dashboard is running is found without restarting it.
 
 ## 0.7.0 (7 November 2026)
 

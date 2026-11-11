@@ -308,6 +308,17 @@ adds more, from `bp.morning`, `bp.evening`, `weight`, `sleep` or a `habit.*`/`fo
 done by its time shows as a dashboard toast, dismissed for the day: morning readings from 10:00, food from 20:00,
 habits from 21:00, an evening reading from 21:30, and a bedtime rule 45 minutes before the time.
 
+### targets.yaml: adaptive
+
+Optional settings for "Your real maintenance" on the Body tab, which works out what you burn from what you ate and
+what the scale did:
+
+```yaml
+adaptive:
+  goal_kg_per_week: -0.25    # the rate to plan for (0 = maintain). Not set: maintenance and two rates towards your weight target
+  next_scan: 2026-12-05      # your next InBody; not set: the last scan plus your usual gap between scans
+```
+
 ### settings.yaml
 
 ```yaml
