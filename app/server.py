@@ -135,6 +135,7 @@ ROUTES = {
     "/api/workout": lambda q: workouts.detail(q.get("date", [""])[0], q.get("i", ["0"])[0]),
     "/api/pace": lambda q: pace.build(q.get("date", [data.bkenv.today().isoformat()])[0], q.get("now", [None])[0]),   # now=HH:MM for tests and screenshots
     "/api/profile": lambda q: profile_info(),
+    "/api/about": lambda q: about_info(),
     "/api/assistant": lambda q: assistant.build(),   # the set-up prompt for an AI assistant (after first-run setup, and from Profile)
     # The page's write token again, for a tab left open across a server restart. Only a signed-in browser gets it,
     # and only a page on this dashboard's own address can read the reply (Host check, no CORS headers).
@@ -179,6 +180,29 @@ def _maybe_reload():
         globals().update({n: sys.modules[n] for n in MODULES if n in sys.modules})
         print("reloaded app code", flush=True)
     _code_mtime = m
+
+_ABOUT = None
+
+def about_info():
+    """What the feedback forms are pre-filled with: the version (and commit, from a source checkout), the operating
+    system and Python. Nothing about the person or their data."""
+    global _ABOUT
+    if _ABOUT: return _ABOUT
+    import platform, subprocess
+    code = data.bkenv.CODE
+    try:
+        from importlib.metadata import version; v = version("body-kaizen")
+    except Exception:
+        m = re.search(r'^version\s*=\s*"([^"]+)"', (code / "pyproject.toml").read_text(encoding="utf-8"), re.M) if (code / "pyproject.toml").exists() else None
+        v = m.group(1) if m else "unknown"
+    if (code / ".git").exists():
+        try:
+            r = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=code, capture_output=True, text=True, timeout=5)
+            if r.returncode == 0 and r.stdout.strip(): v += f" ({r.stdout.strip()})"
+        except (OSError, subprocess.SubprocessError): pass
+    osn = {"Darwin": "macOS", "Linux": "Linux", "Windows": "Windows"}.get(platform.system(), "Other")
+    _ABOUT = {"version": v, "os": osn, "python": platform.python_version()}
+    return _ABOUT
 
 def profile_info():
     B = data.bkenv; p = B.profile(); s = B.settings()
