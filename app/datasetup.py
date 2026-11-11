@@ -88,13 +88,32 @@ def create(body):
     c = check(body.get("path"))
     if not c.get("ok"): return c
     p = pathlib.Path(c["path"])
+    storage = body.get("storage") or ("git" if body.get("git") else "files")   # `git: true` from older pages
+    if storage not in STORAGE: return {**c, "ok": False, "error": "Choose how your data is kept."}
     if c["mode"] == "new":
         bkenv.init_data_folder(p)
-        if body.get("git") and shutil.which("git") and not (p / ".git").exists():
-            subprocess.run(["git", "init", "-q"], cwd=p, check=False)
+        if storage != "files" and shutil.which("git") and not (p / ".git").exists():
+            if subprocess.run(["git", "init", "-q", "-b", "main"], cwd=p, check=False).returncode:   # git older than 2.28
+                subprocess.run(["git", "init", "-q"], cwd=p, check=False)
+        if storage == "github": _github_todo(p)
     bkenv.save_config(data_dir=str(p))
     threading.Timer(0.6, _restart, (p,)).start()   # after the reply has gone out
-    return {**c, "ok": True, "restarting": True, "git": bool((p / ".git").exists())}
+    return {**c, "ok": True, "restarting": True, "git": bool((p / ".git").exists()), "storage": storage if c["mode"] == "new" else None}
+
+
+STORAGE = ("files", "git", "github")
+GITHUB_DOC = "https://github.com/craigbennett1981/body-kaizen/blob/main/docs/data-folder.md#a-private-backup-on-github"
+
+
+def _github_todo(p):
+    """The GitHub backup is finished by hand (an account, a private repository, one push): put the steps on the
+    to-do list the Day page shows, so they aren't lost once setup is over."""
+    item = ("- {id: github-backup, area: setup, priority: high, done: false, title: Back up your data to a private GitHub repository, "
+            f"detail: 'Create a private repository on github.com (no README), then in your data folder: git remote add origin <its URL>, "
+            f"git push -u origin main. Steps: {GITHUB_DOC}'}}\n")
+    t = p / "todo.yaml"
+    head = "# Things to do. Shown on the Day view; tick to mark done.\n" if not t.exists() else ""
+    with open(t, "a", encoding="utf-8") as fh: fh.write(head + item)
 
 
 def _restart(p):

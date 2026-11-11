@@ -32,6 +32,42 @@ class Resolve(unittest.TestCase):
             self.assertNotIn("profile:", (out / "settings.yaml").read_text(encoding="utf-8"))
 
 
+class Storage(unittest.TestCase):
+    """Step 2 of setup: plain files, git history, or git plus a private GitHub backup (finished from the to-do list)."""
+    def setUp(self):
+        sys.path.insert(0, str(ROOT / "app")); import datasetup
+        self.ds = datasetup; self.old = datasetup._restart, bkenv.save_config
+        datasetup._restart = lambda p: None; bkenv.save_config = lambda **k: None
+        self.tmp = tempfile.TemporaryDirectory(dir=pathlib.Path.home(), prefix=".bk-test-")
+
+    def tearDown(self):
+        self.ds._restart, bkenv.save_config = self.old; self.tmp.cleanup()
+
+    def make(self, storage):
+        p = pathlib.Path(self.tmp.name) / storage
+        res = self.ds.create({"path": str(p), "storage": storage}); time.sleep(0.8)   # the restart timer (stubbed)
+        return p, res
+
+    def test_plain_files_have_no_git(self):
+        p, res = self.make("files")
+        self.assertTrue(res["ok"]); self.assertFalse((p / ".git").exists()); self.assertEqual(res["storage"], "files")
+
+    @unittest.skipUnless(__import__("shutil").which("git"), "git not installed")
+    def test_history_and_github(self):
+        p, res = self.make("git")
+        self.assertTrue((p / ".git").exists()); self.assertTrue(res["git"])
+        self.assertNotIn("github-backup", (p / "todo.yaml").read_text(encoding="utf-8"))
+        g, _ = self.make("github")
+        self.assertTrue((g / ".git").exists())
+        import yaml
+        todo = {t["id"]: t for t in yaml.safe_load((g / "todo.yaml").read_text(encoding="utf-8"))}
+        self.assertIn("private", todo["github-backup"]["title"]); self.assertIn("git push", todo["github-backup"]["detail"])
+
+    def test_unknown_choice_is_refused(self):
+        res = self.ds.create({"path": str(pathlib.Path(self.tmp.name) / "x"), "storage": "dropbox"})
+        self.assertFalse(res["ok"]); self.assertFalse((pathlib.Path(self.tmp.name) / "x").exists())
+
+
 class SetupMode(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -89,7 +125,7 @@ class SetupMode(unittest.TestCase):
 
     def test_4_create_saves_and_restarts_on_the_new_folder(self):
         new = pathlib.Path(self.tmp.name) / "my data"
-        status, res = self.post("/api/datasetup/create", {"path": str(new), "git": False})
+        status, res = self.post("/api/datasetup/create", {"path": str(new), "storage": "files"})
         self.assertEqual(status, 200, res); self.assertTrue(res["restarting"])
         self.assertEqual(json.loads(self.cfg.read_text(encoding="utf-8"))["data_dir"], str(new.resolve()))
         self.assertTrue((new / "targets.yaml").exists())

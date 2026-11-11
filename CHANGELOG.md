@@ -3,6 +3,14 @@
 What changed in each release. Earlier releases are described on the
 [releases page](https://github.com/craigbennett1981/body-kaizen/releases).
 
+## Unreleased
+
+### Setting up
+- **Choose how your data is kept:** a second setup step offers plain files (simplest, no history or backup), plain
+  files with git history (recommended: every change a version, nothing leaves the computer) or history plus a private
+  GitHub backup, whose steps go on the to-do list. Without git installed, plain files are offered and git is linked.
+  [docs/data-folder.md](docs/data-folder.md#how-your-data-is-kept) explains each one and the GitHub steps.
+
 ## 0.7.0 (7 November 2026)
 
 ### Dashboard
