@@ -473,6 +473,7 @@ dialog#setup::backdrop,dialog#assistant::backdrop{background:rgba(0,0,0,.55)}
 .tr-pair{display:grid;grid-template-columns:1fr;gap:0 28px}
 @media (min-width:900px){ .tr-pair{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);align-items:start} }
 .tr-col{min-width:0}
+.tr-pair .chart{margin-bottom:0} .tr-pair+h2{margin-top:22px}
 .cal-key i{width:12px;height:12px}
 .cal i[data-k]{cursor:pointer} .cal i[data-k]:hover,.cal i[data-k]:focus-visible{outline:1.5px solid var(--ink);outline-offset:0}
 .cal .l0{opacity:.55}

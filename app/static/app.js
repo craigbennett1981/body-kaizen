@@ -998,7 +998,7 @@ function renderTrends(){
 }
 
 /* ---------- training ---------- */
-let TRAIN = null, TVIEW = 'energy', TRANGE = 30;
+let TRAIN = null, TVIEW = 'energy', TRANGE = 0;   // 0 = All
 const TYPE_LABEL = {gym:'Gym', run:'Run', swim:'Swim', ruck:'Ruck', yoga:'Yoga', walk:'Walking (steps)', other:'Other'};
 const typeCol = t => css('--t-'+t);
 document.querySelectorAll('#trange button').forEach(b => b.onclick = () => {
@@ -1062,7 +1062,8 @@ async function renderIntensity(){
     legend:{top:0, left:56, textStyle:{color:c.muted, fontSize:11}, itemWidth:14, itemHeight:8},
     grid:{left:56, right:24, top:36, bottom:28},
     xAxis:{type:'category', data:x, ...ax, axisTick:{show:false}},
-    yAxis:{type:'value', ...ax, ...niceRange(0, top * 1.1, 3, true)},
+    // the tallest bar (or the goal, if higher) reaches the top; gridlines at round numbers below it
+    yAxis:{type:'value', ...ax, min:0, max:top || 1, interval:niceRange(0, top, 3, true).interval, axisLabel:{...ax.axisLabel, showMaxLabel:false}},
     tooltip:{trigger:'axis', ...tip(c), formatter: ps => { const r = rows[ps[0].dataIndex];
       const head = IMODE === 'days' ? fmtDate(r.start) : IMODE === 'weeks' ? `Week of ${fmtDate(r.start)}` : new Date(r.start + 'T00:00').toLocaleDateString('en-GB', {month:'long', year:'numeric'});
       if(r.total == null) return `<b>${head}</b><br>No watch data`;
