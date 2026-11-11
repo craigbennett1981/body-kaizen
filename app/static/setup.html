@@ -18,7 +18,7 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff;fo
 fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:10px} legend{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .choice{display:flex;gap:12px;align-items:flex-start;margin:0;padding:14px 16px;border:1px solid var(--rule);border-radius:10px;cursor:pointer;font-weight:400}
 .choice:has(input:checked){border-color:var(--accent);background:var(--accent-soft)} .choice:has(input:disabled){opacity:.55;cursor:default}
-.choice input{margin-top:4px;accent-color:var(--accent)} .choice b{display:block;font-size:15px;margin-bottom:2px}
+.choice input{margin-top:4px;accent-color:var(--accent)} .choice>span>b{display:block;font-size:15px;margin-bottom:2px}
 .choice .tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:99px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;vertical-align:1px}
 .choice ul{margin:6px 0 0;padding-left:18px;font-size:13.5px;color:var(--muted)} .choice li{margin:2px 0}
 .choice .yes::marker{content:"+  ";color:var(--good)} .choice .no::marker{content:"−  ";color:var(--bad)}
