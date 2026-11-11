@@ -35,6 +35,7 @@ import foods  # noqa: E402
 import sleep  # noqa: E402
 import experiments  # noqa: E402
 import assistant  # noqa: E402
+import intensity  # noqa: E402
 
 STATIC = pathlib.Path(__file__).resolve().parent / "static"
 HOST = os.environ.get("FT_HOST", "127.0.0.1")   # localhost only — never exposed to the network
@@ -100,6 +101,7 @@ def _exp_reminders():
 ROUTES = {
     "/api/summary": lambda q: data.summary(),
     "/api/training": lambda q: data.training(),
+    "/api/intensity": lambda q: intensity.build(),
     "/api/body": lambda q: data.body(),
     "/api/reference": lambda q: data.reference(),
     "/api/day": lambda q: data.day_detail(q.get("date", [""])[0]),
@@ -138,7 +140,7 @@ ROUTES = {
 }
 
 # Reload app code when it changes on disk, so edits never leave a stale server running.
-MODULES = ["insights", "weekly", "readiness", "planner", "longevity", "habits", "todo", "alerts", "timeline", "doctor", "advice", "wellbeing", "healthscore", "glucose", "daytimeline", "glance", "workouts", "muscles", "pace", "thresholds", "datasetup", "energybalance", "foods", "sleep", "experiments"]
+MODULES = ["insights", "weekly", "readiness", "planner", "longevity", "habits", "todo", "alerts", "timeline", "doctor", "advice", "wellbeing", "healthscore", "glucose", "daytimeline", "glance", "workouts", "muscles", "pace", "thresholds", "datasetup", "energybalance", "foods", "sleep", "experiments", "intensity"]
 _HERE = pathlib.Path(data.__file__).parent
 _CODE = [_HERE / "data.py", _HERE.parent / "scripts" / "nutrition.py"] + [_HERE / f"{n}.py" for n in MODULES]
 _code_mtime = tuple(f.stat().st_mtime for f in _CODE if f.exists())   # baseline at startup, not first request: an edit made
