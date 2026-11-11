@@ -14,6 +14,13 @@ What changed in each release. Earlier releases are described on the
   changes on its own: ask your assistant to switch targets.
 
 ### Training tab
+- **One period for the top of the tab:** the 7 days, 30 days, 60 days and All buttons beside the title now set the
+  Activity calendar and Intensity minutes too, not just Calories burnt. Intensity minutes shows days for 7 days,
+  weeks for 30 and 60, and months for All. Its own Weeks and Months buttons are gone.
+- **Activity and Intensity minutes side by side** on a wide screen (stacked on a phone), with bigger calendar squares
+  for short periods. The Intensity chart shrinks to the calendar's height, and its note is down to this week and the
+  trend (the rest is on hover).
+- **Muscles worked opens on this workout**, the one picked above it, instead of the last 7 days.
 - **Intensity minutes per week or month:** Garmin's count (moderate plus vigorous counted twice) against your Garmin
   weekly goal (150 when the watch reports none), pro rata for months. A 4-week average line, this week's progress and
   what's left to do, how the last 4 full weeks compare with the 4 before, and how many of the last 12 weeks met the

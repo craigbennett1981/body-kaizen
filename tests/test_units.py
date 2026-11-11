@@ -54,6 +54,9 @@ class IntensityMinutes(unittest.TestCase):
         t = r["trend"]
         self.assertEqual((t["avg_4w"], t["avg_prev_4w"], t["direction"]), (315, 210, "up"))   # 5 Oct + three 350s; the thin week is left out
         self.assertEqual(r["months"][-1]["goal"], round(150 * 30 / 7)); self.assertEqual(r["months"][-1]["goal_so_far"], round(150 * 11 / 7))
+        D = r["days"]   # the last 7 days one by one, against a seventh of the weekly goal
+        self.assertEqual([x["start"] for x in D][-1], "2026-11-11"); self.assertEqual(len(D), 7)
+        self.assertEqual((D[-1]["total"], D[-1]["goal"], D[-1]["current"]), (50, round(150 / 7), True))
 
     def test_no_watch_data(self):
         r = self.run_with({})

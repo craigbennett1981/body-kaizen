@@ -1,5 +1,6 @@
 """Intensity minutes, counted the way Garmin counts them (moderate + 2 x vigorous), per week and per month,
-against the weekly goal: Garmin's own goal when the watch reports one, else 150 (the WHO minimum for adults)."""
+against the weekly goal: Garmin's own goal when the watch reports one, else 150 (the WHO minimum for adults).
+Also the last few days one by one, against a seventh of the weekly goal."""
 import calendar, datetime as dt, json
 import data
 
@@ -36,11 +37,19 @@ def _period(D, start, end, today):
             "moderate": mod, "vigorous": vig, "total": mod + 2 * vig if got else None, "current": end >= today}
 
 
-def build(weeks=26, months=12):
+def build(weeks=26, months=None, days=7):
+    """Weeks back to `weeks` ago, months back to the first data (or `months`), and the last `days` days one by one."""
     D = daily(); goal, source = _goal(); today = data.bkenv.today()
-    out = {"goal": goal, "goal_source": source, "full_week_days": FULL_WEEK, "weeks": [], "months": [], "trend": None, "this_week": None}
+    out = {"goal": goal, "goal_source": source, "full_week_days": FULL_WEEK, "weeks": [], "months": [], "days": [],
+           "trend": None, "this_week": None}
     if not D: return out
     first = dt.date.fromisoformat(min(D))
+    if months is None: months = (today.year - first.year) * 12 + today.month - first.month + 1
+    for i in range(days - 1, -1, -1):
+        d = today - dt.timedelta(days=i)
+        if d < first: continue
+        x = _period(D, d, d, today); x["goal"] = round(goal / 7); x["partial_data"] = False
+        out["days"].append(x)
     monday = today - dt.timedelta(days=today.weekday())
     W = []
     for i in range(weeks - 1, -1, -1):
