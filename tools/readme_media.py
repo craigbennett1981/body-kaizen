@@ -62,14 +62,14 @@ SOCIAL_HTML = """<!doctype html><html><head><meta charset="utf-8"><style>
   @font-face{font-family:Archivo;font-weight:100 900;font-stretch:62% 125%;src:url(data:font/woff2;base64,FONT) format('woff2-variations')}
   body{margin:0;width:1280px;height:640px;background:#0f1116;color:#EBEEF5;font-family:Archivo,system-ui,sans-serif;overflow:hidden}
   header{display:flex;justify-content:space-between;align-items:baseline;padding:22px 32px 0}
-  h1{margin:0;font-size:44px;font-weight:800;font-stretch:125%} .src{color:#3fbf6f;font-weight:700;font-size:19px}
+  h1{margin:0;font-size:44px;font-weight:800;font-stretch:125%;display:flex;align-items:center;gap:16px} h1 svg{width:48px;height:48px} .src{color:#3fbf6f;font-weight:700;font-size:19px}
   p{margin:6px 32px 18px;color:#9aa3b2;font-size:22px}
   .g{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:0 30px}
   .t{position:relative;height:228px;border-radius:12px;overflow:hidden;background:#1b1f27;border:1px solid #2a2f3a}
   .t img{width:100%;height:100%;object-fit:cover;object-position:top left}
   .t span{position:absolute;left:0;right:0;bottom:0;padding:44px 16px 14px;font-size:21px;font-weight:700;
           background:linear-gradient(to bottom,rgba(15,17,22,0),rgba(15,17,22,.92) 55%)}
-</style></head><body><header><h1>Body Kaizen</h1><span class="src">Garmin · Libre CGM · Hevy · InBody</span></header>
+</style></head><body><header><h1>LOGOBody Kaizen</h1><span class="src">Garmin · Libre CGM · Hevy · InBody</span></header>
 <p>Log meals, workouts and labs by chatting with an AI assistant. Local-first, plain files you own.</p>
 <div class="g">TILES</div></body></html>"""
 
@@ -80,7 +80,8 @@ def social_preview(b, out):
                     for f, label in SOCIAL[1])
     pg = b.new_page(viewport={"width": 1280, "height": 640}, device_scale_factor=1)
     font = base64.b64encode((CODE / "app" / "static" / "vendor" / "archivo-latin.woff2").read_bytes()).decode()
-    pg.set_content(SOCIAL_HTML.replace("TILES", tiles).replace("FONT", font)); pg.wait_for_timeout(800)
+    logo = (CODE / "app" / "static" / "favicon.svg").read_text(encoding="utf-8")
+    pg.set_content(SOCIAL_HTML.replace("TILES", tiles).replace("FONT", font).replace("LOGO", logo)); pg.wait_for_timeout(800)
     pg.screenshot(path=str(out / SOCIAL[0])); pg.close(); print("wrote", SOCIAL[0])
 
 

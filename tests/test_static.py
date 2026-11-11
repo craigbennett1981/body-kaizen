@@ -146,7 +146,10 @@ class StaticDemo(unittest.TestCase):
                 self.assertIn("noindex", meta((self.site / page).read_text(encoding="utf-8"), "name", "robots"))
         sitemap = (self.site / "sitemap.xml").read_text(encoding="utf-8")
         self.assertIn(f"<loc>{canon}</loc>", sitemap); self.assertNotIn("doctor.html", sitemap)
-        self.assertTrue((self.site / "favicon.svg").exists())
+        for f in ("favicon.svg", "favicon.ico", "apple-touch-icon.png", "icon-192.png", "icon-512.png"):
+            with self.subTest(icon=f): self.assertTrue((self.site / f).exists())
+        self.assertIn('<link rel="icon" href="favicon.svg"', idx)    # the page's own link, made relative
+        self.assertEqual(idx.count('rel="icon" href="favicon.svg"'), 1)
 
     def test_only_demo_data(self):
         """The export is built from the demo template: Sam, never a real data folder."""

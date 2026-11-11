@@ -113,6 +113,16 @@ class SignIn(WriteProtection):
         self.assertEqual(self.req("GET", "/api/summary", body=None, Cookie="bk_session_1=" + signin._cookies[f"bk_session_{self.port}"])[0], 401)
         self.assertEqual(self.req(**self.good(), Cookie=None)[0], 403)   # writes too, even with the page's token
 
+    def test_the_logo_is_public(self):
+        """Browsers fetch the tab icon before signing in; it is the only file served without the cookie."""
+        for path, ctype in (("/favicon.ico", "image/x-icon"), ("/favicon.svg", "image/svg+xml"), ("/apple-touch-icon.png", "image/png")):
+            with self.subTest(path=path):
+                status, body, h = self.req("GET", path, body=None, Cookie=None)
+                self.assertEqual(status, 200); self.assertEqual(h.get("Content-Type"), ctype)
+                self.assertNotIn(self.token.encode(), body)
+        status, body, _ = self.req("GET", "/", body=None, Cookie=None)
+        self.assertEqual(status, 401); self.assertIn(b'rel="icon"', body)
+
     def test_sign_in_link_sets_the_cookie_and_drops_the_key(self):
         key = signin._cookies[f"bk_session_{self.port}"]
         status, _, h = self.req("GET", f"/?key={key}", body=None, Cookie=None)

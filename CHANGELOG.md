@@ -17,6 +17,11 @@ What changed in each release. Earlier releases are described on the
   GitHub backup, whose steps go on the to-do list. Without git installed, plain files are offered and git is linked.
   [docs/data-folder.md](docs/data-folder.md#how-your-data-is-kept) explains each one and the GitHub steps.
 
+### Dashboard
+- **A logo of its own:** three rising steps with a dot on the top one, in the dashboard's blue. It is the browser-tab
+  icon (SVG, plus `favicon.ico` and an Apple touch icon), the demo's icon and the installer's app icon. The icon files
+  are the only thing served before signing in.
+
 ## 0.7.0 (7 November 2026)
 
 ### Dashboard

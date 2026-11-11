@@ -43,12 +43,16 @@ function showTab(t){
   history.replaceState(null,'','#'+t);
   renderTab(t);
 }
-// On the Day tab the sync status sits at the right of the date row, so the header stays on one line;
-// on other tabs it goes back to the header.
+// The sync status sits at the right of the page's top row, never on a row of its own under the header:
+// on Day and Week at the end of the date row, on the other tabs beside the page title.
 function placeSync(t){
-  const s = document.getElementById('sync'), row = document.querySelector('#tab-day .daynav');
-  const home = t === 'day' && row ? row : document.querySelector('header');
-  if(s && s.parentNode !== home) home.appendChild(s);
+  const s = document.getElementById('sync'), sec = document.getElementById('tab-' + t);
+  if(!s) return;
+  const row = sec && sec.querySelector(':scope > .daynav');
+  const home = row || sec || document.querySelector('header');
+  s.classList.toggle('in-title', !row && !!sec);
+  if(row){ if(s.parentNode !== row) row.appendChild(s); }
+  else if(s.parentNode !== home || home.firstChild !== s) home.insertBefore(s, home.firstChild);
 }
 function chart(id){
   const el = document.getElementById(id);
