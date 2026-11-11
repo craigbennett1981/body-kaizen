@@ -106,20 +106,25 @@
   </section>
   <section id="tab-training" hidden>
     <div class="row"><h1>Training</h1>
-      <div class="seg" id="trange"><button data-d="30" aria-pressed="true">30 days</button><button data-d="60">60 days</button><button data-d="0">All</button></div>
+      <div class="seg" id="trange" aria-label="Period"><button data-d="7">7 days</button><button data-d="30" aria-pressed="true">30 days</button><button data-d="60">60 days</button><button data-d="0">All</button></div>
     </div>
-    <div class="row cal-head"><h2>Activity</h2><span class="sub" id="calnote"></span></div>
-    <div class="cal-wrap"><div class="cal" id="actcal" aria-label="Workouts over the last 12 months, coloured by calories burnt"></div></div>
-    <div class="row"><h2>Intensity minutes</h2>
-      <div class="seg" id="irange"><button data-i="weeks" aria-pressed="true">Weeks</button><button data-i="months">Months</button></div>
+    <div class="tr-pair">
+      <div class="tr-col">
+        <h2>Activity</h2>
+        <p class="sub" id="calnote"></p>
+        <div class="cal-wrap"><div class="cal" id="actcal" aria-label="Workouts in the period, coloured by calories burnt"></div></div>
+      </div>
+      <div class="tr-col">
+        <h2>Intensity minutes</h2>
+        <p class="sub" id="inote"></p>
+        <div id="intchart" class="chart" style="height:300px" role="img" aria-label="Intensity minutes per day, week or month against the goal"></div>
+      </div>
     </div>
-    <p class="sub" id="inote"></p>
-    <div id="intchart" class="chart" style="height:320px" role="img" aria-label="Intensity minutes per week or month against the goal"></div>
     <h2>Workouts</h2>
     <div class="wo-pick" id="wopick" role="tablist" aria-label="Workout"></div>
     <div id="wodetail"></div>
     <div class="row"><h2>Muscles worked</h2>
-      <div class="seg" id="mrange"><button data-m="session">This workout</button><button data-m="7" aria-pressed="true">7 days</button><button data-m="14">14 days</button><button data-m="28">28 days</button></div>
+      <div class="seg" id="mrange"><button data-m="session" aria-pressed="true">This workout</button><button data-m="7">7 days</button><button data-m="14">14 days</button><button data-m="28">28 days</button></div>
     </div>
     <p class="sub" id="mnote"></p>
     <div class="mmap" id="musclemap"></div>

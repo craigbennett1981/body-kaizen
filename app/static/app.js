@@ -146,6 +146,7 @@ function wallNow(){
   } catch(e){ const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset()*60000); }
 }
 const todayISO = () => wallNow().toISOString().slice(0,10);
+const daysAgoISO = n => { const d = new Date(todayISO() + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - n); return d.toISOString().slice(0,10); };
 let currentDate = null;
 async function renderDay(date){
   const dates = SUMMARY.map(d => d.date);
@@ -1001,7 +1002,7 @@ let TRAIN = null, TVIEW = 'energy', TRANGE = 30;
 const TYPE_LABEL = {gym:'Gym', run:'Run', swim:'Swim', ruck:'Ruck', yoga:'Yoga', walk:'Walking (steps)', other:'Other'};
 const typeCol = t => css('--t-'+t);
 document.querySelectorAll('#trange button').forEach(b => b.onclick = () => {
-  document.querySelectorAll('#trange button').forEach(x => x.setAttribute('aria-pressed', x===b)); TRANGE = +b.dataset.d; renderTrainChart(); });
+  document.querySelectorAll('#trange button').forEach(x => x.setAttribute('aria-pressed', x===b)); TRANGE = +b.dataset.d; renderTrainChart(); renderCalendar(); renderIntensity(); });
 function showTrainView(v){ TVIEW = v; renderTrainChips(); renderTrainChart(); renderLiftTable();
   const el = $('#trainchart'); if(el.getBoundingClientRect().top < 0) el.scrollIntoView({behavior: MOTION?'smooth':'auto', block:'center'}); }
 function liftNames(){ return Object.keys(TRAIN.lifts).sort((a,b)=>TRAIN.lifts[b].length-TRAIN.lifts[a].length || a.localeCompare(b)); }
@@ -1017,25 +1018,30 @@ async function renderTraining(){
   renderIntensity();
 }
 /* ---------- intensity minutes: per week or month, Garmin's way (moderate + 2 x vigorous), against the goal ---------- */
-let INT = null, IMODE = 'weeks';
+let INT = null;
+// The Training period sets the bars: 7 days one by one, 30 and 60 days by week, All by month.
+const intMode = () => TRANGE === 7 ? 'days' : TRANGE ? 'weeks' : 'months';
 async function renderIntensity(){
   INT = INT || await api('/api/intensity').catch(() => null);
   const note = $('#inote'), el = $('#intchart'); if(!note || !el) return;
   if(!INT || !INT.weeks.length){ note.textContent = 'No intensity minutes from the watch yet.'; el.hidden = true; return; }
   el.hidden = false;
-  document.querySelectorAll('#irange button').forEach(b => { b.setAttribute('aria-pressed', b.dataset.i === IMODE);
-    b.onclick = () => { IMODE = b.dataset.i; renderIntensity(); }; });
-  const c = theme(), G = INT.goal, T = INT.trend, W = INT.this_week, rows = IMODE === 'weeks' ? INT.weeks : INT.months;
+  const IMODE = intMode(), c = theme(), G = INT.goal, T = INT.trend, W = INT.this_week;
+  const from = TRANGE ? daysAgoISO(TRANGE - 1) : '';
+  const rows = IMODE === 'days' ? INT.days : IMODE === 'weeks' ? INT.weeks.filter(w => w.end >= from) : INT.months;
   const parts = [];
-  if(W) parts.push(W.need ? `This week so far: <b>${fmt(W.total)}</b> of ${fmt(G)}, ${fmt(W.need)} to go (about ${fmt(W.per_day)} a day for the ${W.days_left} day${W.days_left===1?'':'s'} left).`
-                          : `This week so far: <b class="good">${fmt(W.total)}</b>, goal of ${fmt(G)} reached.`);
+  if(W) parts.push(W.need ? `This week: <b>${fmt(W.total)}</b> of ${fmt(G)}, ${fmt(W.need)} to go.` : `This week: <b class="good">${fmt(W.total)}</b> of ${fmt(G)}, done.`);
   if(T){
     const arrow = T.direction === 'up' ? '<span class="good">▲</span>' : T.direction === 'down' ? '<span class="bad">▼</span>' : '▬';
-    parts.push(`Last ${T.weeks_in_avg} full weeks: <b>${fmt(T.avg_4w)}</b> a week${T.avg_prev_4w ? `, ${arrow} ${T.change_pct > 0 ? '+' : ''}${fmt(T.change_pct)}% on the ${fmt(T.avg_prev_4w)} before` : ''}. Goal met in ${T.met} of the last ${T.of} full weeks.`);
+    parts.push(`Last ${T.weeks_in_avg} weeks: <b>${fmt(T.avg_4w)}</b> a week${T.avg_prev_4w ? ` ${arrow} ${T.change_pct > 0 ? '+' : ''}${fmt(T.change_pct)}%` : ''}, goal met ${T.met} of ${T.of}.`);
   }
-  parts.push(`Garmin counts a vigorous minute as two. ${INT.goal_source === 'garmin' ? 'The goal is your Garmin weekly goal' : 'The goal is 150 a week, the minimum for adults'}${IMODE === 'months' ? ', pro rata for each month' : ''}. Faded bars had too few days of watch data${IMODE === 'weeks' ? ` (under ${INT.full_week_days})` : ''}; the hatched one is still in progress.`);
   note.innerHTML = parts.join(' ');
-  const x = rows.map(r => IMODE === 'weeks' ? shortDate(r.start) : new Date(r.start + 'T00:00').toLocaleDateString('en-GB', {month:'short', year:'2-digit'}));
+  // the small print, on hover
+  note.title = `${W && W.need ? `About ${fmt(W.per_day)} a day for the ${W.days_left} day${W.days_left===1?'':'s'} left. ` : ''}${T && T.avg_prev_4w ? `The ${T.weeks_in_avg} weeks before averaged ${fmt(T.avg_prev_4w)}. ` : ''}` +
+    `Garmin counts a vigorous minute as two. ${INT.goal_source === 'garmin' ? 'The goal is your Garmin weekly goal' : 'The goal is 150 a week, the minimum for adults'}${IMODE === 'months' ? ', pro rata for each month' : IMODE === 'days' ? ', a seventh of it each day' : ''}. ` +
+    `Faded bars had too few days of watch data${IMODE === 'weeks' ? ` (under ${INT.full_week_days})` : ''}; the hatched one is still in progress.`;
+  const x = rows.map(r => IMODE === 'days' ? new Date(r.start + 'T00:00').toLocaleDateString('en-GB', {weekday:'short', day:'numeric'})
+    : IMODE === 'weeks' ? shortDate(r.start) : new Date(r.start + 'T00:00').toLocaleDateString('en-GB', {month:'short', year:'2-digit'}));
   const look = (r, colour) => ({value: r.total == null ? null : 0, itemStyle:{color: colour, opacity: r.partial_data ? .35 : 1,
     decal: r.current ? {symbol:'rect', dashArrayX:[1,0], dashArrayY:[3,3], rotation:-Math.PI/4, color:'rgba(255,255,255,.35)'} : null}});
   const MOD = '#8FA9F5', VIG = c.accent;
@@ -1049,7 +1055,7 @@ async function renderIntensity(){
   const series = [
     {type:'bar', name:'Moderate', stack:'im', data:mod, barMaxWidth:28, itemStyle:{color:MOD}},
     {type:'bar', name:'Vigorous (counted twice)', stack:'im', data:vig, barMaxWidth:28, itemStyle:{color:VIG, borderRadius:[4,4,0,0]}},
-    {type:'line', name:IMODE === 'weeks' ? `Goal ${fmt(G)} a week` : 'Goal (pro rata)', data:goal, step:IMODE === 'months' ? 'middle' : false, symbol:'none',
+    {type:'line', name:IMODE === 'weeks' ? `Goal ${fmt(G)} a week` : IMODE === 'days' ? `Goal ${fmt(Math.round(G / 7))} a day` : 'Goal (pro rata)', data:goal, step:IMODE === 'months' ? 'middle' : false, symbol:'none',
       lineStyle:{color:c.good, type:'dashed', width:2}, itemStyle:{color:c.good}, z:4}];
   if(avg4) series.push({type:'line', name:'4-week average', data:avg4, symbol:'none', smooth:.3, connectNulls:false, lineStyle:{color:c.ink, width:2}, itemStyle:{color:c.ink}, z:5});
   chart('intchart').setOption({animation:MOTION, animationDuration:400, textStyle:{fontFamily:'Archivo'},
@@ -1058,11 +1064,12 @@ async function renderIntensity(){
     xAxis:{type:'category', data:x, ...ax, axisTick:{show:false}},
     yAxis:{type:'value', ...ax, ...niceRange(0, top * 1.1, 3, true)},
     tooltip:{trigger:'axis', ...tip(c), formatter: ps => { const r = rows[ps[0].dataIndex];
-      const head = IMODE === 'weeks' ? `Week of ${fmtDate(r.start)}` : new Date(r.start + 'T00:00').toLocaleDateString('en-GB', {month:'long', year:'numeric'});
+      const head = IMODE === 'days' ? fmtDate(r.start) : IMODE === 'weeks' ? `Week of ${fmtDate(r.start)}` : new Date(r.start + 'T00:00').toLocaleDateString('en-GB', {month:'long', year:'numeric'});
       if(r.total == null) return `<b>${head}</b><br>No watch data`;
       return `<b>${head}</b>${r.current ? ' (so far)' : ''}<br><b>${fmt(r.total)}</b> intensity minutes of ${fmt(r.goal)}<br>${fmt(r.moderate)} moderate + ${fmt(r.vigorous)} vigorous × 2` +
-        `<br>${r.days_with_data} of ${r.days} days with watch data`; }},
+        (IMODE === 'days' ? '' : `<br>${r.days_with_data} of ${r.days} days with watch data`); }},
     series});
+  fitIntensity();
 }
 /* ---------- workouts: one session in detail, Hevy + Garmin ---------- */
 let WO = null, WO_SEL = null;
@@ -1158,16 +1165,17 @@ function renderCalendar(){
   const byDay = {};
   WO.forEach(w => { const b = byDay[w.date] = byDay[w.date] || {kcal:0, est:false, items:[]};
     b.kcal += w.kcal || w.kcal_est || 0; if(!w.kcal) b.est = true; b.items.push(w); });
-  const today = new Date(); today.setHours(0,0,0,0);
-  const start = new Date(today); start.setDate(start.getDate() - 364);
+  const today = new Date(todayISO() + 'T00:00'), first = WO.reduce((m, w) => w.date < m ? w.date : m, WO[0].date);
+  const from = TRANGE ? daysAgoISO(TRANGE - 1) : first;              // the Training period; All = since the first workout
+  const start = new Date(from + 'T00:00');
   start.setDate(start.getDate() - ((start.getDay()+6)%7));          // back to Monday
   const level = k => k <= 0 ? 0 : 1 + CAL_STEPS.filter(s => k >= s).length;
   let cells = '', months = '', lastM = -1, col = 0;
   for(const d = new Date(start); d <= today; d.setDate(d.getDate()+1)){
-    const dow = (d.getDay()+6)%7; if(dow===0){ col++; if(d.getMonth()!==lastM && d.getDate()<=7){ lastM = d.getMonth();
+    const dow = (d.getDay()+6)%7; if(dow===0){ col++; if(d.getMonth()!==lastM && (d.getDate()<=7 || col===1)){ lastM = d.getMonth();
       months += `<span style="grid-column:${col+1}">${d.toLocaleDateString('en-GB',{month:'short'})}</span>`; } }
-    const k = iso(d), b = byDay[k];
-    let cls = 'l0', tip = `${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}: rest`;
+    const k = iso(d), b = k >= from ? byDay[k] : null, out = k < from;
+    let cls = out ? 'lo' : 'l0', tip = `${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}: rest`;
     if(b){
       cls = b.est ? 'lx' : 'l'+level(b.kcal);
       tip = `${d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}: ${b.est?'~':''}${fmt(b.kcal)} kcal${b.est?' (estimated)':''}\n` +
@@ -1177,19 +1185,34 @@ function renderCalendar(){
   const days = ['Mon','','Wed','','Fri','',''].map((t,i) => `<b style="grid-row:${i+2}">${t}</b>`).join('');
   const key = `<div class="cal-key"><span>Calories burnt</span><i class="l0" title="Rest"></i>${[1,2,3,4,5].map(l => `<i class="l${l}" title="${l===1?'under '+CAL_STEPS[0]:l===5?CAL_STEPS[3]+'+':CAL_STEPS[l-2]+'–'+(CAL_STEPS[l-1]-1)} kcal"></i>`).join('')}
     <span>${CAL_STEPS[3]}+ kcal</span><i class="lx" title="No watch calories: estimated from similar sessions"></i><span>estimated</span></div>`;
-  el.innerHTML = `<div class="cal-grid" style="grid-template-columns:28px repeat(${col},minmax(6px,1fr))">${months}${days}${cells}</div>${key}`;
-  const first = WO.reduce((m, w) => w.date < m ? w.date : m, WO[0].date);
-  const span = Math.round((today - new Date(first+'T00:00')) / 864e5) + 1;
-  const allK = WO.reduce((a, w) => a + (w.kcal || w.kcal_est || 0), 0), nEst = WO.filter(w => !w.kcal).length;
-  $('#calnote').textContent = `${WO.length} sessions in the last ${fmt(span)} days · ${fmt(allK)} kcal (${fmt(allK/7700,1)} kilos of fat) from workouts`;
+  // short periods get bigger squares; a long one fills the width (and scrolls on a phone)
+  const cs = col <= 3 ? 34 : col <= 6 ? 28 : col <= 10 ? 20 : 15, cols = col <= 10 ? `repeat(${col},${cs}px)` : `repeat(${col},minmax(6px,1fr))`;
+  el.innerHTML = `<div class="cal-grid" style="--cs:${cs}px;grid-template-columns:28px ${cols}">${months}${days}${cells}</div>${key}`;
+  const inP = WO.filter(w => w.date >= from && w.date <= todayISO()), span = Math.round((today - new Date(from+'T00:00')) / 864e5) + 1;
+  const allK = inP.reduce((a, w) => a + (w.kcal || w.kcal_est || 0), 0), nEst = inP.filter(w => !w.kcal).length;
+  $('#calnote').textContent = `${inP.length} session${inP.length===1?'':'s'} in the last ${fmt(span)} days · ${fmt(allK)} kcal (${fmt(U.wv(allK/7700),1)} ${IMP()?'pounds':'kilos'} of fat) from workouts`;
   $('#calnote').title = `Using about 7,700 kcal per kilo of body fat.${nEst?` Includes estimates for ${nEst} session${nEst>1?'s':''} with no watch calories.`:''}`;
   el.querySelectorAll('i[data-k]').forEach(c => { const go = () => { WO_SEL = c.dataset.k; renderWorkouts().then(() => { if(MMODE==='session') renderMuscles(); });
       $('#wopick').scrollIntoView({behavior: MOTION?'smooth':'auto', block:'start'}); };
     c.onclick = go; c.onkeydown = e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } }; });
   const wrap = el.parentElement; wrap.scrollLeft = wrap.scrollWidth;
+  fitIntensity();
 }
+// Side by side (wide screens), the Intensity minutes chart shrinks so the column is no taller than Activity beside it.
+const INT_H = 300, INT_MIN = 160;
+function fitIntensity(){
+  const pair = document.querySelector('.tr-pair'), el = $('#intchart'); if(!pair || !el || el.hidden) return;
+  const [act, int] = pair.querySelectorAll('.tr-col');
+  let h = INT_H;
+  if(getComputedStyle(pair).gridTemplateColumns.split(' ').length >= 2 && act.querySelector('.cal-grid')){
+    el.style.height = INT_H + 'px';
+    h = Math.max(INT_MIN, Math.min(INT_H, INT_H - (int.getBoundingClientRect().height - act.getBoundingClientRect().height)));
+  }
+  el.style.height = h + 'px'; if(charts.intchart) charts.intchart.resize();
+}
+addEventListener('resize', () => { clearTimeout(fitIntensity.t); fitIntensity.t = setTimeout(fitIntensity, 150); });
 /* ---------- muscle map: sets per muscle, hover a muscle for the lifts behind it ---------- */
-let MMODE = '7';
+let MMODE = 'session';
 document.querySelectorAll('#mrange button').forEach(b => b.onclick = () => {
   document.querySelectorAll('#mrange button').forEach(x => x.setAttribute('aria-pressed', x===b)); MMODE = b.dataset.m; renderMuscles(); });
 async function renderMuscles(){
