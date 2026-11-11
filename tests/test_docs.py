@@ -51,3 +51,31 @@ class IntegrationRequests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FeedbackButton(unittest.TestCase):
+    def test_prefilled_fields_exist_on_the_forms(self):
+        """The Feedback button fills fields by id: each one must be on its form, or GitHub silently drops it. And it
+        sends only the version, OS, Python and page: nothing that could be health data."""
+        import yaml
+        js = (ROOT / "app" / "static" / "app.js").read_text(encoding="utf-8")
+        for form, keys in re.findall(r"q\(\{template:'([a-z_]+\.yml)', ([^}]*)\}\)", js):
+            fields = [k.split(":")[0].strip() for k in keys.split(",")]
+            ids = {b.get("id") for b in yaml.safe_load((ROOT / ".github" / "ISSUE_TEMPLATE" / form).read_text(encoding="utf-8"))["body"]}
+            with self.subTest(form=form):
+                self.assertTrue(fields)
+                self.assertLessEqual(set(fields), {"version", "os", "python", "page"})
+                for k in fields: self.assertIn(k, ids, f"{form} has no field with id {k}")
+        self.assertEqual(len(re.findall(r"q\(\{template:'", js)), 2)
+
+    def test_about_holds_nothing_personal(self):
+        import os
+        os.environ.setdefault("FT_DATA", str(ROOT / "demo")); os.environ.setdefault("FT_NO_SYNC", "1")
+        sys.path[:0] = [str(ROOT / "scripts"), str(ROOT / "app")]
+        import server
+        A = server.about_info()
+        self.assertEqual(set(A), {"version", "os", "python"})
+        import yaml
+        bug = yaml.safe_load((ROOT / ".github" / "ISSUE_TEMPLATE" / "bug_report.yml").read_text(encoding="utf-8"))["body"]
+        opts = next(b for b in bug if b.get("id") == "os")["attributes"]["options"]
+        self.assertIn(A["os"], opts)

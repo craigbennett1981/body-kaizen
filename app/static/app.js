@@ -2362,6 +2362,24 @@ function renderTab(t){
   if(t==='training') renderTraining();
   if(t==='body') renderBody();
 }
+/* ---------- feedback: GitHub's bug and idea forms, pre-filled with the version, OS and page (no health data) ---------- */
+const FB_REPO = 'https://github.com/craigbennett1981/body-kaizen/issues/new';
+let FB_ABOUT = null;
+function fbLinks(){
+  const A = FB_ABOUT || {}, tab = document.querySelector('nav button[aria-selected="true"]'), page = tab ? tab.textContent.trim() : 'Dashboard';
+  const q = o => Object.entries(o).filter(([, v]) => v).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+  $('#fbbug').href = `${FB_REPO}?${q({template:'bug_report.yml', version:A.version, os:A.os, python:A.python, page})}`;
+  $('#fbidea').href = `${FB_REPO}?${q({template:'feature_request.yml', version:A.version, page})}`;
+}
+(function feedback(){
+  const btn = $('#fbbtn'), menu = $('#fbmenu'); if(!btn) return;
+  const open = on => { menu.hidden = !on; btn.setAttribute('aria-expanded', on); if(on){ fbLinks(); menu.querySelector('a').focus(); } };
+  btn.onclick = async () => { if(menu.hidden && !FB_ABOUT) FB_ABOUT = await api('/api/about').catch(() => null); open(menu.hidden); };
+  menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => open(false)));
+  document.addEventListener('keydown', e => { if(e.key === 'Escape' && !menu.hidden){ open(false); btn.focus(); } });
+  document.addEventListener('click', e => { if(!menu.hidden && !$('#fb').contains(e.target)) open(false); });
+})();
+
 function renderAll(){ const t = (location.hash||'#day').slice(1); renderTab(TAB_MOVED[t] || t); }
 /* ---------- profile: first-run setup (name, start date, timezone -> settings.yaml) ---------- */
 let PROFILE = null;

@@ -5,6 +5,11 @@ What changed in each release. Earlier releases are described on the
 
 ## Unreleased
 
+### Dashboard
+- **Feedback button:** a tab halfway down the left edge, there whatever you scroll. It opens GitHub's form to report
+  a problem or suggest an idea, filled in with the version, your operating system and the page you're on, and none of
+  your health data.
+
 ### Body tab
 - **Your real maintenance:** what you actually burn, from the last 28 days of eating against what your fasted weight
   trend did (7,700 kcal per kg), with a 90% range and Garmin's burn beside it, so you can see how far Garmin's figure
