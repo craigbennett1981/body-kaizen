@@ -6,7 +6,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 os.environ.setdefault("FT_DATA", str(ROOT / "demo"))
 sys.path[:0] = [str(ROOT / "scripts"), str(ROOT / "app")]
 import nutrition as N   # noqa: E402
-import pace, planner, muscles, workouts, thresholds, energybalance   # noqa: E402
+import pace, planner, muscles, workouts, thresholds, energybalance, intensity   # noqa: E402
 import bkenv, garmin_pull, scheduler   # noqa: E402
 
 
@@ -27,6 +27,37 @@ class FoodMatcher(unittest.TestCase):
     def test_unknown_food_is_reported(self):
         _, problems = N.resolve("200g zzzzunknownfood", "2026-10-01")
         self.assertTrue(problems)
+
+
+class IntensityMinutes(unittest.TestCase):
+    """Garmin's count (moderate + 2 x vigorous) per week and month, the goal, and a trend that skips thin weeks."""
+    def run_with(self, days, today="2026-11-11", goal=(150, "garmin")):
+        old = intensity.daily, intensity._goal, intensity.data.bkenv.today
+        intensity.daily = lambda: days; intensity._goal = lambda: goal
+        intensity.data.bkenv.today = lambda: dt.date.fromisoformat(today)
+        try: return intensity.build(weeks=12, months=3)
+        finally: intensity.daily, intensity._goal, intensity.data.bkenv.today = old
+
+    def test_weeks_months_and_trend(self):
+        start = dt.date(2026, 9, 7)   # a Monday; 10 full weeks then this week
+        days = {}
+        for n in range((dt.date(2026, 11, 11) - start).days + 1):
+            d = start + dt.timedelta(n)
+            if dt.date(2026, 10, 12) <= d <= dt.date(2026, 10, 15): continue   # watch off: a thin week
+            days[d.isoformat()] = (20, 5) if d < dt.date(2026, 10, 12) else (30, 10)
+        r = self.run_with(days)
+        w = {x["start"]: x for x in r["weeks"]}
+        self.assertEqual(w["2026-09-07"]["total"], 7 * (20 + 2 * 5))          # vigorous counts twice
+        self.assertTrue(w["2026-10-12"]["partial_data"])                        # 3 days of data
+        self.assertTrue(w["2026-11-09"]["current"]); self.assertEqual(w["2026-11-09"]["days"], 3)
+        self.assertEqual(r["this_week"]["total"], 3 * 50); self.assertEqual(r["this_week"]["need"], 0)
+        t = r["trend"]
+        self.assertEqual((t["avg_4w"], t["avg_prev_4w"], t["direction"]), (315, 210, "up"))   # 5 Oct + three 350s; the thin week is left out
+        self.assertEqual(r["months"][-1]["goal"], round(150 * 30 / 7)); self.assertEqual(r["months"][-1]["goal_so_far"], round(150 * 11 / 7))
+
+    def test_no_watch_data(self):
+        r = self.run_with({})
+        self.assertEqual((r["weeks"], r["trend"]), ([], None))
 
 
 class Eras(unittest.TestCase):
