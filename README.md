@@ -16,7 +16,14 @@ tracked as your own n-of-one experiment, in plain files you own.
   <a href="docs/features.md"><b>Every page, explained</b></a>
 </p>
 
-[![The Body Kaizen dashboard on demo data. Click to open the live demo.](docs/img/demo-preview.png)](https://demo.bodykaizen.app/)
+<table>
+<tr>
+<td width="50%" align="center" valign="top"><video src="https://github.com/user-attachments/assets/546fda47-0f14-4d7f-ad06-d2654cdf2f6c" controls muted playsinline width="100%"></video><br>
+<b>▶ A day with Body Kaizen</b>, a 3-minute tour</td>
+<td width="50%" align="center" valign="top"><a href="https://demo.bodykaizen.app/"><img src="docs/img/demo-preview.png" alt="The Body Kaizen dashboard on demo data. Click to open the live demo."></a><br>
+<b>Try the live demo</b> on 90 days of made-up data</td>
+</tr>
+</table>
 
 You tell an AI assistant like Claude what you ate, send it a photo of a label or a screenshot of your scale, and
 it writes everything into your own private git repository. Body Kaizen works out the macros, pulls in your
