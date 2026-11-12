@@ -37,14 +37,14 @@ click anything.
 <td width="50%" valign="top"><img src="docs/img/food.gif" alt="Food: searching, sorting and switching to the last 7 days"><br>
 <b>Know your food.</b> Where this week's saturated fat, protein and fibre came from, plants against 30, swaps from
 foods you already eat, and every food you've logged, searchable and sortable.</td>
-<td width="50%" valign="top"><img src="docs/img/sleep.gif" alt="Sleep: last night, the trend, stages and what goes with better nights"><br>
-<b>Sleep better.</b> Last night's stages, your sleep debt, when to be in bed tonight, and which of your own days
-go with the bad nights, with advice from what it finds.</td>
+<td width="50%" valign="top"><img src="docs/img/sleep.gif" alt="Sleep: last night, every night against Garmin's sleep need, stages and what goes with better nights"><br>
+<b>Sleep better.</b> Last night's stages, every night against Garmin's sleep need for it, your sleep debt, when to
+be in bed tonight, and which of your own days go with the bad nights, with advice from what it finds.</td>
 </tr>
 <tr>
-<td width="50%" valign="top"><img src="docs/img/training.gif" alt="Training: workouts, the muscle map and calories burnt"><br>
-<b>Train with feedback.</b> Every session with coach notes and heart rate, lifts against last time, a muscle map of
-your hard sets, and calories burnt by activity.</td>
+<td width="50%" valign="top"><img src="docs/img/training.gif" alt="Training: the period, heart-rate zones, workouts, the muscle map and lift progression"><br>
+<b>Train with feedback.</b> Intensity minutes and your heart-rate zones against the 80/20 line, every session with
+coach notes and heart rate, lifts against last time, and a muscle map of your hard sets.</td>
 <td width="50%" valign="top"><img src="docs/img/experiments.gif" alt="Experiments: a running experiment, trying a rule on your history, and a finished result"><br>
 <b>Test what works for you.</b> Try one change, like a 22:30 bedtime or less salt, for a few weeks and see what it
 really does to your sleep, blood pressure or weight, judged against the weeks before.</td>
@@ -56,17 +56,18 @@ really does to your sleep, blood pressure or weight, judged against the weeks be
 | Tab | What it shows |
 |---|---|
 | **Day** | Every macro paced through the day, readiness, energy balance, and a timeline from sleep to dinner with glucose under each meal |
-| **Body** | Weight trend, body composition, energy balance against the scale, InBody scans, blood pressure |
+| **Body** | Weight trend, body composition, energy balance against the scale, your real maintenance from what you ate and what the scale did, InBody scans, blood pressure |
 | **Experiments** | Test one change on yourself, like a 22:30 bedtime every night or less salt every day: suggested from your own data, with a daily checklist and reminders, tracked day by day and scored against the weeks before. "Try a rule" and "Look for a relationship" ask your history first |
 | **Food** | Where your saturated fat, protein and fibre come from, plants this week against 30, swaps from foods you already eat, glucose by food and by meal, every food you've logged |
 | **History** | Weight with what explains it (blood tests, scans, target and training changes, off episodes), mood scores and symptoms, and every event |
 | **Longevity** | VO2 max, lipids, HbA1c, grip and more against target bands, with a health score and retest dates |
-| **Sleep & recovery** | Readiness, last night's stages, sleep debt, when to be in bed tonight, HRV and resting heart rate, and what goes with your better and worse nights |
-| **Training** | Every session with coach notes and heart rate, lifts against last time, a progression plan, a muscle map and an activity calendar |
+| **Sleep & recovery** | Last night's stages, when to be in bed tonight, readiness, every night against Garmin's sleep need, sleep debt, HRV and resting heart rate, and what goes with your better and worse nights |
+| **Training** | An activity calendar, intensity minutes and heart-rate zones against the 80/20 line, every session with coach notes and heart rate, lifts against last time, a muscle map, a progression plan and lift charts |
 | **Week** | The week at a glance, what to change next week, every day hit or miss against its targets, habits, new bests, and all the advice from your own data |
 
-Every page in detail, with screenshots: **[docs/features.md](docs/features.md)**. Or open it in the
-**[live demo](https://demo.bodykaizen.app/)**.
+Every tab but Day is split into sub-tabs, so one part is on screen at a time (Training has Overview, Workouts and
+Progress, for example), and links like `#training/progress` open one directly. Every page in detail, with
+screenshots: **[docs/features.md](docs/features.md)**. Or open it in the **[live demo](https://demo.bodykaizen.app/)**.
 
 **Works with** Claude (or any AI assistant that can edit files) · Garmin Connect · FreeStyle Libre (LibreLinkUp) ·
 Hevy · InBody · any smart scale or blood-pressure app you can screenshot.
@@ -252,7 +253,7 @@ never overwrites what you or your assistant logged.
 
 | Source | What it adds | How it gets in |
 |---|---|---|
-| **Garmin Connect** | Steps, calories burnt, sleep with stages and score, overnight HRV, resting heart rate, body battery, stress; every activity with its heart-rate trace; VO2 max | Pulled four times a day and on "Sync now" |
+| **Garmin Connect** | Steps, calories burnt, sleep with stages, score and Garmin's sleep need, overnight HRV, resting heart rate, body battery, stress; every activity with its heart-rate trace and time in each zone; intensity minutes; VO2 max | Pulled four times a day and on "Sync now" |
 | **Abbott LibreLinkUp** | Continuous glucose from a FreeStyle Libre, on the Day timeline with each meal marked | Pulled every 30 minutes |
 | **Hevy** | Gym sessions with every set | Paste the workout to your assistant; history from Hevy's CSV export |
 | **Scales and blood-pressure monitors** | Weight, body fat, muscle, visceral fat; systolic, diastolic and pulse | A screenshot of the app, read by your assistant |
@@ -351,7 +352,8 @@ AI-GUIDE.md   the brief for your AI assistant: every input, where it goes, how t
 ## Contributing
 
 Contributions are welcome: bug fixes, new foods, docs, views, integrations and better instructions for AI
-assistants. Start with [CONTRIBUTING.md](CONTRIBUTING.md); for anything big, open an issue first. Changed how a page looks?
+assistants. Found a problem or have an idea? The **Feedback** tab on the dashboard's left edge opens the right GitHub
+form with the version filled in. Start with [CONTRIBUTING.md](CONTRIBUTING.md); for anything big, open an issue first. Changed how a page looks?
 `python tools/readme_media.py` remakes every GIF and screenshot from the demo, and the live demo rebuilds itself
 on every merge. Everyone follows the
 [Code of Conduct](CODE_OF_CONDUCT.md). **Never include your own health data in an issue or pull request**; use the

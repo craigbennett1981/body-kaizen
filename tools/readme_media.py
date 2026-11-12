@@ -23,22 +23,28 @@ SHOTS = [
     ("day.png", "day", None, None, 0),
     ("day-timeline.png", "day", "h2:Timeline", "#daytl", 0),
     ("glucose.png", "day", "#glucose", "#glucose", 0),
-    ("food.png", "food", "h2:Where it came from", ".staples", 0),
+    ("food.png", "food", "h2:Where it came from", ".fs-grid", 0),
     ("food-plants-swaps.png", "food", "h2:Plants this week", ".sw-grid", 0),
     ("food-glucose.png", "food", "h2:Glucose", "#gseg", 0),
     ("sleep.png", "sleep", "#sleep", "#sl-hyp", 0),
-    ("readiness.png", "sleep", "#tab-sleep h1", "#recchart", 0),
+    ("readiness.png", "sleep", "h2:Readiness", "#readychart", 0),
+    ("recovery.png", "sleep", "h2:HRV and resting", "#recchart", 0),
+    ("sleep-trend.png", "sleep", "h2:Every night", "#sl-trend", 0),
     ("sleep-stages.png", "sleep", "h2:Sleep stages", "#sl-stg", 0),
     ("sleep-factors.png", "sleep", "h2:What goes with better", ".sl-fx", 0),
-    ("workout.png", "training", "h2:Workouts", "#wodetail", 0),
+    ("workout.png", "training", "#wopick", "#wodetail", 0),
     ("muscle-map.png", "training", "h2:Muscles worked", "#musclemap", 0),
-    ("activity.png", "training", "h2:Activity", "#actcal", 0),
+    ("activity.png", "training", "h2:Activity", ".tr-pair", 0),
+    ("zones.png", "training", "h2:Heart-rate zones", "#zchart", 0),
+    ("lifts.png", "training", "h2:Lift progression", "#liftchart", 0),
     ("experiments.png", "experiments", "#tab-experiments h1", ".xp", 0),
     ("composition.png", "body", "h2:Body composition", "#bcgrid", 0),
     ("energy-balance.png", "body", "h2:Energy balance", "#ebchart", 0),
+    ("maintenance.png", "body", "h2:Your real maintenance", "#mtchart", 0),
     ("week.png", "week", "#week h1", ".wk-grid + .wk-grid", 0),
     ("trends.png", "week", "h2:Trends", "#trend", 0),
-    ("history.png", "history", "#tab-history h1", "#wbchart", 0),
+    ("history.png", "history", "#tab-history h1", "#tlchart", 0),
+    ("felt.png", "history", "h2:How you've felt", "#wbchart", 0),
     ("longevity.png", "longevity", None, None, 0),
 ]
 
@@ -56,8 +62,8 @@ PREVIEW_OVERLAY = """(() => {
 
 # ---------- the social preview: a 1280 x 640 collage of six screenshots, each labelled ----------
 SOCIAL = ("social-preview.png", [("day.png", "Meals to macros, paced"), ("experiments.png", "Experiments on yourself"),
-          ("readiness.png", "Sleep & recovery"), ("food.png", "Where your food comes from"),
-          ("muscle-map.png", "Workouts and a muscle map"), ("trends.png", "Every day against its targets")])
+          ("sleep-trend.png", "Sleep against Garmin's need"), ("food.png", "Where your food comes from"),
+          ("zones.png", "Heart-rate zones, 80/20"), ("trends.png", "Every day against its targets")])
 SOCIAL_HTML = """<!doctype html><html><head><meta charset="utf-8"><style>
   @font-face{font-family:Archivo;font-weight:100 900;font-stretch:62% 125%;src:url(data:font/woff2;base64,FONT) format('woff2-variations')}
   body{margin:0;width:1280px;height:640px;background:#0f1116;color:#EBEEF5;font-family:Archivo,system-ui,sans-serif;overflow:hidden}
@@ -102,10 +108,16 @@ class Page:
     def el(self, sel):
         loc = self.pg.locator("main > section:not([hidden]) h2", has_text=sel[3:]).first if sel.startswith("h2:") else self.pg.locator(sel).first
         # inside a sub-tab that isn't showing: open that sub-tab first
-        if self.pg.evaluate("""e => { const g = e && e.closest('.sub-group'); if(!g || !g.hidden) return false;
-                showSub(g.closest('section').id.slice(4), g.dataset.g); return true; }""", loc.element_handle()):
+        if self.pg.evaluate("""e => { const g = e && e.closest('.sub-group, [data-sg]'); if(!g) return false;
+                const sec = g.closest('section'), id = g.dataset.g || g.dataset.sg;
+                if(!(g.hidden || g.classList.contains('sg-off')) || sec.dataset.sub === id) return false;
+                showSub(sec.id.slice(4), id); return true; }""", loc.element_handle()):
             self.pg.wait_for_timeout(700)
         return loc
+
+    def sub(self, tab, g, wait=900):
+        """Click a sub-tab, where a viewer can see it: back to the top, then the button."""
+        self.scroll(0, 700); self.pg.click(f'.subtabs[data-tab="{tab}"] button[data-g="{g}"]'); self.pg.wait_for_timeout(wait)
 
     def y(self, sel):
         return self.pg.evaluate("e => e.getBoundingClientRect().top + scrollY", self.el(sel).element_handle())
@@ -141,25 +153,27 @@ def gif_tour(P):
     P.caption("Day: every macro paced through the day, against today's targets"); pg.wait_for_timeout(1800)
     P.scroll("h2:Timeline", 1300); P.caption("One timeline: food, energy, sleep, training and glucose")
     P.sweep("#daytl", fy=.3, ms=1650); pg.mouse.move(5, 5)
-    P.tab("food", 900); P.caption("Food: where your saturated fat, protein and fibre really come from"); pg.wait_for_timeout(1500)
+    P.tab("food", 900); P.sub("food", "week"); P.caption("Food: where your saturated fat, protein and fibre really come from"); pg.wait_for_timeout(1500)
     P.scroll("h2:Plants this week", 1200); P.caption("Plants this week, and swaps from foods you already eat"); pg.wait_for_timeout(1800)
-    P.tab("sleep", 900); P.caption("Sleep & recovery: readiness, last night, and when to be in bed tonight"); pg.wait_for_timeout(1650)
-    P.scroll("h2:Sleep stages", 1300); P.caption("Your sleep stages, and what changes them"); pg.wait_for_timeout(1350)
-    P.scroll("h2:What goes with better", 1200); P.caption("Your own nights compared: what goes with the bad ones"); pg.wait_for_timeout(1800)
-    P.tab("experiments", 900); P.caption("Experiments: test one change on yourself and see what it really does"); pg.wait_for_timeout(1950)
-    P.tab("training", 900); P.caption("Training: every session with coach notes and heart rate"); P.scroll("h2:Workouts", 900)
+    P.tab("sleep", 900); P.sub("sleep", "today"); P.caption("Sleep & recovery: last night, tonight's bedtime and readiness"); pg.wait_for_timeout(1650)
+    P.sub("sleep", "trends"); P.caption("Every night against Garmin's sleep need for it"); P.sweep("#sl-trend", fy=.35, ms=1500); pg.mouse.move(5, 5)
+    P.sub("sleep", "helps"); P.caption("Your own nights compared: what goes with the bad ones"); pg.wait_for_timeout(1800)
+    P.tab("experiments", 900); P.sub("experiments", "running"); P.caption("Experiments: test one change on yourself and see what it really does"); pg.wait_for_timeout(1950)
+    P.tab("training", 900); P.sub("training", "overview"); P.caption("Training: activity, intensity minutes and heart-rate zones"); pg.wait_for_timeout(1200)
+    P.scroll("h2:Heart-rate zones", 1000); pg.wait_for_timeout(1300)
+    P.sub("training", "workouts"); P.caption("Every session with coach notes and heart rate")
     chips = pg.locator("#wopick button[data-k]")
     for i in (1, 2): chips.nth(i).click(); pg.wait_for_timeout(825)
     P.scroll("h2:Muscles worked", 1000); P.caption("A muscle map of the hard sets you did")
     P.hover("#musclemap", .3, .35); pg.wait_for_timeout(675); P.hover("#musclemap", .72, .55); pg.wait_for_timeout(825)
-    P.tab("body", 900); P.scroll("h2:Body composition", 900); P.caption("Body: weight, composition and energy balance"); pg.wait_for_timeout(1650)
-    P.tab("week", 900); P.caption("Week: how it went, what to change, and the trends behind it"); pg.wait_for_timeout(1650)
-    P.tab("longevity", 900); P.caption("Longevity: blood markers, fitness and a health score"); pg.wait_for_timeout(1950)
+    P.tab("body", 900); P.sub("body", "energy"); P.caption("Body: energy balance, and what you really burn"); P.scroll("h2:Your real maintenance", 1000); pg.wait_for_timeout(1650)
+    P.tab("week", 900); P.sub("week", "week"); P.caption("Week: how it went, what to change, and the trends behind it"); pg.wait_for_timeout(1650)
+    P.tab("longevity", 900); P.sub("longevity", "overview"); P.caption("Longevity: blood markers, fitness and a health score"); pg.wait_for_timeout(1950)
 
 
 def gif_food(P):
     pg = P.pg
-    P.tab("food", 900); P.scroll("h2:Every food", 1000)
+    P.tab("food", 900); P.sub("food", "foods"); P.scroll("h2:Every food", 1000)
     box = pg.locator("#fq"); box.click()
     for ch in "chicken": box.type(ch); pg.wait_for_timeout(110)
     pg.wait_for_timeout(1200); box.fill(""); box.dispatch_event("input"); pg.wait_for_timeout(500)
@@ -167,34 +181,38 @@ def gif_food(P):
     pg.click('#ftab th[data-k="sf"]'); pg.wait_for_timeout(1400)
     pg.click('#ftab th[data-k="p"]'); pg.wait_for_timeout(1400)
     pg.click('.seg button[data-w="all"]'); pg.wait_for_timeout(1000)
-    P.scroll(0, 1200); pg.wait_for_timeout(1500)
+    P.sub("food", "week", 1500); pg.wait_for_timeout(600)
+    P.scroll("h2:Plants this week", 1100); pg.wait_for_timeout(1500)
 
 
 def gif_sleep(P):
     pg = P.pg
-    P.tab("sleep", 1000); P.scroll("#sleep", 900); pg.wait_for_timeout(1200)
+    P.tab("sleep", 1000); P.sub("sleep", "today"); P.scroll("h2:Last night", 900); pg.wait_for_timeout(1000)
     P.sweep("#sl-hyp", fy=.5, ms=1800); pg.mouse.move(5, 5)
-    P.scroll("h2:Every night", 1100); P.sweep("#sl-trend", fy=.35, ms=1800); pg.mouse.move(5, 5)
+    P.sub("sleep", "trends"); P.sweep("#sl-trend", fy=.35, ms=1800); pg.mouse.move(5, 5)
     P.scroll("h2:Sleep stages", 1200); pg.wait_for_timeout(1600)
-    P.scroll("h2:What goes with better", 1200); pg.wait_for_timeout(2000)
+    P.sub("sleep", "helps", 1400); pg.wait_for_timeout(800)
     P.scroll("h2:What your data says", 1100); pg.wait_for_timeout(2000)
 
 
 def gif_training(P):
     pg = P.pg
-    P.tab("training", 1000); P.scroll("h2:Workouts", 900)
+    P.tab("training", 1000); P.sub("training", "overview")
+    for d in ("30", "60", "0"): pg.click(f'#trange button[data-d="{d}"]'); pg.wait_for_timeout(1100)
+    P.scroll("h2:Heart-rate zones", 1000); P.sweep("#zchart", fy=.4, ms=1600); pg.mouse.move(5, 5)
+    P.sub("training", "workouts")
     chips = pg.locator("#wopick button[data-k]")
     for i in range(1, 4): chips.nth(i).click(); pg.wait_for_timeout(1100)
     P.scroll("h2:Muscles worked", 1000)
-    for m in ("14", "28", "7"): pg.click(f'#mrange button[data-m="{m}"]'); pg.wait_for_timeout(900)
-    P.hover("#musclemap", .28, .3); pg.wait_for_timeout(1000); P.hover("#musclemap", .7, .6); pg.wait_for_timeout(1200)
-    P.scroll("h2:Calories burnt", 1000); P.sweep("#trainchart", fy=.3, ms=1800)
+    P.hover("#musclemap", .28, .3); pg.wait_for_timeout(1000); P.hover("#musclemap", .7, .6); pg.wait_for_timeout(1000)
+    for m in ("7", "28"): pg.click(f'#mrange button[data-m="{m}"]'); pg.wait_for_timeout(900)
+    P.sub("training", "progress"); P.scroll("h2:Lift progression", 900); P.sweep("#liftchart", fy=.4, ms=1600)
 
 
 def gif_experiments(P):
     pg = P.pg
-    P.tab("experiments", 1000); pg.wait_for_timeout(1800)
-    P.scroll("h2:Try a rule", 1100); pg.wait_for_timeout(900)
+    P.tab("experiments", 1000); P.sub("experiments", "running"); pg.wait_for_timeout(1800)
+    P.sub("experiments", "ideas"); P.scroll("h2:Try a rule", 1100); pg.wait_for_timeout(900)
     for v in ("22:00", "23:00", "22:30"):
         box = pg.locator("#xtry-val"); box.fill(v); box.dispatch_event("input"); pg.wait_for_timeout(1200)
     P.scroll("h2:Look for a relationship", 1100); pg.wait_for_timeout(1800)
@@ -236,6 +254,7 @@ def main():
             if any(want(f) for f, *_ in SHOTS):
                 pg = b.new_page(viewport={"width": 1200, "height": 900}, device_scale_factor=1.6, reduced_motion="reduce", **opts)
                 pg.goto(url); pg.wait_for_selector("#day h1"); P = Page(pg); P.clean()
+                pg.add_style_tag(content="#fb{display:none!important}")   # the Feedback tab would poke into each section's left edge
                 for f, tab, top, bottom, _ in SHOTS:
                     if not want(f): continue
                     P.tab(tab, 1600)

@@ -78,13 +78,18 @@ table sits underneath.
 
 ## Sleep & recovery
 
-![Readiness, then overnight HRV and resting heart rate against your baseline](img/readiness.png)
+Three sub-tabs: **Today** (last night, tonight and readiness), **Trends** (every night, HRV and resting heart rate,
+when you sleep, stages) and **What helps** (what goes with better nights, and advice).
+
+![Readiness: today's state against your own last 4 weeks, and what's holding you back](img/readiness.png)
 
 - **Readiness:** today's state against your own last 4 weeks (resting heart rate, HRV, sleep debt, training load,
   stress, body battery), saying what's holding you back. It's tested against your recorded off episodes and says
   how often it warned ahead.
 - **HRV and resting heart rate** every night against your baseline, with the resting heart rate at which the day
   should be a walk only.
+
+![HRV and resting heart rate every night against your baseline](img/recovery.png)
 
 ![Sleep: last night, sleep debt, tonight's bedtime and last night's stages](img/sleep.png)
 
@@ -95,6 +100,9 @@ table sits underneath.
 - **Every night:** time asleep against that night's target, and your sleep debt over 7 nights. The target is Garmin's
   sleep need for the night (raised after hard training or poor sleep, with the reason shown), and your own target on
   nights without one. Set `sleep_need: own` under `reference:` in targets.yaml to use yours every night.
+
+  ![Every night: time asleep against Garmin's sleep need, coloured hit or miss, with 7-night sleep debt below](img/sleep-trend.png)
+
 - **Sleep stages:** deep, REM and light sleep as a share of the night against typical adult ranges, how each
   changes with short nights, late sessions and late bedtimes, and the hours you tend to wake.
 - **When you sleep:** a bar per night from falling asleep to waking, so you can see how regular you are and how far
@@ -145,6 +153,14 @@ Test one change on yourself and see what it does to your own sleep, recovery, bl
 
 ## Training
 
+Three sub-tabs: **Overview** (activity, intensity minutes, heart-rate zones, calories burnt), **Workouts** (one
+session in detail and the muscles it worked) and **Progress** (next session, lift progression, lifts and runs). The
+period beside the title sets the Overview.
+
+![Activity and intensity minutes side by side: sessions shaded by calories burnt, and intensity minutes against the goal](img/activity.png)
+
+![Heart-rate zones: minutes in each zone per month, the share that was easy against the 80/20 line, and a note on easy runs](img/zones.png)
+
 ![A workout: Claude's comments, heart-rate trace with each effort marked, and every lift against last time](img/workout.png)
 
 - **Every session** with Claude's comments, the Garmin heart-rate trace with each effort marked, and every lift
@@ -153,17 +169,17 @@ Test one change on yourself and see what it does to your own sleep, recovery, bl
   machine changes kept separate and temporary resets when form slips.
 - **A muscle map:** front and back diagrams shaded by hard sets per muscle, for one workout or the last 7, 14 or 28
   days. Hover a muscle for the lifts and runs behind it.
-- **An activity calendar:** a year of sessions, GitHub-style, each day shaded by calories burnt.
-- **Intensity minutes** per week or month, counted Garmin's way (vigorous minutes double) against your weekly goal,
+- **An activity calendar:** your sessions over the period, GitHub-style, each day shaded by calories burnt.
+- **Intensity minutes** per day, week or month (following the period), counted Garmin's way (vigorous minutes double) against your weekly goal,
   with a 4-week average, this week's progress and the trend against the 4 weeks before.
 - **Heart-rate zones:** minutes in each of Garmin's five zones per day, week or month (following the period at the
   top), the share that was easy (zones 1–2) against the 80/20 line, and how many easy runs stayed under your easy
   heart-rate cap. If easy runs stay under the cap but the watch puts them in zone 3 or above, it says your watch's
   zones may be set too low.
 
-![Muscle map: front and back diagrams shaded by hard sets over the last 7 days](img/muscle-map.png)
+![Muscle map: front and back diagrams shaded by hard sets, for this workout or the last 7, 14 or 28 days](img/muscle-map.png)
 
-![Activity: a year of sessions, each day shaded by calories burnt](img/activity.png)
+![Lift progression: one lift's best set over time, picked from the chips above it](img/lifts.png)
 
 ## Body
 
@@ -177,6 +193,8 @@ towards your weight target, and your trend weight at the next InBody scan for ea
 ![Body composition: a small chart for each measure the scale gives, with InBody scans alongside](img/composition.png)
 
 ![Energy balance: daily burnt minus eaten, and the weight change it predicts against the actual trend](img/energy-balance.png)
+
+![Your real maintenance: what you burn from eating against the weight trend, Garmin's figure beside it, and targets for each goal rate](img/maintenance.png)
 
 ## Week
 
@@ -199,12 +217,14 @@ One week at a glance, and the place to check on a Sunday. Use the arrows to go b
 
 ## History
 
-![History: weight with blood tests, scans and target changes marked, and mood scores with symptoms](img/history.png)
+![History: weight with blood tests, scans and target changes marked](img/history.png)
 
 What happened and when. Your weight (7-day average) with blood tests, scans, target and training changes and off
 episodes marked on it, the mood, energy, gut and stress scores and symptoms you report, with sleep alongside, and
 every event by month. Tell your assistant about other events (a trip, an illness, a new supplement) and they're
 added.
+
+![How you've felt: mood, energy, gut and stress scores with sleep alongside, and the symptoms you report](img/felt.png)
 
 ## Longevity
 
