@@ -20,7 +20,7 @@ tracked as your own n-of-one experiment, in plain files you own.
 <tr>
 <td width="50%" align="center" valign="top"><video src="https://github.com/user-attachments/assets/546fda47-0f14-4d7f-ad06-d2654cdf2f6c" controls muted playsinline width="100%"></video><br>
 <b>▶ A day with Body Kaizen</b>, a 3-minute tour</td>
-<td width="50%" align="center" valign="top"><a href="https://demo.bodykaizen.app/"><img src="docs/img/demo-preview.png" alt="The Body Kaizen dashboard on demo data. Click to open the live demo."></a><br>
+<td width="50%" align="center" valign="middle"><a href="https://demo.bodykaizen.app/"><img src="docs/img/demo-preview.png" alt="The Body Kaizen dashboard on demo data. Click to open the live demo."></a><br>
 <b>Try the live demo</b> on 90 days of made-up data</td>
 </tr>
 </table>
