@@ -69,6 +69,8 @@ def build(date, now=None):
                 a = eaten[k][i]
                 ws = ("good" if a <= plan * 1.1 else "warn" if a <= plan * 1.3 else "bad") if kind == "max" else \
                      ("good" if a >= plan * on else "warn" if a >= plan * behind else "bad")
+                if kind == "range" and a > hi * share[i] * 1.15:   # a range is also missed by going well over the window's share
+                    ws = "warn" if a <= hi * share[i] * 1.5 else "bad"
             else: ws = "now" if i == cur else "later"
             wins_out.append({"eaten": round(eaten[k][i], 1), "plan": round(plan, 1), "state": ws})
         out["macros"][k] = {"eaten": round(got, 1), "expected": round(exp_lo if kind != "max" else exp_hi, 1),

@@ -64,6 +64,29 @@ def _typical_active_after(minute, day):
     return (round(stats.median(vals)) if vals else None), len(vals)
 
 
+_factor = {}
+
+
+def _scale_factor():
+    """Real maintenance over Garmin's burn for the same weeks (maintenance.py), or None when there isn't enough data.
+    Worked out once per day and data folder: it moves with weeks of data, not with each meal."""
+    key = (str(data.ROOT), data.bkenv.now().date().isoformat())
+    if key not in _factor: _factor.clear(); _factor[key] = _scale_factor_now()
+    return _factor[key]
+
+
+def _scale_factor_now():
+    try:
+        import maintenance
+        n = (maintenance.build() or {}).get("now") or {}
+    except Exception:
+        return None
+    m, g = n.get("maintenance"), n.get("garmin_burn")
+    if not m or not g: return None
+    f = m / g
+    return f if 0.7 <= f <= 1.3 else None   # outside that the estimate is more likely wrong than Garmin
+
+
 def today(day=None):
     now = data.bkenv.now()
     day = day or now.date().isoformat()
@@ -83,7 +106,15 @@ def today(day=None):
         rest = round(rate * (1440 - sync))
         active_more, n = _typical_active_after(sync, day)
         projected = so_far + rest + (active_more or 0)
-    return {"date": day, "available": True, "sync": f"{sync // 60:02d}:{sync % 60:02d}" if sync < 1440 else None,
+    # Garmin's burn runs high or low for most people: scale it by real maintenance (what you ate and what the scale did)
+    # over Garmin's own burn for the same weeks, so the day's figures are in the same kcal as your targets
+    adj = _scale_factor(); adj = round(adj, 3) if adj else None
+    proj_adj = round(projected * adj) if adj else None
+    base = proj_adj if proj_adj is not None else projected
+    return {"date": day, "available": True, "scale_factor": adj, "projected_adjusted": proj_adj,
+            # the day's balance if you eat exactly your target (middle of the range) from here on
+            "deficit_at_target": (base - max(eaten, tmid)) if tmid else None,
+            "sync": f"{sync // 60:02d}:{sync % 60:02d}" if sync < 1440 else None,
             "burnt_so_far": so_far, "projected": projected, "rest_of_day_resting": rest, "rest_of_day_active": active_more,
             "typical_days": n, "eaten": eaten, "deficit_so_far": so_far - eaten,
             # the day's deficit if you stop eating now: the projected burn by midnight minus what you've eaten

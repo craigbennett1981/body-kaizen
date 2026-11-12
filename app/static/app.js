@@ -302,13 +302,16 @@ async function renderEnergyToday(date){
   const word = v => v >= 0 ? 'deficit' : 'surplus';
   if(!live){ setHead(t.deficit_so_far >= 0 ? 'Deficit' : 'Surplus'); el.innerHTML = `<span><b>${fmt(Math.abs(t.deficit_so_far))}</b> day</span><span>burnt ${fmt(t.burnt_so_far)}</span>`;
     el.title = "Garmin's total burn for the day minus what was eaten."; return; }
-  const a = t.deficit_so_far, b = t.deficit_day;
+  const a = t.deficit_so_far, b = t.deficit_at_target ?? t.deficit_day;
   const head = a < 0 && b < 0 ? 'Surplus' : a >= 0 && b >= 0 ? 'Deficit' : 'Balance';
   const one = (v, lab) => `<span><b>${v < 0 && head === 'Balance' ? '+' : ''}${fmt(Math.abs(v))}</b> ${lab}</span>`;   // in a mixed column, + marks a surplus
-  setHead(head); el.innerHTML = `${one(a, 'now')}${one(b, 'day').replace('<b>', '<b>~')}`;
+  const atT = t.deficit_at_target != null;
+  setHead(head); el.innerHTML = `${one(a, 'now')}${one(b, atT ? 'at target' : 'day').replace('<b>', '<b>~')}`;
   el.title = `Now: burnt ${fmt(t.burnt_so_far)} kcal to ${t.sync} (last watch sync) minus ${fmt(t.eaten)} eaten.\n` +
     `Day: projected burn ${fmt(t.projected)} kcal by midnight (resting ${fmt(t.rest_of_day_resting)} + your usual ${fmt(t.rest_of_day_active||0)} active after ${t.sync}, median of ${t.typical_days} days) ` +
-    `minus the ${fmt(t.eaten)} eaten so far: the day's balance if you stop eating now.`;
+    (t.projected_adjusted != null ? `= ${fmt(t.projected_adjusted)} kcal after scaling Garmin by your real maintenance (×${t.scale_factor}, from what you ate and what the scale did). ` : '') +
+    (atT ? `At target: that minus your ${fmt(t.target_mid)} kcal target, if you eat to it from here. ` : '') +
+    `If you stop eating now: ${fmt((t.projected_adjusted ?? t.projected) - t.eaten)} kcal.`;
 }
 /* ---------- next move + readiness strip ---------- */
 async function renderGlance(date){

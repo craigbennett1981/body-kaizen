@@ -76,6 +76,17 @@ class Eras(unittest.TestCase):
 
 
 class Pace(unittest.TestCase):
+    def test_a_window_well_over_its_share_is_not_green(self):
+        """Calories, carbs and fat are ranges: a finished window that ran well over its share is amber or red, not green."""
+        import datetime as dt
+        last = sorted((pathlib.Path(os.environ["FT_DATA"]) / "days").rglob("*.yaml"))[-1].stem
+        p = pace.build(last, dt.datetime.fromisoformat(last + "T23:59"))
+        for k, m in p["macros"].items():
+            if m["kind"] != "range": continue
+            for w in m["windows"]:
+                if w["state"] in ("good", "warn", "bad") and w["plan"] and w["eaten"] > w["plan"] * 1.6:
+                    with self.subTest(macro=k): self.assertNotEqual(w["state"], "good")
+
     def test_windows_and_expected_share(self):
         last = sorted((pathlib.Path(os.environ["FT_DATA"]) / "days").rglob("*.yaml"))[-1].stem
         p = pace.build(last, "12:00")              # a finished day: judged against the whole target
@@ -316,6 +327,12 @@ class EnergyBalance(unittest.TestCase):
         self.assertEqual(T["deficit_so_far"], T["burnt_so_far"] - T["eaten"])
         self.assertEqual(T["deficit_day"], T["projected"] - T["eaten"])   # if you stop eating now
         self.assertGreaterEqual(T["projected"], T["burnt_so_far"])
+        if T["scale_factor"]:   # Garmin scaled by real maintenance; "at target" is that minus the target (or what's eaten, if more)
+            self.assertEqual(T["projected_adjusted"], round(T["projected"] * T["scale_factor"]))
+            base = T["projected_adjusted"]
+        else:
+            base = T["projected"]
+        if T["target_mid"]: self.assertEqual(T["deficit_at_target"], base - max(T["eaten"], T["target_mid"]))
 
 
 class BodyComposition(unittest.TestCase):
