@@ -3,6 +3,15 @@
 What changed in each release. Earlier releases are described on the
 [releases page](https://github.com/craigbennett1981/body-kaizen/releases).
 
+## Unreleased
+
+### Day
+- **The calorie balance is in real calories, and shows where the day ends:** Garmin's projected burn is scaled by
+  your real maintenance (what you ate and what the scale did, from the Body tab), and the second figure is the day's
+  balance if you eat your target, not if you stop eating now. The tooltip still gives the stop-now figure.
+- **Over-eating a window shows:** calories, carbs and fat are ranges, so a finished window that ran well over its
+  share (more than 15% above it) is amber, or red past 50%, instead of green.
+
 ## 0.8.0 (12 November 2026)
 
 ### Sleep & recovery
