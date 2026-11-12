@@ -9,7 +9,47 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    # A pull request that only touches docs (Markdown, docs/, issue forms) skips the full test matrix and the
+    # installers: the docs tests and the package check (which renders the README) still run.
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.files.outputs.code }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+      - id: files
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$EVENT" != pull_request ]; then echo code=true >> "$GITHUB_OUTPUT"; exit 0; fi
+          changed=$(git diff --name-only "$BASE" HEAD)
+          echo "$changed"
+          if echo "$changed" | grep -qvE '\.md$|^docs/|^LICENSE$|^\.github/ISSUE_TEMPLATE/'; then
+            echo code=true >> "$GITHUB_OUTPUT"
+          else
+            echo code=false >> "$GITHUB_OUTPUT"
+          fi
+
+  docs:
+    needs: changes
+    if: needs.changes.outputs.code == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml
+      - name: Docs tests
+        run: python -m unittest tests.test_docs -v
+
   test:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -61,6 +101,8 @@ jobs:
   installer:
     # The one-line installers, on each system: install this commit with uv, then serve the demo and check the
     # sign-in handshake and the launcher. (No login service on a CI machine: BK_NO_SERVICE.)
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -112,6 +154,8 @@ jobs:
   static-demo:
     # The live demo is the real pages on exported demo data. Export it and click through every tab in a browser:
     # a route or parameter the export doesn't cover fails here, before it can break the demo.
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
