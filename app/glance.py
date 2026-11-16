@@ -93,7 +93,11 @@ def readiness(date):
     return out
 
 def build(date):
-    return {"date": date, "move": next_move(date), "ready": readiness(date)}
+    try:
+        import loadwatch
+        load = loadwatch.build(date)
+    except Exception: load = None
+    return {"date": date, "move": next_move(date), "ready": readiness(date), "load": load}
 
 
 def watch_upto():

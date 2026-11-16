@@ -6,6 +6,11 @@ What changed in each release. Earlier releases are described on the
 ## Unreleased
 
 ### Day
+- **Load watch:** when two or more of five training signals are raised against your own last 12 weeks, the Day tab
+  lists them under the next move: training days in a row, rest days in the last 7, minutes in heart-rate zone 4 and
+  above over 12 days, weeks since a lighter week, and two days running eaten well under burn. When off episodes or
+  symptoms are logged, it adds how often the same count was raised the day before one, and on ordinary days. It
+  states the numbers and gives no advice or diagnosis. `/api/loadwatch` has all five signals for any date.
 - **The calorie balance is in real calories, and shows where the day ends:** Garmin's projected burn is scaled by
   your real maintenance (what you ate and what the scale did, from the Body tab), and the second figure is the day's
   balance if you eat your target, not if you stop eating now. The tooltip still gives the stop-now figure.

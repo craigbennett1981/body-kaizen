@@ -10,6 +10,9 @@ import pace, planner, muscles, workouts, thresholds, energybalance, intensity, m
 import bkenv, garmin_pull, scheduler   # noqa: E402
 
 
+import datetime as _dt
+
+
 class FoodMatcher(unittest.TestCase):
     def test_weight_and_item(self):
         comps, problems = N.resolve("165g chicken breast", "2026-10-01")
@@ -73,6 +76,40 @@ class Eras(unittest.TestCase):
             self.assertEqual(N.era_key("milk-lowfat", "2026-11-02"), "milk-tea")
         finally:
             N.ERAS = old
+
+
+class LoadWatch(unittest.TestCase):
+    """Training load against your own usual: numbers only."""
+    def test_signals_and_text(self):
+        import loadwatch
+        T, idx = loadwatch._series()
+        self.assertGreater(len(T), 60)
+        self.assertEqual([_dt.date.fromisoformat(a["date"]) + _dt.timedelta(days=1) for a in T[:-1]],
+                         [_dt.date.fromisoformat(b["date"]) for b in T[1:]])          # every calendar day, no gaps
+        r = loadwatch.build(T[-1]["date"])
+        self.assertTrue(r["available"])
+        self.assertEqual([s["id"] for s in r["signals"]], ["streak", "rest", "hard", "light", "fuel"])
+        self.assertEqual(r["raised"], sum(1 for s in r["signals"] if s["flag"]))
+        self.assertEqual(r["show"], r["raised"] >= loadwatch.NEED)
+        self.assertEqual("text" in r, r["raised"] > 0)
+
+    def test_streak_and_rest(self):
+        import loadwatch
+        T = [{"date": f"2026-01-{i + 1:02d}", "trained": t, "hard": 0, "kcal": 0, "bal": None, "symptoms": False}
+             for i, t in enumerate([1, 0, 1, 1, 1, 1, 1, 1])]
+        self.assertEqual(loadwatch._streak(T, 7), 6)
+        self.assertEqual(loadwatch._streak(T, 1), 0)
+        sig = {s["id"]: s for s in loadwatch._at(T, 7)}
+        self.assertEqual(sig["streak"]["value"], 6)
+        self.assertEqual(sig["rest"]["value"], 1)
+        self.assertFalse(any(s["flag"] for s in sig.values()))   # no history yet: nothing is raised
+
+    def test_it_reports_and_does_not_advise(self):
+        import loadwatch
+        T, _ = loadwatch._series()
+        for i in range(40, len(T)):
+            for s in loadwatch._at(T, i):
+                self.assertNotRegex(s["text"].lower(), r"should|rest tomorrow|overtrain|overreach|too much|risk|injur")
 
 
 class Pace(unittest.TestCase):

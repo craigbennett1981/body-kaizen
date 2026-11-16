@@ -36,6 +36,12 @@ its clock times.
 lunch, lunch to dinner, dinner and after. While a day is in progress the colours show pace, and what's left is
 re-spread over the windows still to come.
 
+**Load watch.** Under the next move, a line appears when two or more training signals are raised against your own
+last 12 weeks: training days in a row, rest days in the last 7, minutes in heart-rate zone 4 and above over 12 days,
+weeks since a lighter week, and two days running eaten well under burn. If you have logged off episodes or symptoms,
+it adds how often the same count was raised the day before one, next to how often on ordinary days. It gives the
+numbers only: no advice and no diagnosis.
+
 **Energy balance.** The Calories box shows your deficit so far (Garmin's burn to the last sync minus what you've
 eaten) and the day's: Garmin's burn projected to midnight (resting for the rest of the day plus your usual evening
 activity), scaled by your real maintenance from the Body tab (Garmin's burn often runs a few hundred kcal high), minus
