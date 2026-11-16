@@ -24,6 +24,7 @@ import healthscore  # noqa: E402
 import glucose  # noqa: E402
 import daytimeline  # noqa: E402
 import glance  # noqa: E402
+import loadwatch  # noqa: E402
 import workouts  # noqa: E402
 import thresholds  # noqa: E402
 import datasetup  # noqa: E402
@@ -142,6 +143,7 @@ ROUTES = {
     # The page's write token again, for a tab left open across a server restart. Only a signed-in browser gets it,
     # and only a page on this dashboard's own address can read the reply (Host check, no CORS headers).
     "/api/session": lambda q: {"token": SESSION_TOKEN},
+    "/api/loadwatch": lambda q: loadwatch.build(q.get("date", [data.bkenv.today().isoformat()])[0]),
     "/api/glance": lambda q: glance.build(q.get("date", [data.bkenv.today().isoformat()])[0]),
     "/api/daytimeline": lambda q: daytimeline.build(q.get("date", [data.bkenv.today().isoformat()])[0]),
     "/api/glucose_overview": lambda q: glucose.overview(_days(q, 14, 90)),
@@ -151,7 +153,7 @@ ROUTES = {
 }
 
 # Reload app code when it changes on disk, so edits never leave a stale server running.
-MODULES = ["insights", "weekly", "readiness", "planner", "longevity", "habits", "todo", "alerts", "timeline", "doctor", "advice", "wellbeing", "healthscore", "glucose", "daytimeline", "glance", "workouts", "muscles", "pace", "thresholds", "datasetup", "energybalance", "foods", "sleep", "experiments", "intensity", "zones", "maintenance"]
+MODULES = ["insights", "weekly", "readiness", "planner", "longevity", "habits", "todo", "alerts", "timeline", "doctor", "advice", "wellbeing", "healthscore", "glucose", "daytimeline", "glance", "workouts", "muscles", "pace", "thresholds", "datasetup", "energybalance", "foods", "sleep", "experiments", "intensity", "zones", "maintenance", "loadwatch"]
 _HERE = pathlib.Path(data.__file__).parent
 _CODE = [_HERE / "data.py", _HERE.parent / "scripts" / "nutrition.py"] + [_HERE / f"{n}.py" for n in MODULES]
 _code_mtime = tuple(f.stat().st_mtime for f in _CODE if f.exists())   # baseline at startup, not first request: an edit made

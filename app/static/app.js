@@ -319,6 +319,8 @@ async function renderGlance(date){
   if(date !== currentDate || !G) return;
   const nm = $('#nextmove'), rd = $('#ready');
   if(nm) nm.innerHTML = G.move ? `<div class="nextmove nm-${esc(G.move.kind)}"><span class="nm-k">${G.move.text.startsWith('Day done')?'Verdict':'Next move'}</span>${esc(G.move.text)}</div>` : '';
+  // load watch: the numbers only, when two or more signals are raised
+  if(nm && G.load && G.load.show && G.load.text) nm.innerHTML += `<div class="nextmove nm-warn" id="loadwatch" title="Training in the days up to ${esc(G.load.as_of)}, against your own last 12 weeks. Numbers, not advice."><span class="nm-k">Load</span>${esc(G.load.text)}</div>`;
   const R = G.ready;
   if(!rd) return;
   if(!R || !R.has_data){ rd.innerHTML = ''; return; }

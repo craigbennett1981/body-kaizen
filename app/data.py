@@ -123,7 +123,7 @@ def summary():
             "date": date, "status": d.get("status"), "day_type": dtp, "note": d.get("note"),
             "totals": d.get("totals"), "targets": tgt, "eval": evaluate(d.get("totals"), tgt, d.get("status")),
             "weight": d.get("weight"), "recovery": d.get("recovery"), "vitals": d.get("vitals"),
-            "feel": d.get("feel"), "steps": d.get("steps"),
+            "feel": d.get("feel"), "steps": d.get("steps"), "symptoms": d.get("symptoms"),
             # Garmin's total burn, only when the watch was clearly worn (on watch-off days Garmin reports resting burn alone)
             "burn": (d.get("energy") or {}).get("total") if (d.get("energy") or {}).get("source") == "garmin" and (d.get("steps") or 0) >= 1500 else None,
             "exercise": [{k: e.get(k) for k in ("type", "effort", "distance_km", "time", "start", "duration_min") if e.get(k) is not None} for e in ex],
