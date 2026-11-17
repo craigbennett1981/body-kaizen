@@ -5,8 +5,6 @@ without re-pulling: rerun `garmin_pull.py --remap` after changing anything here.
 """
 import sys, pathlib
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-import bkenv  # noqa: E402
-
 import records as R           # noqa: E402
 import source_garmin as G     # noqa: E402
 

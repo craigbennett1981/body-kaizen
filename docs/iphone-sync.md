@@ -138,9 +138,10 @@ Body Kaizen gets one source-neutral record format. Each source has an adapter wh
 into these records; the dashboard reads only the records and never needs to know which watch you wear.
 
 ```
-Garmin ──► app/sources/garmin.py ─┐
-Apple  ──► app/sources/apple.py  ─┼──► records ──► day files ──► dashboard
-(later: Oura, Fitbit, …) ─────────┘
+Garmin ──► scripts/source_garmin.py ─┐
+Apple  ──► scripts/source_apple.py  ─┼──► records (scripts/records.py) ──► day files ──► dashboard
+(later: Oura, Fitbit, …) ────────────┘
+                     detail data (sleep stages, timelines, workout traces) ──► app/series.py ──► dashboard
 ```
 
 | Record | Fields |
@@ -500,8 +501,8 @@ What Apple's review is likely to raise, and the plan for each:
 
 | Stage | What | Needs |
 |---|---|---|
-| 0 | The translation layer: record format, `app/sources/garmin.py`, the dashboard reading records; zones, intensity minutes and 2-minute recovery computed from the heart-rate trace. Proves the format on data we already have. | Nothing new |
-| 1 | Receiver, pairing, QR on Connections, `app/sources/apple.py`, the 14-day raw cache. Tested with a Python stand-in for the phone, in CI on Linux. | Nothing new |
+| 0 | The translation layer: `scripts/records.py` (the record format, checks, day-file fields, the shared merge), `scripts/source_garmin.py`, and `app/series.py` for detail data. **Done** (17 Nov): output identical on a real data folder and the demo. Derived numbers: see below. | Nothing new |
+| 1 | Receiver, pairing, QR on Connections, `scripts/source_apple.py`, Apple's detail data in `app/series.py`, the 14-day raw cache. Tested with a Python stand-in for the phone, in CI on Linux. | Nothing new |
 | 2 | App: pair (with the confirm step), Sync now, thinning, sleep, resting HR, HRV, heart rate, steps, energy, weight | Xcode on the Mac and a **paid Apple Developer account** |
 | 3 | Background delivery, outbox, deletions, workouts, blood pressure, VO₂ max, glucose, source filtering, wake-up reports, erase | The same |
 | 4 | Demo receiver for review, privacy policy and manifest, review notes and video, review rounds, TestFlight, App Store | The individual-or-company decision |
@@ -509,8 +510,12 @@ What Apple's review is likely to raise, and the plan for each:
 **A paid Apple Developer account is needed from stage 2**, not only at release: a free personal team cannot sign an
 app with the HealthKit capability, and background delivery needs it too. Stages 0 and 1 need no Apple account.
 
-Stage 0 recomputes zones and intensity minutes from your own heart rate, so a few historical numbers move slightly;
-the change is listed in the changelog. CI: a macOS GitHub Actions job builds the app for the simulator and runs its
+**Derived numbers, still open.** Stage 0 kept every number as the source reports it. Computing zones, intensity
+minutes and 2-minute recovery ourselves turned out to need more than planned: Garmin's pull has no all-day heart rate
+(only inside workouts), so intensity minutes would need a new Garmin download; and a workout's heart-rate trace stops
+when the watch stops, so 2-minute recovery can't be recomputed from it. Proposed: keep each source's own figures where
+it has them, and compute ours only where a source has none (Apple's zones per workout, from its heart rate with the
+same zone bounds the Training tab uses). Changing historical numbers would then be a separate, later decision. CI: a macOS GitHub Actions job builds the app for the simulator and runs its
 unit tests on every change.
 
 **All code is our own.** Nothing is copied or adapted from any other project. The code is written from this design
