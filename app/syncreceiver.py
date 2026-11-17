@@ -77,7 +77,7 @@ def _iso(t=None): return (t or _now()).isoformat(timespec="seconds")
 def computer_name():
     if platform.system() == "Darwin":
         try:
-            r = subprocess.run(["scutil", "--get", "ComputerName"], capture_output=True, text=True, timeout=5)
+            r = subprocess.run(["scutil", "--get", "ComputerName"], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=5)
             if r.returncode == 0 and r.stdout.strip(): return clean_name(r.stdout.strip())
         except (OSError, subprocess.SubprocessError): pass
     return clean_name(socket.gethostname().split(".")[0] or "Body Kaizen")

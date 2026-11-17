@@ -54,7 +54,7 @@ class Receiver(unittest.TestCase):
 
     def test_only_the_tokens_hash_is_kept(self):
         ph = self.paired()
-        text = (self.rx.dir / "devices.json").read_text()
+        text = (self.rx.dir / "devices.json").read_text(encoding="utf-8")
         self.assertNotIn(ph.token, text)
         self.assertIn(hashlib.sha256(ph.token.encode()).hexdigest(), text)
         if POSIX:
@@ -97,7 +97,7 @@ class Receiver(unittest.TestCase):
         again = ph.upload_all(demo_day(DAY))                              # a resent batch changes nothing
         self.assertEqual(sum(j["stored"] + j["updated"] for *_, j in again), 0)
         self.rx.flush(git=False)
-        d = bkenv.yaml.safe_load((self.data / "days" / "2026" / f"{DAY}.yaml").read_text())
+        d = bkenv.yaml.safe_load((self.data / "days" / "2026" / f"{DAY}.yaml").read_text(encoding="utf-8"))
         self.assertEqual((d["steps"], d["steps_source"], d["recovery"]["source"], d["recovery"]["hrv_method"]), (17800, "apple", "apple", "sdnn"))
         self.assertEqual(d["exercise"][0]["type"], "run")
         self.assertEqual(d["weight"]["kg"], 78.4)
@@ -172,9 +172,9 @@ class Receiver(unittest.TestCase):
         self.assertEqual(b.delete([w[0]["uuid"]]), (200, {"ok": True, "deleted": 0}))
         self.assertEqual(a.delete([w[0]["uuid"]]), (200, {"ok": True, "deleted": 1}))
         self.rx.flush(git=False)
-        d = bkenv.yaml.safe_load((self.data / "days" / "2026" / f"{DAY}.yaml").read_text())
+        d = bkenv.yaml.safe_load((self.data / "days" / "2026" / f"{DAY}.yaml").read_text(encoding="utf-8"))
         self.assertFalse(d.get("exercise"))
-        self.assertNotIn("workouts", json.loads((self.data / "imports" / "apple" / "2026" / f"{DAY}.json").read_text()))
+        self.assertNotIn("workouts", json.loads((self.data / "imports" / "apple" / "2026" / f"{DAY}.json").read_text(encoding="utf-8")))
 
     def test_upload_racing_an_erase_is_refused(self):
         ph = self.paired()
@@ -244,8 +244,8 @@ class Receiver(unittest.TestCase):
 
     def test_git_never_sees_the_cache(self):
         ph = self.paired(); ph.upload_all(demo_day(DAY)[:3])
-        self.assertIn("imports/apple/cache.sqlite", (self.data / ".gitignore").read_text())
-        self.assertIn("cache.sqlite*", (self.data / "imports" / "apple" / ".gitignore").read_text())
+        self.assertIn("imports/apple/cache.sqlite", (self.data / ".gitignore").read_text(encoding="utf-8"))
+        self.assertIn("cache.sqlite*", (self.data / "imports" / "apple" / ".gitignore").read_text(encoding="utf-8"))
         if POSIX: self.assertEqual(stat.S_IMODE(C.path(self.data).stat().st_mode), 0o600)
 
     def test_status_never_shows_secrets(self):
