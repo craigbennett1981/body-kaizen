@@ -296,8 +296,29 @@ plus a list of Body Kaizen computers found on the network (by Bonjour), so it wo
 └─────────────────────────────┘
 ```
 
-Success asks once: "Send your Health data to Craig's MacBook Air?" with the computer's name and Allow / Cancel, then
-moves on. Failures say what to do: "This code
+Success asks once, before anything is sent:
+
+```
+┌─────────────────────────────┐
+│                             │
+│      [laptop icon]          │
+│                             │
+│  Send your Health data to   │
+│  Craig's MacBook Air?       │
+│                             │
+│  Only to this computer, on  │
+│  your home network,         │
+│  encrypted. You choose what │
+│  next.                      │
+│                             │
+│  ┌───────────────────────┐  │
+│  │        Allow          │  │
+│  └───────────────────────┘  │
+│          Cancel             │
+└─────────────────────────────┘
+```
+
+Then it moves on to choosing what to send. Failures say what to do: "This code
 has expired: make a new one on your computer", "Your computer isn't on this Wi-Fi", "Local network access is off:
 Settings → Body Kaizen Sync → Local Network".
 
@@ -313,17 +334,26 @@ dashboard does with it, in a few words.
 │  Sleep and stages      [●]  │
 │  Resting heart rate    [●]  │
 │  Heart rate variability[●]  │
+│  Respiration rate      [●]  │
+│  Blood oxygen          [●]  │
+│                             │
+│  HEART RATE                 │
+│  Heart rate            [●]  │
 │                             │
 │  ACTIVITY                   │
 │  Steps                 [●]  │
 │  Active and resting    [●]  │
 │  energy                     │
 │  Workouts              [●]  │
+│  From Hevy: comes directly, │
+│  skipped                    │
 │                             │
 │  BODY                       │
 │  Weight and body fat   [●]  │
 │  Blood pressure        [●]  │
 │  VO₂ max               [●]  │
+│                             │
+│  GLUCOSE                    │
 │  Blood glucose         [ ]  │
 │                             │
 │  History to send first      │
@@ -419,7 +449,7 @@ it can be checked against the dashboard.
 │  Unpair                     │
 │                             │
 │  DATA                       │
-│  What to send             › │
+│  What to send   15 of 15  › │
 │  Send full history again  › │
 │                             │
 │  NOTIFICATIONS              │
@@ -489,6 +519,36 @@ alone, never with another project's source open alongside it. When building:
 - Work only from this design doc and Apple's own documentation (HealthKit, BackgroundTasks, Network, Security).
 - Do not open any other project's HealthKit sync code while writing ours.
 - No third-party libraries in the app (see The app), so no other project's code arrives that way either.
+
+## Documentation to update
+
+Now (design stage):
+
+- **Screen mockups.** The design canvas and the pictures in `docs/img/iphone-sync/` still show the earlier Choose
+  screen (10 switches, no source notes) and have no picture of the confirm step or of the "type has gone quiet"
+  Status state. Update the canvas, then regenerate the pictures, to match the wireframes in this doc.
+
+With stage 1 (the receiver), in the same pull request:
+
+- **SECURITY.md**: "Local only" says the server serves nothing to the network. Rewrite it: the dashboard still
+  answers on this computer only; a separate receiver for paired phones listens on the home network, upload only, off
+  until a phone is paired. Add the receiver's protections (pinned TLS, tokens, private addresses, limits, no
+  redirects) and what a stranger on the Wi-Fi can and cannot do.
+- **README.md**: the "data: local only" badge and the architecture diagram ("127.0.0.1 only") get the receiver;
+  the data stays on your own computer, which is still true.
+- **docs/data-folder.md**: `imports/apple/cache.sqlite` (the 14-day raw cache) and that git ignores it.
+- **docs/integrations.md**: Apple Health through Body Kaizen Sync, and what is read.
+- **docs/features.md**: the iPhone card on the Connections page.
+- **The data folder's `.gitignore`** (written by setup): add the cache.
+
+With stage 0 (the translation layer):
+
+- **docs/features.md** and **docs/thresholds.md**: zones, intensity minutes and 2-minute recovery are computed by
+  Body Kaizen from the heart-rate trace.
+- **CHANGELOG.md**: that some historical zone and intensity-minute numbers move slightly, and why.
+
+With stages 2 to 4 (the app): the app's privacy policy page, the App Store review notes, `ios/README.md` (how to
+build: Xcode, XcodeGen, the paid account) and a CHANGELOG entry when there is something to install.
 
 ## Open questions
 
