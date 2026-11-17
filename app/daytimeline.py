@@ -1,28 +1,20 @@
 """Everything logged on one day, placed at its clock time: sleep, training, food, BP, symptoms, glucose."""
-import datetime as dt, json
-import data, units
+import datetime as dt
+import data, series, units
 
 STAGE = {0: "deep", 1: "light", 2: "rem", 3: "awake"}
 STAGE_LABEL = {"deep": "Deep", "light": "Light", "rem": "REM", "awake": "Awake"}
 
-def _raw(day):
-    try: return json.loads((data.ROOT / "imports" / "garmin" / day[:4] / f"{day}.json").read_text(encoding="utf-8"))
-    except Exception: return {}
-
 def _gmt_min(v, day):
-    """GMT timestamp (ISO string or epoch ms) -> minutes from local midnight of `day`."""
-    if isinstance(v, (int, float)): t = dt.datetime.fromtimestamp(v / 1000, dt.timezone.utc)
-    else: t = dt.datetime.fromisoformat(str(v)[:19]).replace(tzinfo=dt.timezone.utc)
-    t = t.astimezone(data.bkenv.tz()).replace(tzinfo=None)
-    return int((t - dt.datetime.combine(dt.date.fromisoformat(day), dt.time())).total_seconds() // 60)
+    """A timestamp -> minutes from local midnight of `day` (see series.minutes)."""
+    return series.minutes(v, day)
 
-def _stages(raw, day):
+def _stages(night_of, day):
+    """Sleep stages of the night that ended on the morning of `night_of`, placed on `day`."""
     out = []
-    for x in ((raw.get("sleep") or {}).get("sleepLevels") or []):
-        try: s, e = _gmt_min(x["startGMT"], day), _gmt_min(x["endGMT"], day)
-        except Exception: continue
+    for a, b, k in series.sleep_stages(night_of):
+        s, e = _gmt_min(a, day), _gmt_min(b, day)
         if e <= 0 or s >= 1440: continue
-        k = STAGE.get(int(x.get("activityLevel", 1)), "light")
         out.append({"lane": "Sleep", "kind": "sleep_" + k, "start": max(0, s), "end": min(1440, e), "label": STAGE_LABEL[k], "detail": f"{e - s} min"})
     return out
 
@@ -45,9 +37,8 @@ def build(day):
     m = lambda hm: int(hm[:2]) * 60 + int(hm[3:5])
     # sleep: last night (ends this morning) and tonight (starts this evening, from tomorrow's file)
     r = d.get("recovery") or {}
-    raw = _raw(day)
     nxt = (dt.date.fromisoformat(day) + dt.timedelta(days=1)).isoformat()
-    stages = _stages(raw, day) + _stages(_raw(nxt), day)
+    stages = _stages(day, day) + _stages(nxt, day)
     ev += stages
     if not stages and r.get("sleep_start") and r.get("sleep_end"):
         ev.append({"lane": "Sleep", "kind": "sleep", "start": max(0, _iso_to_hm(r["sleep_start"], day)), "end": _iso_to_hm(r["sleep_end"], day),
@@ -120,10 +111,10 @@ def build(day):
         protein = {"target": pmin, "wake": wake, "by": 21 * 60, "points": pts, "untimed": round(sum(
             sum((c.get("macros") or {}).get("p", 0) for c in it.get("parsed") or []) for items in (det.get("meals") or {}).values() for it in items or [] if not _hm(it.get("time"))), 1)}
     # watch intraday: body battery and 15-min steps
-    bb = [[_gmt_min(t, day), v] for t, v in raw.get("body_battery_intraday") or [] if v is not None]
-    steps = [[_gmt_min(t, day), v] for t, v in raw.get("steps_intraday") or [] if v]
+    bb = [[_gmt_min(t, day), v] for t, v in series.body_battery_timeline(day) if v is not None]
+    steps = [[_gmt_min(t, day), v] for t, v in series.steps_timeline(day) if v]
     bb = [p for p in bb if 0 <= p[0] < 1440]; steps = [p for p in steps if 0 <= p[0] < 1440]
-    calories = _calories(day, d, raw, ev, steps)
+    calories = _calories(day, d, ev, steps)
     return {"date": day, "events": sorted(ev, key=lambda e: e["start"]), "untimed": untimed, "glucose": g, "calories": calories,
             "protein": protein, "body_battery": bb, "steps": steps,
             "bp_untimed": sum(1 for b in ((d.get("vitals") or {}).get("bp") or []) if not _hm(b.get("time")))}
@@ -133,14 +124,14 @@ def _bmr_per_min(day):
     """Garmin's resting burn per minute: from this day's synced total if it covers enough of the day, else the latest full day."""
     for back in range(0, 8):
         dd = (dt.date.fromisoformat(day) - dt.timedelta(days=back)).isoformat()
-        sm = (_raw(dd).get("summary") or {})
-        bmr, end = sm.get("bmrKilocalories"), sm.get("wellnessEndTimeLocal")
+        x = series.day_extras(dd)
+        bmr, end = x["bmr_kcal"], x["synced_to"]
         if not bmr or not end: continue
         mins = min(1440, _iso_to_hm(end, dd))
         if mins >= 240: return bmr / mins, back == 0
     return 1720 / 1440, False
 
-def _calories(day, d, raw, ev, steps):
+def _calories(day, d, ev, steps):
     """Cumulative calories eaten (at meal times) and burnt (Garmin's total spread over the day by resting rate,
     steps and workouts). Burn is exact at the last watch sync and estimated after it."""
     food = sorted((e for e in ev if e["kind"] == "food"), key=lambda e: e["start"])
@@ -148,11 +139,11 @@ def _calories(day, d, raw, ev, steps):
     for e in food:
         cum += e.get("kcal") or 0
         eaten.append([e["start"], round(cum)])
-    sm = raw.get("summary") or {}
+    x = series.day_extras(day)
     rate, _ = _bmr_per_min(day)
     sync = None
-    if sm.get("wellnessEndTimeLocal") and sm.get("totalKilocalories"):
-        sync = max(0, min(1440, _iso_to_hm(sm["wellnessEndTimeLocal"], day)))
+    if x["synced_to"] and x["total_kcal"]:
+        sync = max(0, min(1440, _iso_to_hm(x["synced_to"], day)))
     now = data.bkenv.now()
     today = now.date().isoformat() == day
     end = (now.hour * 60 + now.minute) if today else 1440
@@ -168,7 +159,7 @@ def _calories(day, d, raw, ev, steps):
             bins[m // 15] += k / span
         if e.get("kcal_garmin"): work_kcal += k   # already inside Garmin's active total
     if sync is not None:
-        active = max(0, (sm.get("activeKilocalories") or 0) - work_kcal)
+        active = max(0, (x["active_kcal"] or 0) - work_kcal)
         total_steps = sum(v for m, v in steps if m < sync) or 0
         if total_steps:
             for m, v in steps:
@@ -189,8 +180,8 @@ def _calories(day, d, raw, ev, steps):
     if sync is not None and sync > 0:   # pin to Garmin's exact total at the sync time
         at = next((v for m, v in burnt if m >= sync), None)
         if at:
-            scale = sm["totalKilocalories"] / at
-            burnt = [[m, round(v * scale) if m <= sync else v + round(sm["totalKilocalories"] - at)] for m, v in burnt]
-    return {"eaten": eaten, "burnt": burnt, "sync": sync, "garmin_total": sm.get("totalKilocalories") if sync is not None else None,
+            scale = x["total_kcal"] / at
+            burnt = [[m, round(v * scale) if m <= sync else v + round(x["total_kcal"] - at)] for m, v in burnt]
+    return {"eaten": eaten, "burnt": burnt, "sync": sync, "garmin_total": x["total_kcal"] if sync is not None else None,
             "burnt_now": burnt[-1][1] if burnt else None, "eaten_now": eaten[-1][1], "estimated_after": sync if sync is not None and sync < end else None,
             "source": "garmin" if sync is not None else "estimate"}

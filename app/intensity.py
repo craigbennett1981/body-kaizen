@@ -1,7 +1,7 @@
 """Intensity minutes, counted the way Garmin counts them (moderate + 2 x vigorous), per week and per month,
 against the weekly goal: Garmin's own goal when the watch reports one, else 150 (the WHO minimum for adults).
 Also the last few days one by one, against a seventh of the weekly goal."""
-import calendar, datetime as dt, json
+import calendar, datetime as dt
 import data
 
 WEEK_GOAL = 150
@@ -10,10 +10,9 @@ FULL_WEEK = 5   # a week with fewer days of watch data is shown, but faded and l
 
 def _goal():
     """Garmin's weekly intensity-minutes goal from the newest daily file it saved, else 150."""
-    folder = data.ROOT / "imports" / "garmin"
-    for p in sorted(folder.glob("[0-9][0-9][0-9][0-9]/*.json"), reverse=True)[:7]:
-        try: g = (json.loads(p.read_text(encoding="utf-8")).get("summary") or {}).get("intensityMinutesGoal")
-        except Exception: continue
+    import series
+    for day in series.recent_days(7):
+        g = series.day_extras(day)["intensity_goal"]
         if g: return int(g), "garmin"
     return WEEK_GOAL, "default"
 

@@ -1,5 +1,5 @@
 """Top-of-page summaries for the Day view: the one-line 'next move' and the readiness strip."""
-import datetime as dt, json, statistics as st
+import statistics as st
 import data
 
 
@@ -79,10 +79,9 @@ def readiness(date):
     out = {"sleep": r.get("sleep"), "sleep_h": _hrs(r.get("sleep")), "sleep_score": r.get("sleep_score"),
            "hrv": r.get("hrv_ms"), "hrv_base": basel("hrv_ms"), "hrv_status": r.get("hrv_status"),
            "rhr": r.get("rhr"), "rhr_base": basel("rhr"), "bb_charge": r.get("body_battery"), "bb_now": None}
-    raw = data.ROOT / "imports" / "garmin" / date[:4] / f"{date}.json"
     try:
-        s = json.loads(raw.read_text(encoding="utf-8")).get("summary") or {}
-        out["bb_now"] = s.get("bodyBatteryMostRecentValue")
+        import series
+        out["bb_now"] = series.day_extras(date)["body_battery_now"]
     except Exception: pass
     try:
         import readiness as R
@@ -102,9 +101,8 @@ def build(date):
 
 def watch_upto():
     """Latest point Garmin has data for: the newest raw day's wellness end time (local, 'YYYY-MM-DDTHH:MM')."""
-    raw_dir = data.ROOT / "imports" / "garmin"
-    for f in sorted(raw_dir.glob("*/*.json"), reverse=True)[:3]:
-        try: sm = json.loads(f.read_text(encoding="utf-8")).get("summary") or {}
-        except Exception: continue
-        if sm.get("wellnessEndTimeLocal") and sm.get("totalKilocalories"): return sm["wellnessEndTimeLocal"][:16]
+    import series
+    for day in series.recent_days(3):
+        x = series.day_extras(day)
+        if x["synced_to"] and x["total_kcal"]: return x["synced_to"]
     return None

@@ -1,5 +1,5 @@
 """Read-only view of the repo's YAML data for the dashboard. No database: files are the truth."""
-import datetime as dt, importlib, json, pathlib, re, sys, threading, yaml
+import datetime as dt, importlib, pathlib, re, sys, threading, yaml
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "scripts"))
 import bkenv  # noqa: E402
@@ -205,8 +205,8 @@ def energy():
 def _act_hrr(aid):
     """The watch's recovery heart rate for an activity, from its saved Garmin detail file (if fetched)."""
     if not aid: return None
-    try: return (json.loads((ROOT / "imports" / "garmin" / "activities" / f"{aid}.json").read_text(encoding="utf-8")).get("summary") or {}).get("recoveryHeartRate")
-    except Exception: return None
+    import series
+    return ((series.workout_detail({"garmin_id": aid}) or {}).get("summary") or {}).get("recoveryHeartRate")
 
 def training():
     lifts, runs = {}, []

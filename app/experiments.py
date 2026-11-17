@@ -19,7 +19,7 @@ The tab's "Try a rule" panel runs the same comparison in the browser over the ta
 works on the static demo too; static/app.js must split nights the same way.
 """
 import datetime as dt, math, random, re, statistics as st
-import data, sleep, foods
+import data, series, sleep, foods
 
 MIN_NIGHTS = 5           # kept nights needed before showing a result
 ENOUGH_KEPT = 0.6        # share of nights kept for a finished experiment to count
@@ -272,9 +272,9 @@ def _day_vars(day, n):
         if s is not None: ends.append(s + int(e.get("duration_min") or 45))
     out["day.trained"] = bool([e for e in f.get("exercise") or [] if (e.get("kind") or e.get("type") or "") != "walk"])
     if ends: out["day.session_end"] = max(ends)
-    sm = sleep._raw(day).get("summary") or {}
-    if sm.get("totalSteps") is not None or f.get("steps") is not None: out["day.steps"] = sm.get("totalSteps") or f.get("steps")
-    if sm.get("averageStressLevel") is not None: out["day.stress"] = sm["averageStressLevel"]
+    x = series.day_extras(day)
+    if x["steps"] is not None or f.get("steps") is not None: out["day.steps"] = x["steps"] or f.get("steps")
+    if x["stress_avg"] is not None: out["day.stress"] = x["stress_avg"]
     w = f.get("weight") or {}
     if w.get("kg") and w.get("fasted") is not False: out["weight.kg"] = w["kg"]
     for k, v in (f.get("habits") or {}).items():

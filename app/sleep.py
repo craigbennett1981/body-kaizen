@@ -8,8 +8,8 @@ Comparisons are your own nights split by one thing at a time (late session or no
 nights are on each side. They show what goes together in your data, not what causes what: a big day can mean both a
 late session and a late night.
 """
-import datetime as dt, statistics as st, json
-import data
+import datetime as dt, statistics as st
+import data, series
 
 WINDOW = 90            # nights used for the comparisons
 RECENT = 14            # nights used for "lately": regularity, debt, tonight's bedtime
@@ -37,11 +37,6 @@ def _clock(m):
     if m is None: return None
     m = round(m) % 1440
     return f"{m // 60:02d}:{m % 60:02d}"
-
-
-def _raw(day):
-    try: return json.loads((data.ROOT / "imports" / "garmin" / day[:4] / f"{day}.json").read_text(encoding="utf-8"))
-    except Exception: return {}
 
 
 # ---------- the target: Garmin's sleep need for each night, or your own ----------
@@ -77,16 +72,16 @@ def _need(n):
 
 def need_for(day):
     """Garmin's need for the night you woke up from on `day`."""
-    return _need(((_raw(day).get("sleep") or {}).get("dailySleepDTO") or {}).get("sleepNeed"))
+    return _need(series.sleep_need(day))
 
 
 def need_tonight():
     """Tonight's need: in this morning's file (nextSleepNeed), else yesterday's, else None."""
     t = data.bkenv.today()
     for d in (t, t - dt.timedelta(days=1)):
-        dto = (_raw(d.isoformat()).get("sleep") or {}).get("dailySleepDTO") or {}
-        n = _need(dto.get("nextSleepNeed"))
-        if n and str((dto.get("nextSleepNeed") or {}).get("calendarDate", ""))[:10] in ("", (t + dt.timedelta(days=1)).isoformat()): return n
+        nn = series.sleep_need(d.isoformat(), tonight=True)
+        n = _need(nn)
+        if n and str((nn or {}).get("calendarDate", ""))[:10] in ("", (t + dt.timedelta(days=1)).isoformat()): return n
     return None
 
 
@@ -119,8 +114,8 @@ def _before_day(d):
                 caf = sum((n.macros(c).get("caf", 0) or 0) for c in it.get("parsed") or [] if c.get("item") in n.FOODS)
                 if caf: out["caffeine"].append((t, caf))
                 if t >= CAFFEINE_FROM: out["caffeine_late_mg"] += caf
-    sm = _raw(d).get("summary") or {}
-    out["steps"] = sm.get("totalSteps"); out["stress"] = sm.get("averageStressLevel")
+    x = series.day_extras(d)
+    out["steps"] = x["steps"]; out["stress"] = x["stress_avg"]
     return out
 
 
@@ -138,8 +133,7 @@ def nights(days=WINDOW, end=None):
         s, e = dt.datetime.fromisoformat(str(r["sleep_start"])[:16]), dt.datetime.fromisoformat(str(r["sleep_end"])[:16])
         mid = dt.datetime.combine(dt.date.fromisoformat(d), dt.time())
         st_ = r.get("sleep_stages_min") or {}
-        dto = ((_raw(d).get("sleep") or {}).get("dailySleepDTO") or {})
-        nd = _need(dto.get("sleepNeed")); need = nd["min"] if nd else None
+        nd = _need(series.sleep_need(d)); need = nd["min"] if nd else None
         out.append({"date": d, "weekend_morning": dt.date.fromisoformat(d).weekday() >= 5,
                     "start": int((s - mid).total_seconds() // 60), "end": int((e - mid).total_seconds() // 60),   # minutes from the wake day's midnight
                     "asleep": asleep, "deep": st_.get("deep"), "light": st_.get("light"), "rem": st_.get("rem"), "awake": r.get("awake_min"),
@@ -303,20 +297,19 @@ def build():
     F = factors(rows)
     last = rows[-1]
     stages = []
-    for x in ((_raw(last["date"]).get("sleep") or {}).get("sleepLevels") or []):
+    for a, b, k in series.sleep_stages(last["date"]):
         try:
             import daytimeline as T
-            s, e = T._gmt_min(x["startGMT"], last["date"]), T._gmt_min(x["endGMT"], last["date"])
-            stages.append({"start": s, "end": e, "stage": T.STAGE.get(int(x.get("activityLevel", 1)), "light")})
+            stages.append({"start": T._gmt_min(a, last["date"]), "end": T._gmt_min(b, last["date"]), "stage": k})
         except Exception: continue
-    debt = 0; series = []
+    debt = 0; by_night = []
     for r in rows:
-        debt += r["target"] - r["asleep"]; series.append({**{k: v for k, v in r.items() if k != "before"}, "debt": debt})
+        debt += r["target"] - r["asleep"]; by_night.append({**{k: v for k, v in r.items() if k != "before"}, "debt": debt})
     target = _avg([r["target"] for r in recent])   # lately's average target: the Garmin needs, or yours
     return {"available": True, "target_min": target, "own_target_min": own, "target_source": "garmin" if garmin and any(r["need"] for r in recent) else "yours",
             "garmin_nights": sum(1 for r in recent if garmin and r["need"]), "last": {**{k: v for k, v in last.items() if k != "before"}, "stages": stages,
             "before": last["before"]},
-            "nights": series[-60:], "recent_n": len(recent),
+            "nights": by_night[-60:], "recent_n": len(recent),
             "recent": {"asleep": _avg([r["asleep"] for r in recent]), "score": _avg([r["score"] for r in recent]),
                        "awake": _avg([r["awake"] for r in recent]), "hrv": _avg([r["hrv"] for r in recent]),
                        "on_target": sum(r["asleep"] >= r["target"] for r in recent), "need": _avg([r["need"] for r in recent]),
@@ -337,8 +330,8 @@ def _segments(day):
     """Last night's stages as (start, end, stage) in minutes from the wake day's midnight."""
     import daytimeline as T
     out = []
-    for x in ((_raw(day).get("sleep") or {}).get("sleepLevels") or []):
-        try: out.append((T._gmt_min(x["startGMT"], day), T._gmt_min(x["endGMT"], day), T.STAGE.get(int(x.get("activityLevel", 1)), "light")))
+    for a, b, k in series.sleep_stages(day):
+        try: out.append((T._gmt_min(a, day), T._gmt_min(b, day), k))
         except Exception: continue
     return out
 

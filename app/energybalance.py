@@ -10,7 +10,7 @@ fasted weigh-ins (least squares, so one salty dinner doesn't swing it). The gap 
 logging and Garmin's burn estimate disagree by.
 """
 import datetime as dt, statistics as stats
-import data, daytimeline as T
+import data, daytimeline as T, series
 
 KCAL_PER_KG = 7700          # energy in a kilo of body fat (the usual rule of thumb; real loss includes some water and lean)
 TYPICAL_DAYS = 14
@@ -27,12 +27,11 @@ def _active_curve(day):
     """For a finished day: active (non-resting) calories after each 15-minute mark, from Garmin's active total
     with workouts at their logged times and the rest spread by steps. None if the watch wasn't worn."""
     p = data.day_file(day)
-    key = (day, _mtime(p), _mtime(data.ROOT / "imports" / "garmin" / day[:4] / f"{day}.json"))
+    key = (day, _mtime(p), series.stamp(day))
     if key in _cache: return _cache[key]
-    raw = T._raw(day); sm = raw.get("summary") or {}
-    steps = [[T._gmt_min(t, day), v] for t, v in raw.get("steps_intraday") or [] if v]
+    steps = [[T._gmt_min(t, day), v] for t, v in series.steps_timeline(day) if v]
     steps = [s for s in steps if 0 <= s[0] < 1440]
-    act, total_steps = sm.get("activeKilocalories"), sum(v for _, v in steps)
+    act, total_steps = series.day_extras(day)["active_kcal"], sum(v for _, v in steps)
     out = None
     if act is not None and total_steps >= 1500:
         bins = [0.0] * 96
@@ -90,15 +89,15 @@ def _scale_factor_now():
 def today(day=None):
     now = data.bkenv.now()
     day = day or now.date().isoformat()
-    raw = T._raw(day); sm = raw.get("summary") or {}
+    x = series.day_extras(day)
     det = data.day_detail(day) or {}
     eaten = round((det.get("totals") or {}).get("kcal") or 0)
     tgt = (det.get("targets") or {}).get("kcal")
     tmid = round((tgt[0] + tgt[1]) / 2) if isinstance(tgt, (list, tuple)) and len(tgt) == 2 else (tgt if isinstance(tgt, (int, float)) else None)
-    if not sm.get("totalKilocalories") or not sm.get("wellnessEndTimeLocal"):
+    if not x["total_kcal"] or not x["synced_to"]:
         return {"date": day, "available": False, "eaten": eaten}
-    sync = max(0, min(1440, T._iso_to_hm(sm["wellnessEndTimeLocal"], day)))
-    so_far = round(sm["totalKilocalories"])
+    sync = max(0, min(1440, T._iso_to_hm(x["synced_to"], day)))
+    so_far = round(x["total_kcal"])
     rate, _ = T._bmr_per_min(day)
     if sync >= 1440 or day < now.date().isoformat():
         projected, rest, active_more, n = so_far, 0, 0, 0

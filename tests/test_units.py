@@ -461,18 +461,18 @@ class SleepPage(unittest.TestCase):
 class SleepNeed(unittest.TestCase):
     """Each night's target is Garmin's sleep need for it, with your own target on nights without one."""
     def setUp(self):
-        import sleep; self.s = sleep
-        self.old = sleep._raw, sleep.use_garmin_need, sleep.data.bkenv.today
+        import sleep, series; self.s, self.series = sleep, series
+        self.old = series._garmin_day, sleep.use_garmin_need, sleep.data.bkenv.today
         need = lambda a, **k: {"actual": a, "baseline": 470, "trainingFeedback": "NO_CHANGE", "sleepHistoryAdjustment": "NO_CHANGE",
                                "hrvAdjustment": "NO_CHANGE", "napAdjustment": "NO_CHANGE", **k}
         self.files = {"2026-11-10": {"sleep": {"dailySleepDTO": {"sleepNeed": need(470)}}},
                       "2026-11-11": {"sleep": {"dailySleepDTO": {"sleepNeed": need(510, trainingFeedback="HIGH_ACWR"),
                           "nextSleepNeed": need(530, calendarDate="2026-11-12", trainingFeedback="HIGH_ACWR_AND_CHRONIC", sleepHistoryAdjustment="INCREASING_LOW_QUALITY")}}}}
-        sleep._raw = lambda d: self.files.get(d, {})
+        series._garmin_day = lambda d: self.files.get(d, {})
         sleep.data.bkenv.today = lambda: dt.date(2026, 11, 11)
 
     def tearDown(self):
-        self.s._raw, self.s.use_garmin_need, self.s.data.bkenv.today = self.old
+        self.series._garmin_day, self.s.use_garmin_need, self.s.data.bkenv.today = self.old
 
     def test_nightly_target_and_reasons(self):
         s = self.s

@@ -1,7 +1,7 @@
 """One health number (0-100) scored against the fit, athletic reference person in athlete.yaml (age and sex set there), plus two health ages shown side by side.
 Weights are a judgement informed by the evidence (fitness and strength predict mortality most strongly),
 not a validated model: use it to track change over time, not to compare with anyone else."""
-import bisect, datetime as dt, json
+import bisect, datetime as dt
 import data, longevity
 
 DOMAINS = [  # (key, label, weight, {marker: weight within domain})
@@ -143,13 +143,12 @@ def compute():
     to_measure.sort(key=lambda x: -x["share"])
     # ages
     fa = None
-    fp = data.ROOT / "imports" / "garmin" / "fitness_age.json"
-    if fp.exists():
-        fah = json.loads(fp.read_text(encoding="utf-8"))
-        if fah:
-            d_, v_ = sorted(fah.items())[-1]
-            fa = {"age": round(float(v_["fitnessAge"]), 1), "date": d_, "achievable": v_.get("achievableFitnessAge"),
-                  "history": [[k, round(float(v["fitnessAge"]), 1)] for k, v in sorted(fah.items())]}
+    import series
+    fah = series.fitness_age()
+    if fah:
+        d_, v_ = sorted(fah.items())[-1]
+        fa = {"age": round(float(v_["fitnessAge"]), 1), "date": d_, "achievable": v_.get("achievableFitnessAge"),
+              "history": [[k, round(float(v["fitnessAge"]), 1)] for k, v in sorted(fah.items())]}
     if fa is None:
         for p in reversed(data.day_files()):
             f = (data._load(p) or {}).get("fitness") or {}

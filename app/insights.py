@@ -203,19 +203,15 @@ def for_day(date):
 def last_watch_date():
     """Latest day the watch was clearly alive: a real step count, or (for days still in progress)
     a sync from the watch that day with a body-battery reading."""
-    import json
     last = None
     for p in data.day_files():
         d = data._jsonable(data._load(p))
         if (d.get("energy") or {}).get("source") == "garmin" and (d.get("steps") or 0) > 500:
             last = d["date"]
-    raw_dir = data.ROOT / "imports" / "garmin"
-    for f in sorted(raw_dir.glob("*/*.json"))[-7:]:
-        try:
-            s = (json.load(open(f, encoding="utf-8")).get("summary") or {})
-        except Exception:
-            continue
-        sync = (s.get("lastSyncTimestampGMT") or "")[:10]
-        if s.get("bodyBatteryMostRecentValue") is not None and sync >= f.stem[:10] and (last is None or f.stem > last):
-            last = f.stem
+    import series
+    for day in sorted(series.recent_days(7)):
+        x = series.day_extras(day)
+        sync = x["last_sync"] or ""
+        if x["body_battery_now"] is not None and sync >= day[:10] and (last is None or day > last):
+            last = day
     return last

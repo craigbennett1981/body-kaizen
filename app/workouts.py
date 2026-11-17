@@ -1,7 +1,7 @@
 """One view per workout: Hevy lifts with volume and change vs the last time, alongside Garmin's numbers
 (duration, HR, calories, zones, training effect, body-battery cost) and the HR trace with detected efforts."""
-import datetime as dt, json, re, statistics as st
-import data
+import re, statistics as st
+import data, series
 
 SET_KG = re.compile(r"^w?([\d.]+)x(\d+)$")
 SET_CARRY = re.compile(r"^w?([\d.]+)kg@(\d+)m$")
@@ -47,11 +47,8 @@ def _max_hr():
     return max([175] + vals)
 
 def _trace(e):
-    aid = e.get("garmin_id")
-    if not aid: return None
-    p = data.ROOT / "imports" / "garmin" / "activities" / f"{aid}.json"
-    try: a = json.loads(p.read_text(encoding="utf-8"))
-    except Exception: return None
+    a = series.workout_detail(e)
+    if not a: return None
     s = a.get("samples") or []
     if not s: return None
     t0 = s[0][0]
@@ -71,10 +68,8 @@ def _trace(e):
 def _laps(e):
     """Lap table for a run: the watch's own laps when it recorded several, otherwise 1 km splits worked out from the
     speed trace, scaled to the session's distance (the treadmill belt's, when that was logged)."""
-    aid = e.get("garmin_id")
-    if not aid: return None
-    try: a = json.loads((data.ROOT / "imports" / "garmin" / "activities" / f"{aid}.json").read_text(encoding="utf-8"))
-    except Exception: return None
+    a = series.workout_detail(e)
+    if not a: return None
     dist_km = e.get("distance_km")
     watch = [l for l in a.get("laps") or [] if (l.get("distance_m") or 0) >= 50 and l.get("duration_s")]   # drop the stub lap from stopping the watch
     if len(watch) > 1:
