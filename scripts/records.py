@@ -19,6 +19,8 @@ KINDS = {
     # one per session
     "workout": {"type", "mode", "start", "duration_s", "moving_s", "distance_m", "pool_m", "hr_avg", "hr_max",
                 "kcal_total", "kcal_bmr", "cadence", "zones_s", "name", "source_id", "source_type"},
+    # one per reading, at a local time: weight, body fat, blood pressure, VO2 max, glucose
+    "measurement": {"time", "weight_kg", "bf_pct", "bp_sys", "bp_dia", "pulse", "vo2max", "glucose_mmol"},
 }
 COMMON = {"kind", "source"}
 WORKOUT_TYPES = {"run", "gym", "swim", "yoga", "walk", "ruck", "ride", "hike", "other"}
@@ -36,7 +38,7 @@ def check(rec):
     if kind == "workout" and rec.get("type") not in WORKOUT_TYPES: raise ValueError(f"unknown workout type {rec.get('type')!r}")
     if "hrv_ms" in rec and rec.get("hrv_method") not in HRV_METHODS: raise ValueError("HRV without its method (rmssd or sdnn)")
     for k, v in rec.items():
-        if k in COMMON or k in ("type", "mode", "start", "end", "name", "source_id", "source_type", "hrv_method", "hrv_status"): continue
+        if k in COMMON or k in ("type", "mode", "start", "end", "time", "name", "source_id", "source_type", "hrv_method", "hrv_status"): continue
         if k == "zones_s":
             if not isinstance(v, dict) or any(z not in {"z1", "z2", "z3", "z4", "z5"} or not _num(n) for z, n in v.items()):
                 raise ValueError("zones_s must map z1..z5 to seconds")
@@ -120,6 +122,21 @@ def to_day(records):
         _put(e, f"{src}_name", w.get("name") or None)
         sessions.append(e)
     out["sessions"] = sessions
+
+    # Measurements: the day's first weigh-in (with a body-fat reading if there is one), every blood-pressure reading,
+    # the latest VO2 max. Glucose readings are detail data (app/series.py), not day-file fields.
+    meas = [r for r in records if r["kind"] == "measurement"]
+    wt = next((m for m in meas if m.get("weight_kg")), None)
+    if wt:
+        w = {"kg": round(wt["weight_kg"], 1), "time": wt["time"]}
+        bf = next((m["bf_pct"] for m in meas if m.get("bf_pct")), None)
+        _put(w, "bf_pct", bf)
+        out["weight"] = w
+    bp = [{"time": m["time"], "sys": round(m["bp_sys"]), "dia": round(m["bp_dia"]), **({"pulse": round(m["pulse"])} if m.get("pulse") else {})}
+          for m in meas if m.get("bp_sys") and m.get("bp_dia")]
+    if bp: out["vitals"] = {"bp": bp}
+    vo2 = [m["vo2max"] for m in meas if m.get("vo2max")]
+    if vo2: out["fitness"] = {"vo2max": vo2[-1]}
     return out
 
 
@@ -164,6 +181,21 @@ def merge_into_day(day, mapped, source):
         before = dict(rec)
         rec.update(mapped["recovery"]); rec["source"] = source
         if rec != before: day["recovery"] = rec; changes.append("recovery")
+    if "weight" in mapped:
+        # A weigh-in logged by hand or from a scale app is never replaced; a source only fills an empty day or
+        # updates its own (or one settings.yaml `sources: weight:` gives it).
+        w = day.get("weight") if isinstance(day.get("weight"), dict) else None
+        if not w or w.get("source") == source or (w.get("source") and owns(w["source"], "weight", source)):
+            new = {**(w or {}), **mapped["weight"], "source": source}
+            if new != w: day["weight"] = new; changes.append("weight")
+    if (mapped.get("vitals") or {}).get("bp"):
+        # Blood pressure: any number of readings a day. A reading at a time already logged (by anyone) is the same one.
+        vit = day.get("vitals") if isinstance(day.get("vitals"), dict) else {}
+        have = {str(b.get("time")) for b in vit.get("bp") or []}
+        add = [{**b, "source": source} for b in mapped["vitals"]["bp"] if b["time"] not in have]
+        if add:
+            vit = dict(vit); vit["bp"] = sorted(list(vit.get("bp") or []) + add, key=lambda b: str(b.get("time")))
+            day["vitals"] = vit; changes.append("blood pressure")
     idk = f"{source}_id"
     ex = day.setdefault("exercise", []) if mapped.get("sessions") else day.get("exercise", [])
     for g in mapped.get("sessions", []):
