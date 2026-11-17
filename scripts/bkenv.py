@@ -196,6 +196,8 @@ def needs_data_setup():
 
 DATA_GITIGNORE = """# Sync bookkeeping: when each import last ran. Changes on every sync and holds nothing worth keeping.
 imports/*/state.json
+# The iPhone's raw uploads: the last 14 days only, kept to re-apply a translation fix, never committed
+imports/apple/cache.sqlite*
 # Operating-system and editor clutter
 .DS_Store
 Thumbs.db

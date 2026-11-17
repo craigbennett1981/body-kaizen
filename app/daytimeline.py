@@ -3,7 +3,7 @@ import datetime as dt
 import data, series, units
 
 STAGE = {0: "deep", 1: "light", 2: "rem", 3: "awake"}
-STAGE_LABEL = {"deep": "Deep", "light": "Light", "rem": "REM", "awake": "Awake"}
+STAGE_LABEL = {"deep": "Deep", "light": "Light", "rem": "REM", "awake": "Awake", "asleep": "Asleep"}
 
 def _gmt_min(v, day):
     """A timestamp -> minutes from local midnight of `day` (see series.minutes)."""

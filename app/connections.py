@@ -1,18 +1,56 @@
-"""The Connections page: log in to LibreLinkUp and Garmin Connect from the dashboard instead of the console.
+"""The Connections page: log in to LibreLinkUp and Garmin Connect from the dashboard instead of the console, and
+pair iPhones running Body Kaizen Sync (app/syncreceiver.py).
 
 Passwords arrive once in a POST that only the dashboard's own page can make (server._write_ok), go straight to the
 login code and the computer's keychain, and are never logged, stored in a file or sent back.
 """
-import os, pathlib, sys
+import json, os, pathlib, sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "scripts"))
 import libre_login  # noqa: E402
 import garmin_login  # noqa: E402
 import bkenv  # noqa: E402
 import scheduler  # noqa: E402
+import syncreceiver  # noqa: E402
 
 
 def status():
-    return {"libre": {**libre_login.status(), "pulling": scheduler.libre_running()}, "garmin": garmin_status()}
+    return {"libre": {**libre_login.status(), "pulling": scheduler.libre_running()}, "garmin": garmin_status(),
+            "iphone": iphone_status()}
+
+
+# ---------- iPhone (Body Kaizen Sync) ----------
+
+def iphone_status():
+    """Paired phones and whether the receiver is listening. Never a token, a pairing code or the key."""
+    if not syncreceiver.installed():
+        return {"installed": False, "blocked": syncreceiver.why_off(), "devices": [], "listening": False, "port": syncreceiver.PORT}
+    return {**syncreceiver.receiver().status(), "blocked": syncreceiver.why_off()}
+
+
+def iphone_pair(body):
+    """Make a pairing code and its QR code, and listen until it's used or expires."""
+    off = syncreceiver.why_off()
+    if off: return 409, {"error": f"Can't pair here: {off}."}
+    try: r = syncreceiver.receiver().start_pairing()
+    except OSError as e:
+        return 409, {"error": f"Couldn't listen on port {syncreceiver.PORT}: {e.strerror or e}. Is something else using it? "
+                              "Set FT_SYNC_PORT to another port and restart the dashboard."}
+    import segno
+    qr = segno.make(json.dumps(r["payload"], separators=(",", ":")), error="m")
+    p = r["payload"]
+    return 200, {"qr": qr.svg_data_uri(scale=5, border=2, dark="#000", light="#fff"), "typed": r["typed"],
+                 "expires_in": r["expires_in"], "name": p["name"], "port": p["port"], "addrs": p["addrs"], **status()}
+
+
+def iphone_cancel():
+    if syncreceiver.installed(): syncreceiver.receiver().cancel_pairing()
+    return 200, status()
+
+
+def iphone_remove(body):
+    if not syncreceiver.installed(): return 409, {"error": "The iPhone packages aren't installed."}
+    if not syncreceiver.receiver().remove(str(body.get("id") or "")): return 404, {"error": "No such phone."}
+    return 200, status()
 
 
 def garmin_status():

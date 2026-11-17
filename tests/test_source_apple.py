@@ -149,5 +149,27 @@ class Detail(unittest.TestCase):
         self.assertFalse(any(s["uuid"] in str(d) for s in demo_day(DAY) if s["type"] != "workout"))
 
 
+class Series(unittest.TestCase):
+    """app/series.py reads Apple's detail files where Garmin has none (and first, if settings.yaml says so)."""
+    def test_series_reads_apple_detail(self):
+        import json, tempfile, data, series
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as t:
+            root = pathlib.Path(t); p = root / "imports" / "apple" / "2026" / f"{DAY}.json"
+            p.parent.mkdir(parents=True); p.write_text(json.dumps(A.detail(demo_day(DAY), DAY)))
+            run = next(s for s in demo_day(DAY) if s["type"] == "workout")
+            with mock.patch.object(data, "ROOT", root):
+                st = series.sleep_stages(DAY)
+                self.assertEqual((st[0][2], st[0][0].tzinfo is not None), ("light", True))
+                self.assertEqual(sum(v for _, v in series.steps_timeline(DAY)), 17800)
+                self.assertEqual(series.day_extras(DAY)["steps"], 17800)
+                self.assertIsNone(series.day_extras(DAY)["body_battery_now"])     # Garmin-only figures stay empty
+                self.assertGreater(len(series.heart_rate(DAY)), 100)
+                self.assertEqual(series.recent_days(), [DAY])
+                self.assertEqual(len(series.workout_detail({"apple_id": run["uuid"]}, DAY)["samples"]), 480)
+                self.assertIsNone(series.workout_detail({"apple_id": run["uuid"]}))   # without its day it can't be found
+                self.assertIsNotNone(series.stamp(DAY))
+
+
 if __name__ == "__main__":
     unittest.main()

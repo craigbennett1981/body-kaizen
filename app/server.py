@@ -388,7 +388,10 @@ class Handler(BaseHTTPRequestHandler):
                    "/api/connections/libre/pull": lambda b: connections.libre_pull(),
                    "/api/connections/garmin/connect": connections.garmin_connect,
                    "/api/connections/garmin/disconnect": lambda b: connections.garmin_disconnect(),
-                   "/api/connections/garmin/pull": lambda b: connections.garmin_pull()}
+                   "/api/connections/garmin/pull": lambda b: connections.garmin_pull(),
+                   "/api/connections/iphone/pair": connections.iphone_pair,
+                   "/api/connections/iphone/cancel": lambda b: connections.iphone_cancel(),
+                   "/api/connections/iphone/remove": connections.iphone_remove}
         if u.path in CONNECT:
             body = self._json_body()
             if body is None: return
@@ -422,6 +425,7 @@ def main():
         print(f"No data folder yet: open http://{HOST}:{PORT} to choose one.", flush=True)
     elif not os.environ.get("FT_NO_SYNC"): scheduler.start()   # FT_NO_SYNC=1: no Garmin/Libre pulls (tests, demo);
                                                               # start() also refuses demo data and folders inside the repo
+    if not SETUP_MODE: connections.syncreceiver.start_if_paired()   # the iPhone receiver: only once a phone is paired
     print(f"Body Kaizen dashboard on http://{HOST}:{PORT} (data: {data.ROOT})", flush=True)
     if sys.stdout.isatty() and not os.environ.get("FT_NO_BROWSER") and not restarted:
         # started by hand in a terminal: open the browser signed in, as Jupyter does, and show the link once

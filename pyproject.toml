@@ -26,9 +26,12 @@ dependencies = ["pyyaml>=6.0.3,<7"]
 # Garmin Connect and LibreLinkUp syncs (unofficial APIs; see docs/integrations.md)
 garmin = ["garminconnect>=0.3.18,<0.4", "curl_cffi>=0.16,<0.18"]
 libre = ["pylibrelinkup>=0.11.1,<0.12", "keyring>=25.7,<26"]
+# Receiving Apple Health from the Body Kaizen Sync iPhone app: the receiver's certificate and the pairing QR code
+iphone = ["cryptography>=44,<51", "segno>=1.6,<2"]
 all = [
   "garminconnect>=0.3.18,<0.4", "curl_cffi>=0.16,<0.18",
   "pylibrelinkup>=0.11.1,<0.12", "keyring>=25.7,<26",
+  "cryptography>=44,<51", "segno>=1.6,<2",
 ]
 
 [project.scripts]

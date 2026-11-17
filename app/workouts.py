@@ -46,8 +46,8 @@ def _max_hr():
     vals = [v for v in vals if isinstance(v, (int, float))]
     return max([175] + vals)
 
-def _trace(e):
-    a = series.workout_detail(e)
+def _trace(e, day=None):
+    a = series.workout_detail(e, day)
     if not a: return None
     s = a.get("samples") or []
     if not s: return None
@@ -65,10 +65,10 @@ def _trace(e):
             "aerobic_te": a.get("aerobic_te"), "anaerobic_te": a.get("anaerobic_te"), "te_label": a.get("te_label"),
             "body_battery_change": a.get("body_battery_change"), "summary": a.get("summary") or {}}
 
-def _laps(e):
+def _laps(e, day=None):
     """Lap table for a run: the watch's own laps when it recorded several, otherwise 1 km splits worked out from the
     speed trace, scaled to the session's distance (the treadmill belt's, when that was logged)."""
-    a = series.workout_detail(e)
+    a = series.workout_detail(e, day)
     if not a: return None
     dist_km = e.get("distance_km")
     watch = [l for l in a.get("laps") or [] if (l.get("distance_m") or 0) >= 50 and l.get("duration_s")]   # drop the stub lap from stopping the watch
@@ -185,7 +185,7 @@ def detail(date, idx=0):
     summ = _summary(s)
     prev_summ = _summary(prev_gym) if prev_gym else None
     mx = _max_hr()
-    tr_ = _trace(e)
+    tr_ = _trace(e, date)
     if tr_ and e.get("lifts") and e.get("circuits"):   # without the circuit order, sets can't be placed on the trace
         blocks, by_circuit = _set_order(e)
         labels, fit = _label_efforts(tr_["efforts"], blocks)
@@ -198,4 +198,4 @@ def detail(date, idx=0):
             "hr": e.get("hr"), "kcal": e.get("kcal"), "zones_min": e.get("zones_min"), "cadence": e.get("cadence"),
             "time": e.get("time"), "trace": tr_, "max_hr": mx, "hrr": hrr, "training_load": round(load) if load else None,
             "zone_bounds": [round(mx * f) for f in (0.5, 0.6, 0.7, 0.8, 0.9, 1.0)], "prs": sum(1 for x in lifts if x["pr"]),
-            "laps": _laps(e) if e.get("type") in ("run", "walk", "ruck") else None}
+            "laps": _laps(e, date) if e.get("type") in ("run", "walk", "ruck") else None}

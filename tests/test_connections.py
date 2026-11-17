@@ -225,6 +225,17 @@ class Endpoints(unittest.TestCase):
         code, res = self.post("/api/connections/libre/disconnect", {})
         self.assertEqual(code, 200); self.assertFalse(res["libre"]["connected"])
 
+    def test_iphone_card(self):
+        """The iPhone card's status carries no secrets, and pairing needs the page's token. With FT_NO_SYNC (and demo
+        data) the receiver stays off, so pairing is refused with a reason."""
+        with urllib.request.urlopen(self.base + "/api/connections", timeout=5) as r: ip = json.loads(r.read())["iphone"]
+        self.assertEqual((ip["devices"], ip["listening"]), ([], False))
+        self.assertTrue(ip["blocked"])
+        self.assertEqual(self.post("/api/connections/iphone/pair", {}, token="nope")[0], 403)
+        code, res = self.post("/api/connections/iphone/pair", {})
+        self.assertEqual(code, 409); self.assertIn("Can't pair", res["error"])
+        self.assertEqual(self.post("/api/connections/iphone/remove", {"id": "d_nobody"})[0], 409 if not ip["installed"] else 404)
+
     def test_zz_password_never_reaches_the_server_log(self):
         self.post("/api/connections/libre/connect", {"email": "a@b.c", "password": SECRET})
         self.post("/api/connections/garmin/connect", {"email": "a@b.c", "password": SECRET})

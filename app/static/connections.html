@@ -19,6 +19,13 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff;fo
 .msg{margin:10px 0 0;font-size:13.5px;min-height:1.2em} .msg.ok{color:var(--good)} .msg.err{color:var(--bad)}
 .note{color:var(--muted);font-size:12.5px;margin:10px 0 0}
 code{font-size:12.5px} [hidden]{display:none!important}
+.ip-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:20px;margin-top:14px} @media (max-width:640px){.ip-grid{grid-template-columns:1fr}}
+.ip-pair{background:var(--bg);border:1px solid var(--rule);border-radius:10px;padding:16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.ip-pair img{width:168px;height:168px;border-radius:8px;background:#fff;image-rendering:pixelated}
+.ip-h{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0 0 6px}
+.ip-code{font:600 26px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em;color:var(--gold,#FFC857);margin:6px 0}
+.ip-phone{border:1px solid var(--rule);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:10px}
+.ip-phone .n{font-weight:600} .ip-phone .s{font-size:13px;color:var(--muted)} button.danger{color:var(--bad)}
 </style></head>
 <body><main>
 <div class="top"><div><h1>Connections</h1><p class="sub">Link the services the dashboard pulls from. Passwords go to this computer's keychain, never into your data or code folder, and nothing here leaves this computer except the login itself.</p></div><a href="/">Back to the dashboard</a></div>
@@ -54,9 +61,29 @@ code{font-size:12.5px} [hidden]{display:none!important}
   <p class="msg" id="garmin-msg" role="status" aria-live="polite"></p>
   <p class="note">Garmin has no official API for personal data, so this uses the community <a href="https://github.com/cyberjunky/python-garminconnect">garminconnect</a> library. It can break when Garmin changes its site.</p>
 </section>
+<section class="card" id="iphone" aria-labelledby="iphone-h">
+  <h2 id="iphone-h"><span class="st" id="iphone-dot" aria-hidden="true"></span>iPhone (Apple Health)</h2>
+  <p class="sub" style="margin:0">Sleep, heart rate, HRV, steps, workouts, weight and blood pressure from the Body Kaizen Sync app, sent over your home network when the phone and this computer are both on it. Paired phones can only upload: nothing here can be read from the network.</p>
+  <div class="facts" id="iphone-facts"></div>
+  <div class="ip-grid" id="iphone-grid" hidden>
+    <div>
+      <div class="ip-pair" id="iphone-pairbox" hidden>
+        <img id="iphone-qr" alt="Pairing QR code: scan it in Body Kaizen Sync">
+        <div><p class="ip-h">Pair a new iPhone</p><div>Scan this in Body Kaizen Sync, or type the code:</div>
+          <div class="ip-code" id="iphone-typed"></div><div class="note" style="margin:0" id="iphone-left"></div>
+          <div class="row"><button type="button" id="iphone-cancel">Cancel</button></div></div>
+      </div>
+      <div class="row" id="iphone-start-row" style="margin-top:0"><button class="primary" id="iphone-pair">Pair iPhone</button></div>
+    </div>
+    <div><p class="ip-h">Paired phones</p><div id="iphone-list"></div>
+      <p class="note" id="iphone-port"></p></div>
+  </div>
+  <p class="msg" id="iphone-msg" role="status" aria-live="polite"></p>
+  <p class="note">The app is on its way (it isn't in the App Store yet). Your health data goes only to this computer, encrypted, and never to a cloud service.</p>
+</section>
 <section class="card" id="ask" aria-labelledby="ask-h">
   <h2 id="ask-h">Use something else?</h2>
-  <p class="sub" style="margin:0">Oura, Withings, Apple Health, Strava, another CGM or gym app: if it would be useful to you,
+  <p class="sub" style="margin:0">Oura, Withings, Strava, another CGM or gym app: if it would be useful to you,
     <a href="https://github.com/craigbennett1981/body-kaizen/issues/new?template=integration_request.yml" target="_blank" rel="noopener noreferrer">ask for it on GitHub</a>.
     It's a short form: what it is, what you'd want from it, and how you can get the data out today. Requests shape what gets built next.</p>
   <p class="note">Hevy, InBody, smart scales and blood-pressure apps already work without a connection here: send your assistant the export or a screenshot.
@@ -200,6 +227,67 @@ $('#garmin-off').onclick = async () => {
   if(r.error){ gmsg(r.error, 'err'); return; }
   G = r.garmin; gmsg('Disconnected: the token is deleted from this computer. Data already pulled stays in your data folder.', 'ok'); renderG();
 };
+/* ---------- iPhone (Body Kaizen Sync) ---------- */
+let P = null, pTick = null, pLeft = 0;
+const pmsg = (t, kind) => { const m = $('#iphone-msg'); m.className = 'msg' + (kind ? ' '+kind : ''); m.textContent = t || ''; };
+const TRIG = {new_data:'new data', refresh:'background refresh', processing:'charging', unlock:'unlocked', leaving:'leaving the app', manual:'Sync now', url_session:'upload finished', first_sync:'first sync'};
+function report(r){
+  if(!r) return '';
+  const bits = [TRIG[r.trigger] || '', r.locked === true ? 'locked' : r.locked === false ? 'unlocked' : '', r.battery === true ? 'on battery' : r.battery === false ? 'charging' : '',
+                r.low_power ? 'Low Power Mode' : '', Number.isInteger(r.sent) ? `sent ${r.sent.toLocaleString()} samples` : ''].filter(Boolean);
+  return bits.length ? `Last wake-up ${ago(r.at)}: ${esc(bits.join(', '))}` : '';
+}
+function renderP(){
+  const f = $('#iphone-facts'), dot = $('#iphone-dot'), devs = P.devices || [];
+  const latest = devs.map(d => d.last_upload).filter(Boolean).sort().pop();
+  dot.className = 'st' + (devs.length ? (latest && Date.now() - new Date(latest) < 3*86400e3 ? ' ok' : ' warn') : '');
+  $('#iphone-grid').hidden = !P.installed || !!P.blocked;
+  if(!P.installed) f.innerHTML = `The iPhone packages aren't installed. Run <code>pip install 'body-kaizen[iphone]'</code> (in a clone: <code>.venv/bin/pip install -r requirements.txt</code>), then restart the dashboard.`;
+  else if(P.blocked) f.innerHTML = `<span style="color:var(--warn)">Receiving is off: ${esc(P.blocked)}</span>`;
+  else f.innerHTML = devs.length ? '' : 'No phone paired yet.';
+  $('#iphone-list').innerHTML = devs.length ? devs.map(d => `<div class="ip-phone"><div><div class="n">${esc(d.name)}</div>
+      <div class="s">Paired ${esc(d.paired ? new Date(d.paired).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '')} · ${d.last_upload ? `last upload ${ago(d.last_upload)}` : 'nothing sent yet'}${d.samples_today ? ` · ${d.samples_today.toLocaleString()} samples today` : ''}</div>
+      ${d.last_report ? `<div class="s">${report(d.last_report)}</div>` : ''}</div>
+      <button class="danger" data-remove="${esc(d.id)}">Remove</button></div>`).join('') : '<p class="note" style="margin:0">None yet.</p>';
+  $('#iphone-port').textContent = P.listening ? `Receiving on this network at port ${P.port}, encrypted, only from paired phones. Remove the last phone and it stops listening.`
+                                              : `Not listening. It starts on port ${P.port} when you pair a phone.`;
+  document.querySelectorAll('[data-remove]').forEach(b => b.onclick = () => removePhone(b));
+}
+function showPairing(r){
+  $('#iphone-qr').src = r.qr; $('#iphone-typed').textContent = r.typed; pLeft = r.expires_in;
+  $('#iphone-pairbox').hidden = false; $('#iphone-start-row').hidden = true;
+  clearInterval(pTick);
+  const tick = () => { pLeft--; if(pLeft <= 0){ endPairing('The code expired. Make a new one when your phone is ready.'); return; }
+    $('#iphone-left').textContent = `Works once. Expires in ${Math.floor(pLeft/60)}:${String(pLeft%60).padStart(2,'0')}.`;
+    if(pLeft % 3 === 0) loadP(true); };
+  pLeft++; tick(); pTick = setInterval(tick, 1000);
+}
+function endPairing(text, kind){
+  clearInterval(pTick); $('#iphone-pairbox').hidden = true; $('#iphone-start-row').hidden = false;
+  $('#iphone-qr').removeAttribute('src'); $('#iphone-typed').textContent = ''; pmsg(text || '', kind);
+}
+async function loadP(quiet){
+  try{
+    const before = P ? (P.devices || []).length : null;
+    P = (await (await fetch('/api/connections',{cache:'no-store'})).json()).iphone; renderP();
+    if(quiet && before !== null && P.devices.length > before){ endPairing(`Paired with ${P.devices[P.devices.length-1].name}.`, 'ok'); }
+  }catch(e){ if(!quiet) pmsg('Could not reach the dashboard.', 'err'); }
+}
+$('#iphone-pair').onclick = async () => {
+  $('#iphone-pair').disabled = true; pmsg('');
+  const r = await post('/api/connections/iphone/pair').catch(() => ({error:'Could not reach the dashboard.'}));
+  $('#iphone-pair').disabled = false;
+  if(r.error){ pmsg(r.error, 'err'); return; }
+  P = r.iphone; renderP(); showPairing(r);
+};
+$('#iphone-cancel').onclick = async () => { await post('/api/connections/iphone/cancel').catch(() => null); endPairing(''); loadP(); };
+async function removePhone(b){
+  if(b.dataset.sure !== '1'){ b.dataset.sure = '1'; b.textContent = 'Click again to remove'; return; }
+  const r = await post('/api/connections/iphone/remove', {id: b.dataset.remove});
+  if(r.error){ pmsg(r.error, 'err'); return; }
+  P = r.iphone; renderP(); pmsg('Removed. That phone can no longer send anything; what it sent stays in your day files.', 'ok');
+}
+loadP();
 loadG();
 load();
 </script></body></html>

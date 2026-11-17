@@ -339,7 +339,7 @@ async function renderGlance(date){
 }
 /* ---------- day timeline ---------- */
 const TL_LANES = ['Sleep', 'Training', 'Food', 'Health'];
-const TL_COL = {sleep:'#6250d6', sleep_deep:'#3d2fb0', sleep_light:'#7a6ae0', sleep_rem:'#b3a6ff', sleep_awake:'#5b6475',
+const TL_COL = {sleep:'#6250d6', sleep_deep:'#3d2fb0', sleep_light:'#7a6ae0', sleep_rem:'#b3a6ff', sleep_awake:'#5b6475', sleep_asleep:'#8f84d8',
   gym:'#2a78d6', run:'#eb6834', swim:'#1baf7a', ruck:'#eda100', yoga:'#e87ba4', walk:'#6250d6', other:'#008300', food:'#eda100', bp:'#e87ba4', symptom:'#C8372D', weight:'#2a78d6'};
 const SF_HIGH = 3;   // a food item with this much saturated fat or more is tinted red on the timeline
 const mmhm = m => `${String(Math.floor(((m%1440)+1440)%1440/60)).padStart(2,'0')}:${String(((m%60)+60)%60).padStart(2,'0')}`;
@@ -433,7 +433,7 @@ async function renderDayTimeline(date){
       series.push({type:'custom',xAxisIndex:i,yAxisIndex:yi,name:'spans',
         renderItem:(p, api) => { const lane = api.value(0), s = api.coord([api.value(1), lane]), e = api.coord([api.value(2), lane]), hh = api.size([0,1])[1]*0.56;
           const ev = spans[p.dataIndex], w = Math.max(ev.kind.startsWith('sleep_') ? 1 : 3, e[0]-s[0]);
-          const stage = ev.kind.startsWith('sleep_'), sh = stage ? hh * ({sleep_deep:1, sleep_light:.75, sleep_rem:.55, sleep_awake:.3})[ev.kind] : hh;
+          const stage = ev.kind.startsWith('sleep_'), sh = stage ? hh * ({sleep_deep:1, sleep_light:.75, sleep_asleep:.75, sleep_rem:.55, sleep_awake:.3})[ev.kind] : hh;
           const txt = !stage && w > 60 ? ev.label + (w > 150 && ev.detail ? ' · ' + ev.detail : '') : '';
           return {type:'group',children:[{type:'rect',shape:{x:s[0],y:s[1]+hh/2-sh,width:w,height:sh,r:stage?1:4},style:{fill:api.visual('color')}},
             {type:'text',style:{x:s[0]+6,y:s[1],text:txt,fill:'#fff',font:'600 11px Archivo',verticalAlign:'middle',width:w-10,overflow:'truncate'}}]}; },
@@ -2063,7 +2063,7 @@ async function renderExperiments(){
 let SLEEP = null;
 const mh = m => m==null ? '–' : `${Math.floor(Math.round(m)/60)}h ${String(Math.round(m)%60).padStart(2,'0')}m`;
 const clk = m => { if(m==null) return '–'; m = ((Math.round(m) % 1440) + 1440) % 1440; return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`; };
-const SLEEP_COL = {deep:'#3d2fb0', light:'#7a6ae0', rem:'#b3a6ff', awake:'#e0a33a'};
+const SLEEP_COL = {deep:'#3d2fb0', light:'#7a6ae0', rem:'#b3a6ff', awake:'#e0a33a', asleep:'#8f84d8'};   // asleep: sleep with no stage (some Apple sources)
 
 async function renderSleep(){
   SLEEP = SLEEP || await api('/api/sleep').catch(()=>null);
@@ -2112,13 +2112,13 @@ async function renderSleep(){
   const ax = {axisLine:{lineStyle:{color:c.rule}},axisLabel:{color:c.muted,fontSize:11},splitLine:{lineStyle:{color:c.rule,opacity:.5}}};
 
   // hypnogram: one lane per stage, awake at the top
-  const lane = {awake:3, rem:2, light:1, deep:0};
+  const lane = {awake:3, rem:2, light:1, asleep:1, deep:0};
   if(L.stages && L.stages.length){
     const lo = Math.min(...L.stages.map(s => s.start)), hi = Math.max(...L.stages.map(s => s.end));
     chart('sl-hyp').setOption({animation:false,textStyle:{fontFamily:'Archivo'},grid:{left:52,right:20,top:8,bottom:26},
       xAxis:{type:'value',min:60*Math.floor(lo/60),max:60*Math.ceil(hi/60),...ax,splitLine:{show:true,lineStyle:{color:c.rule,opacity:.35}},axisLabel:{...ax.axisLabel,formatter:clk},interval:60},
       yAxis:{type:'category',data:['Deep','Light','REM','Awake'],...ax,axisLine:{show:false},axisTick:{show:false},splitLine:{show:false}},
-      tooltip:{...tip(c),formatter: p => `${esc(({deep:'Deep',light:'Light',rem:'REM',awake:'Awake'})[p.data.stage])}<br>${clk(p.data.value[0])}–${clk(p.data.value[1])} · ${p.data.value[1]-p.data.value[0]} min`},
+      tooltip:{...tip(c),formatter: p => `${esc(({deep:'Deep',light:'Light',rem:'REM',awake:'Awake',asleep:'Asleep (no stage)'})[p.data.stage])}<br>${clk(p.data.value[0])}–${clk(p.data.value[1])} · ${p.data.value[1]-p.data.value[0]} min`},
       series:[{type:'custom',renderItem:(params, api) => { const s = api.value(0), e = api.value(1), y = api.value(2);
           const a = api.coord([s, y]), b = api.coord([e, y]), h = api.size([0, 1])[1] * .72;
           return {type:'rect',shape:{x:a[0],y:a[1]-h/2,width:Math.max(1,b[0]-a[0]),height:h},style:{fill:SLEEP_COL[params.dataIndex!=null?L.stages[params.dataIndex].stage:'light']}}; },

@@ -64,8 +64,8 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install core dependency
-        run: pip install pyyaml
+      - name: Install core dependency, and the iPhone receiver's (its tests pair and upload with a stand-in phone)
+        run: pip install pyyaml "cryptography>=44,<51" "segno>=1.6,<2"
       - name: Byte-compile app and scripts
         run: python -m compileall -q app scripts
       - name: Check the front-end script parses
