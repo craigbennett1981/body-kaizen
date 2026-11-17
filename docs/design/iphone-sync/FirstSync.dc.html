@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>First sync</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#11161c}
+a{color:#8FA9F5}a:hover{color:#B7C8FA}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #11161c; color: #E8EDF2; font-family: Inter, system-ui, sans-serif; padding: 84px 24px 36px; display: flex; flex-direction: column; gap: 22px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h1 style="margin: 0; font-family: Archivo, sans-serif; font-weight: 800; font-size: 28px">Sending your history</h1>
+<p style="margin: 0; font-size: 15px; color: #B9C4CF">To Craig's MacBook Air · last 12 months</p>
+</div>
+<div style="background: #1A212A; border: 1px solid #2A333E; border-radius: 16px; padding: 6px 16px">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+<div style="display: flex; flex-direction: column; gap: 7px; padding: 12px 0; border-top: {{r.line}}">
+<div style="display: flex; justify-content: space-between; font-size: 15px"><span>{{r.label}}</span><span style="color: {{r.noteColor}}; font-size: 14px">{{r.note}}</span></div>
+<div style="height: 6px; border-radius: 3px; background: #2A333E; overflow: hidden"><div style="height: 6px; border-radius: 3px; background: {{r.barColor}}; width: {{r.pct}}"></div></div>
+</div>
+</sc-for>
+</div>
+<p style="margin: 0; font-size: 14px; line-height: 1.5; color: #9AA7B4">You can leave the app. It carries on next time it's open, and nothing is sent twice.</p>
+<div style="margin-top: auto">
+<a href="Status.dc.html" style="height: 54px; border-radius: 14px; background: #232B35; border: 1px solid #2A333E; box-sizing: border-box; color: #E8EDF2; font-size: 17px; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center">Done</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+const R = [['Sleep', 100, '365 days'], ['Resting heart rate', 100, '365 days'], ['Heart rate variability', 80, '292 days'], ['Steps', 45, '164 days'], ['Energy', 0, 'waiting'], ['Workouts', 0, 'waiting'], ['Weight and body fat', 0, 'waiting'], ['Blood pressure', 0, 'waiting']];
+return { rows: R.map(([label, p, note], i) => ({ label, note, pct: p + '%', line: i ? '1px solid #2A333E' : 'none',
+barColor: p >= 100 ? '#3CC57A' : '#2F5BEA', noteColor: p >= 100 ? '#3CC57A' : p ? '#C7D0D9' : '#9AA7B4' })) };
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-11-17T02:45:00Z"},
+  "title": "Body Kaizen Sync screens",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 390, "h": 844, "title": "1 Welcome"},
+    "Pair.dc.html": {"x": 470, "y": 0, "w": 390, "h": 844, "title": "2 Pair"},
+    "Choose.dc.html": {"x": 940, "y": 0, "w": 390, "h": 844, "title": "3 Choose what to send", "is_interactive": true},
+    "Health.dc.html": {"x": 1410, "y": 0, "w": 390, "h": 844, "title": "4 Allow Health access"},
+    "FirstSync.dc.html": {"x": 1880, "y": 0, "w": 390, "h": 844, "title": "5 First sync"},
+    "Status.dc.html": {"x": 0, "y": 1244, "w": 390, "h": 844, "title": "Status: synced"},
+    "StatusAway.dc.html": {"x": 470, "y": 1244, "w": 390, "h": 844, "title": "Status: away from home"},
+    "StatusMac.dc.html": {"x": 940, "y": 1244, "w": 390, "h": 844, "title": "Status: can't reach the Mac"},
+    "Settings.dc.html": {"x": 1410, "y": 1244, "w": 390, "h": 844, "title": "Settings", "is_interactive": true},
+    "Connections.dc.html": {"x": 1880, "y": 1244, "w": 880, "h": 470, "title": "Mac: Connections, iPhone card"}
+  },
+  "order": ["Main.dc.html", "Pair.dc.html", "Choose.dc.html", "Health.dc.html", "FirstSync.dc.html", "Status.dc.html", "StatusAway.dc.html", "StatusMac.dc.html", "Settings.dc.html", "Connections.dc.html"],
+  "notes": {
+    "row1": {"x": 0, "y": -300, "text": "First run", "kind": "title1", "maxW": 2270},
+    "row2": {"x": 0, "y": 944, "text": "Every day after: Status, Settings, and the Mac side", "kind": "title1", "maxW": 2760}
+  },
+  "designSystems": []
+}
