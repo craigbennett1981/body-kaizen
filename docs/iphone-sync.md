@@ -1,6 +1,6 @@
 # iPhone sync: Apple Health into Body Kaizen (design)
 
-Status: design agreed 17 Nov 2026, not built. Owner: Craig.
+Status: design agreed 17 Nov 2026. Stages 0 and 1 (the computer's side) built; the app is next. Owner: Craig.
 
 ## Goal
 
@@ -41,16 +41,18 @@ The dashboard is untouched: it still listens on 127.0.0.1 only. The receiver is 
 - **One token per phone.** Pairing gives the phone a random 256-bit token; the Mac stores only its SHA-256.
   Every upload needs it. The Connections page lists paired phones with a Remove button.
 - **Home network only.** Requests from addresses outside private ranges (10/8, 172.16/12, 192.168/16, 169.254/16,
-  fc00::/7, fe80::/10) are refused before anything else. Body size cap 5 MB (gzip JSON), rate limit per device,
+  fc00::/7, fe80::/10, and this computer itself) are dropped before TLS, before anything else. Body size cap 5 MB (gzip JSON), rate limit per device,
   the same JSON-only checks as the dashboard.
-- **Found by Bonjour.** Advertised as `_bodykaizen._tcp` with the certificate fingerprint prefix in the TXT record,
-  so the phone finds the Mac even when its address changes. The QR code also carries the Mac's current addresses.
+- **Found by Bonjour** (from stage 2, with the app; decided 17 Nov). Advertised as `_bodykaizen._tcp` with the
+  certificate fingerprint prefix in the TXT record, so the phone finds the Mac even when its address changes. Until
+  then the QR code's addresses are enough. It will need `zeroconf`, added to the `iphone` extra then.
 - Port 8766 by default (`FT_SYNC_PORT`). macOS asks once to allow incoming connections.
 
 ### Pairing
 
 1. Connections page → **Pair iPhone**: the Mac makes a one-time code (128-bit, valid 10 minutes, single use) and
-   shows a QR code: `{v: 1, name, port, addrs: [...], fp: <cert sha256>, code}`.
+   shows a QR code: `{v: 1, name, port, addrs: [...], fp: <cert sha256>, code}`, and an 8-character typed form for
+   pairing without the camera. Five wrong codes burn it.
 2. The app scans it, connects with the pinned certificate and sends `POST /v1/pair {code, device_name}`.
 3. The Mac burns the code and returns `{device_id, token}`. The app keeps the token in the iOS Keychain.
 
@@ -82,9 +84,47 @@ Checks on every upload:
   them, so an answer from any other address counts as not sent.
 - A per-phone daily size limit, so a stolen token cannot fill the disk.
 - Device names lose control characters before they reach logs or the Connections page.
+- Limits per phone: 5 MB a request (64 MB unzipped), 20,000 samples a batch, 120 requests a minute, 300 MB a day.
 - Each upload carries a short report of what woke the app (new data, refresh, unlock, leaving the app), whether the
   phone was locked, on battery or in Low Power Mode, and what it sent. The Connections card shows the last one, so
   "why isn't it syncing" can be answered from the Mac.
+
+### Wire format
+
+Every request is `POST`, `Content-Type: application/json`, optionally `Content-Encoding: gzip`, and (except pairing)
+`Authorization: Bearer <token>`. Times are ISO 8601 with their UTC offset.
+
+```
+POST /v1/pair       {code, device_name}                          -> {device_id, token, name}
+POST /v1/samples    {device_id, type, samples: [...], report?}   -> {ok, stored, updated, unchanged, skipped}
+POST /v1/deletions  {device_id, uuids: [...]}                    -> {ok, deleted}
+POST /v1/ping       {device_id}                                  -> {ok: true}
+
+sample  {uuid, start, end, tz?, value, unit, source: {name, bundle, device}, metadata?}
+report  {trigger: new_data|refresh|processing|unlock|leaving|manual|url_session|first_sync,
+         locked?, battery?, low_power?, sent?}
+```
+
+| `type` | `value`, `unit` | Notes |
+|---|---|---|
+| `sleep` | `in_bed`, `asleep`, `awake`, `core`, `deep`, `rem`; `""` | `asleep` is HealthKit's "asleep, unspecified" |
+| `heart_rate` | bpm; `count/min` | per-minute mean outside workouts, with `metadata: {min, max}`; every sample inside |
+| `resting_heart_rate`, `respiratory_rate` | `count/min` | |
+| `hrv_sdnn` | `ms` | |
+| `oxygen_saturation`, `body_fat` | 0–100; `%` | percent, not a fraction |
+| `steps` | `count` | 15-minute buckets; a bucket keeps its UUID when resent with a new total |
+| `active_energy`, `basal_energy` | `kcal` | 15-minute buckets |
+| `workout` | duration in seconds; `s` | `metadata: {activity: <HKWorkoutActivityType case name>, indoor?, distance_m?, energy_kcal?, lap_length_m?}` |
+| `body_mass` | `kg` or `lb` | |
+| `blood_pressure` | `{systolic, diastolic}`; `mmHg` | the correlation, sent as one sample |
+| `vo2max` | `ml/(kg*min)` | |
+| `blood_glucose` | `mmol/L` or `mg/dL` | |
+
+`tz` is the IANA zone from `HKMetadataKeyTimeZone`, else the phone's at the time. `source.device` is the device's
+model identifier (`Watch7,3`, `iPhone16,2`); it decides watch-over-iPhone. A sample with an unknown unit, a value
+outside a plausible range or a bad time is skipped and counted in `skipped`, not stored, so one bad reading never
+holds up the outbox. Replies: `401` not paired, `409` erased or removed while sending, `413` too large, `415` not
+JSON, `429` over a limit.
 
 ## What is read
 
@@ -154,10 +194,9 @@ Apple  ──► scripts/source_apple.py  ─┼──► records (scripts/recor
 
 Rules:
 
-- **Derived numbers are ours.** Heart-rate zones, intensity minutes and 2-minute recovery are computed by Body Kaizen
-  from the heart-rate trace with your own zones, not taken from Garmin or Apple. They then mean the same thing from
-  any source, and a switch from Garmin to an Apple Watch doesn't show up as a step on the charts. Garmin's own figures
-  stay available as a reference while we compare.
+- **Derived numbers: the source's own, or ours where it has none.** Garmin's zones, intensity minutes and 2-minute
+  recovery are kept as Garmin reports them; Apple has no zones per workout, so Body Kaizen computes them from the
+  workout's heart rate with the Training tab's bounds (see "Derived numbers" under Building it).
 - **HRV carries its method.** Garmin reports RMSSD, Apple SDNN; they are not comparable. Records say which, baselines
   are kept per method, and the two never share a line.
 - **Sleep stages map to four.** Apple's core sleep is light; "asleep, unspecified" (older watches, third-party apps)
@@ -183,6 +222,9 @@ Rules:
 - **Kept:** the translated records, in the day files, exactly as Garmin's figures are kept today.
 - **Raw cache:** the last 14 days of uploads in `imports/apple/cache.sqlite`, ignored by git, so a translation fix can
   reprocess recent days. Older rows are deleted nightly. Nothing raw enters the data folder's git history.
+- **Detail:** what the charts draw (sleep stages, per-minute heart rate, 15-minute steps, workout traces, glucose)
+  in `imports/apple/YYYY/YYYY-MM-DD.json`, as Garmin's is in `imports/garmin/`. Translated, not raw: no sample IDs,
+  devices or source apps. A late sample for a day the cache no longer holds updates only the parts it touches.
 
 ## The app
 
@@ -502,7 +544,7 @@ What Apple's review is likely to raise, and the plan for each:
 | Stage | What | Needs |
 |---|---|---|
 | 0 | The translation layer: `scripts/records.py` (the record format, checks, day-file fields, the shared merge), `scripts/source_garmin.py`, and `app/series.py` for detail data. **Done** (17 Nov): output identical on a real data folder and the demo. Derived numbers: see below. | Nothing new |
-| 1 | Receiver, pairing, QR on Connections, `scripts/source_apple.py`, Apple's detail data in `app/series.py`, the 14-day raw cache. Tested with a Python stand-in for the phone, in CI on Linux. | Nothing new |
+| 1 | Receiver, pairing, QR on Connections, `scripts/source_apple.py`, Apple's detail data in `app/series.py`, the 14-day raw cache. Tested with a Python stand-in for the phone, in CI on Linux. **Done** (17 Nov): `app/syncreceiver.py`, `scripts/apple_cache.py`, `scripts/apple_import.py`, `tests/applephone.py`; new `iphone` extra (`cryptography`, `segno`). | Nothing new |
 | 2 | App: pair (with the confirm step), Sync now, thinning, sleep, resting HR, HRV, heart rate, steps, energy, weight | Xcode on the Mac and a **paid Apple Developer account** |
 | 3 | Background delivery, outbox, deletions, workouts, blood pressure, VO₂ max, glucose, source filtering, wake-up reports, erase | The same |
 | 4 | Demo receiver for review, privacy policy and manifest, review notes and video, review rounds, TestFlight, App Store | The individual-or-company decision |
@@ -510,12 +552,13 @@ What Apple's review is likely to raise, and the plan for each:
 **A paid Apple Developer account is needed from stage 2**, not only at release: a free personal team cannot sign an
 app with the HealthKit capability, and background delivery needs it too. Stages 0 and 1 need no Apple account.
 
-**Derived numbers, still open.** Stage 0 kept every number as the source reports it. Computing zones, intensity
+**Derived numbers, decided 17 Nov.** Stage 0 kept every number as the source reports it. Computing zones, intensity
 minutes and 2-minute recovery ourselves turned out to need more than planned: Garmin's pull has no all-day heart rate
 (only inside workouts), so intensity minutes would need a new Garmin download; and a workout's heart-rate trace stops
-when the watch stops, so 2-minute recovery can't be recomputed from it. Proposed: keep each source's own figures where
-it has them, and compute ours only where a source has none (Apple's zones per workout, from its heart rate with the
-same zone bounds the Training tab uses). Changing historical numbers would then be a separate, later decision. CI: a macOS GitHub Actions job builds the app for the simulator and runs its
+when the watch stops, so 2-minute recovery can't be recomputed from it. So: each source's own figures are kept where
+it has them, and ours are computed only where a source has none. Today that is Apple's zones per workout, from its
+heart rate with the Training tab's bounds (50/60/70/80/90% of max HR). Apple intensity minutes and 2-minute recovery
+are not computed yet. Changing historical numbers would be a separate, later decision. CI: a macOS GitHub Actions job builds the app for the simulator and runs its
 unit tests on every change.
 
 **All code is our own.** Nothing is copied or adapted from any other project. The code is written from this design
@@ -533,7 +576,7 @@ Now (design stage):
   screen (10 switches, no source notes) and have no picture of the confirm step or of the "type has gone quiet"
   Status state. Update the canvas, then regenerate the pictures, to match the wireframes in this doc.
 
-With stage 1 (the receiver), in the same pull request:
+With stage 1 (the receiver), in the same pull request (done 17 Nov):
 
 - **SECURITY.md**: "Local only" says the server serves nothing to the network. Rewrite it: the dashboard still
   answers on this computer only; a separate receiver for paired phones listens on the home network, upload only, off
@@ -546,11 +589,9 @@ With stage 1 (the receiver), in the same pull request:
 - **docs/features.md**: the iPhone card on the Connections page.
 - **The data folder's `.gitignore`** (written by setup): add the cache.
 
-With stage 0 (the translation layer):
-
-- **docs/features.md** and **docs/thresholds.md**: zones, intensity minutes and 2-minute recovery are computed by
-  Body Kaizen from the heart-rate trace.
-- **CHANGELOG.md**: that some historical zone and intensity-minute numbers move slightly, and why.
+With stage 0 (the translation layer): nothing, after all. With derived numbers decided (each source's own, ours only
+where it has none), no historical number moves, so neither docs/thresholds.md nor the CHANGELOG has anything to say
+yet. If ours ever replace Garmin's, both need it then.
 
 With stages 2 to 4 (the app): the app's privacy policy page, the App Store review notes, `ios/README.md` (how to
 build: Xcode, XcodeGen, the paid account) and a CHANGELOG entry when there is something to install. When the app ships, change

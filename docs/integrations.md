@@ -62,6 +62,35 @@ meals ranked by spike.
 > Uses the unofficial [`pylibrelinkup`](https://github.com/robberwick/pylibrelinkup) library. Not endorsed by
 > Abbott. Use at your own risk, and never for treatment decisions.
 
+## Apple Health (iPhone)
+
+Body Kaizen Sync, a small iPhone app, reads Apple Health and sends it straight to the Body Kaizen on your computer
+when both are on the same home network. No cloud, no iCloud setup, no server to run. **The app is being built**; the
+computer's side (the receiver, pairing and the translation) is in place. Design: [iphone-sync.md](iphone-sync.md).
+
+What it reads, and only this (about 15 types): sleep with its stages, resting heart rate, HRV, respiration, blood
+oxygen, heart rate, steps, active and resting energy, workouts, weight and body fat, blood pressure, VO₂ max, and
+blood glucose (off unless you turn it on). Never food (Body Kaizen is your food log), medications, mental health,
+cycle tracking, clinical records, ECGs or routes.
+
+How it lands:
+
+- The same day files Garmin fills, through the same translation layer, so the dashboard looks the same whichever
+  watch you wear. When Garmin and Apple both have a day's sleep or steps, whichever was connected first keeps it;
+  `settings.yaml` → `sources:` (for example `sources: {recovery: apple, steps: apple}`) says otherwise.
+- HRV from Apple is SDNN, Garmin's RMSSD; the two are marked and never share a baseline.
+- Apple's core sleep counts as light; sleep recorded without stages counts as asleep. Where an Apple Watch and the
+  iPhone both counted steps or energy, the watch's figure is used.
+- Days follow the time zone each sample was recorded in, so a trip doesn't move a night to the wrong day.
+- Apple has no heart-rate zones per workout, so Body Kaizen works them out from the workout's heart rate with the
+  Training tab's bounds. Garmin's own zones and intensity minutes are kept as Garmin reports them.
+- A weigh-in or blood-pressure reading you logged another way is never replaced.
+
+Set up: install the extra (`pip install 'body-kaizen[iphone]'`; the one-line installer already includes it), then
+**Connections** › iPhone › **Pair iPhone**, and scan the code in the app. macOS asks once to allow incoming
+connections. The receiver listens on port 8766 (`FT_SYNC_PORT`) only while a phone is paired, upload only. What
+protects it: [SECURITY.md](../SECURITY.md).
+
 ## Hevy
 
 Two ways in:

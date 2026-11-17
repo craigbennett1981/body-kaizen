@@ -248,7 +248,10 @@ sentence ("grip 47/45").
   or study it comes from ([docs/thresholds.md](thresholds.md)).
 - **Set up from the browser:** the one-line installer opens the dashboard, which asks where to keep your data, your
   details and your units (metric or imperial, changeable from the profile icon), then gives you a prompt to copy into
-  your AI assistant to set it up. **Connections** logs you in to Garmin and LibreLinkUp.
+  your AI assistant to set it up. **Connections** logs you in to Garmin and LibreLinkUp, and pairs an iPhone running
+  Body Kaizen Sync: **Pair iPhone** shows a QR code and an 8-character code (one use, 10 minutes), then lists each
+  paired phone with its last upload, how many samples it sent today, what last woke the app ("background refresh,
+  locked, on battery, sent 412 samples") and a Remove button.
 - **Metric or imperial:** weights, distances, paces and portions show in kg, km, g and ml, or lb, mi, oz and fl oz.
   Files always stay metric, and macros stay in grams, as on food labels.
 - **Signed in, no password:** only your account on the computer can open the dashboard. The **Body Kaizen**

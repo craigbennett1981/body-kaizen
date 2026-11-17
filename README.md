@@ -3,7 +3,7 @@
 [![Tests](https://github.com/craigbennett1981/body-kaizen/actions/workflows/ci.yml/badge.svg)](https://github.com/craigbennett1981/body-kaizen/actions/workflows/ci.yml)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
-[![Local only](https://img.shields.io/badge/data-local%20only-blueviolet)](SECURITY.md)
+[![Data stays on your computer](https://img.shields.io/badge/data-stays%20on%20your%20computer-blueviolet)](SECURITY.md)
 [![No telemetry](https://img.shields.io/badge/telemetry-none-brightgreen)](SECURITY.md)
 [![No build step](https://img.shields.io/badge/build%20step-none-lightgrey)](#project-layout)
 
@@ -206,13 +206,17 @@ flowchart LR
     claude -- "writes YAML,<br/>runs compute.py,<br/>commits" --> data[("Your data folder<br/>(private git repo)")]
     garmin["Garmin Connect"] -- "scheduled sync" --> data
     libre["LibreLinkUp (CGM)"] -- "scheduled sync" --> data
+    phone["iPhone: Body Kaizen Sync<br/>(Apple Health)"] -- "home network,<br/>encrypted, paired" --> rx["Sync receiver<br/>upload only, off until paired"]
+    rx --> data
     data --> dash["Body Kaizen dashboard<br/>127.0.0.1 only"]
     dash --> browser(["Your browser"])
     data -. "git push" .-> remote[("Private remote<br/>(GitHub, NAS…)")]
 ```
 
 Everything runs on your own computer. The only things that leave it are the requests you choose to make: to your
-AI assistant, to Garmin and LibreLinkUp if you connect them, and to your private git remote.
+AI assistant, to Garmin and LibreLinkUp if you connect them, and to your private git remote. The dashboard answers
+on this computer only; if you pair an iPhone, a separate receiver accepts its uploads over your home network, and
+nothing can be read back through it ([SECURITY.md](SECURITY.md)).
 
 *Kaizen* is the Japanese idea of continuous improvement: small changes, measured, kept if they work. Three beliefs
 shape it:
@@ -273,7 +277,11 @@ Abbott, used at your own risk, and they can break when those services change. Se
 [docs/integrations.md](docs/integrations.md). Not sure what to buy? [docs/kit.md](docs/kit.md) ranks what's worth
 having, starting with a kitchen scale.
 
-**Use something that isn't here?** Oura, Withings, Apple Health, Strava, another CGM or gym app: if it would be
+**Apple Health** comes through Body Kaizen Sync, a small iPhone app that sends it to your computer over your home
+network, no cloud involved. The receiver is in place; the app itself is being built
+([design](docs/iphone-sync.md), [docs/integrations.md](docs/integrations.md#apple-health-iphone)).
+
+**Use something that isn't here?** Oura, Withings, Strava, another CGM or gym app: if it would be
 useful to you, [ask for it on GitHub](https://github.com/craigbennett1981/body-kaizen/issues/new/choose) (choose "Integration request"): there's a short form for what it is and what you'd want from it. Requests
 shape what gets built next.
 
@@ -375,6 +383,8 @@ Body Kaizen stands on these open-source projects:
   [curl_cffi](https://github.com/lexiforest/curl_cffi) for the Garmin sync, and
   [pylibrelinkup](https://github.com/robberwick/pylibrelinkup) for the FreeStyle Libre sync.
 - [keyring](https://github.com/jaraco/keyring) keeps passwords in the computer's own keychain.
+- [cryptography](https://cryptography.io) makes the iPhone receiver's certificate, and
+  [segno](https://github.com/heuer/segno) draws the pairing QR code.
 - [Apache ECharts](https://echarts.apache.org) draws the charts, and the [Archivo](https://fonts.google.com/specimen/Archivo)
   font sets the headings.
 

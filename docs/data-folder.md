@@ -28,6 +28,11 @@ body-kaizen-data/
 │   └── supplements.yaml        what you take and since when
 ├── imports/                    raw responses from synced services (garmin/, libre/, hevy/), kept so
 │                               a mapping fix can be re-applied without fetching again
+│   └── apple/                  from a paired iPhone (Body Kaizen Sync):
+│       ├── YYYY/YYYY-MM-DD.json  what the charts draw: sleep stages, per-minute heart rate, 15-minute
+│       │                       steps, workout heart-rate traces (no sample IDs or device names)
+│       └── cache.sqlite        the raw uploads of the last 14 days, so a translation fix can be
+│                               re-applied; ignored by git, older rows deleted nightly
 ├── reviews/                    weekly write-ups, if you keep them
 │
 ├── targets.yaml                calorie, protein, saturated-fat and fibre targets, versioned by date,
@@ -130,3 +135,16 @@ The same, plus a copy on GitHub, so a lost or broken computer doesn't lose your 
 
 Keep it **private**: it's your health data. Anyone you add as a collaborator can read all of it. For more protection,
 encrypt the health files before they leave your computer with git-crypt ([SECURITY.md](../SECURITY.md#encryption-what-protects-your-data-where)).
+
+## The iPhone's raw cache
+
+A paired iPhone's uploads are kept for 14 days in `imports/apple/cache.sqlite`, so that a fix to how Apple Health is
+translated can be re-applied to recent days without asking the phone again:
+
+```bash
+FT_DATA=~/body-kaizen-data python scripts/apple_import.py --remap
+```
+
+Git never sees it: the `.gitignore` a new data folder gets lists it, and `imports/apple/` carries its own `.gitignore`
+for folders made before it existed. Rows older than 14 days are deleted every night, and deleted rows are overwritten
+rather than left in the file. What lasts is what was translated: the day files, and the detail files beside the cache.

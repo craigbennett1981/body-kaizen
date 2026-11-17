@@ -2,7 +2,9 @@
 
 ## How Body Kaizen handles your data
 
-- **Local only.** The dashboard server listens on `127.0.0.1` and serves nothing to your network or the internet.
+- **The dashboard answers on this computer only.** It listens on `127.0.0.1` and serves nothing to your network or
+  the internet. The one thing that listens on your home network is the separate receiver for paired iPhones (below):
+  upload only, and off until you pair a phone.
 - **Only you can open it.** Every request, reads included, needs a cookie holding a secret kept in
   `~/.body-kaizen/session.key`, which only your account can read (0600, in a 0700 folder). Starting the dashboard
   from a terminal, the installer, its **Body Kaizen** launcher, `scripts/setup_mac.sh`, or `body-kaizen open` opens
@@ -31,16 +33,19 @@
 - **A request can't tie the server up.** A missing, negative or malformed body length is refused at once, bodies
   over 10 KB are refused, and a connection that sends nothing is dropped after 30 seconds. An error while handling a
   request goes to the server log and the reply says only "server error".
-- **No accounts, cloud or telemetry.** Nothing is sent anywhere except to the services you choose to connect.
+- **No accounts, cloud or telemetry.** Nothing is sent anywhere except to the services you choose to connect. The
+  iPhone app sends only to your own computer, on your home network.
 - **Your data lives in your data folder** (`FT_DATA`), separate from the code. Keep it in a **private** git
   repository, or no repository at all.
 - **Credentials stay out of both folders.** Garmin tokens are stored in `~/.garminconnect`; the LibreLinkUp
-  login email in `~/.body-kaizen/libre.json` and its password in the operating system's keychain (via `keyring`).
+  login email in `~/.body-kaizen/libre.json` and its password in the operating system's keychain (via `keyring`);
+  the iPhone receiver's certificate, key and paired phones (token hashes only) in `~/.body-kaizen/sync/`.
   None of them is written to the code or data folder. Both folders, and every file in them, are private to your
   account (0700 and 0600), created that way rather than tightened afterwards.
 - **The data folder is yours alone and stays clean in git.** A new data folder is private to your account (0700),
   whether the dashboard's first-run setup or `body-kaizen init` makes it, and gets a `.gitignore` for sync bookkeeping
-  (`imports/*/state.json`) and operating-system clutter. The dashboard refuses a data folder inside the code
+  (`imports/*/state.json`), the iPhone's 14-day raw cache (`imports/apple/cache.sqlite`, which also carries its own
+  `.gitignore` for older folders) and operating-system clutter. The dashboard refuses a data folder inside the code
   folder, matching paths without regard to case on macOS and Windows, where `~/Repos/Body-Kaizen` and
   `~/repos/body-kaizen` are the same folder.
 - **The build pins what it runs.** Every GitHub Action is pinned to a commit, not a tag that could be moved, and
@@ -52,6 +57,38 @@
   it. A half-finished Garmin two-step login is held in the dashboard's memory only, for at most 10 minutes and 5 codes.
   Disconnect deletes the Garmin token or the LibreLinkUp password and login file. `tests/test_connections.py` checks
   that the password reaches neither a reply nor the server log.
+- **The iPhone receiver (Body Kaizen Sync).** A second listener, separate from the dashboard, on port 8766
+  (`FT_SYNC_PORT`). It runs only while a phone is paired, or while a pairing code you made on the Connections page is
+  live, and stops when you remove the last phone. What protects it:
+  - **Upload only.** Four routes (`POST /v1/pair`, `/v1/samples`, `/v1/deletions`, `/v1/ping`); no pages, no data,
+    no listings. Nothing you've stored can be read back through it.
+  - **Encrypted, and the phone knows it's your computer.** TLS with a self-signed ECDSA P-256 certificate made on
+    first pairing (`~/.body-kaizen/sync/`, 0600 files in a 0700 folder). The QR code carries its SHA-256
+    fingerprint, and the app accepts that certificate only, so no certificate authority is involved and no one else
+    on the network can pose as your computer.
+  - **Pairing.** A one-time code, 128-bit, valid 10 minutes, burned when used or after five wrong tries, shown only on
+    the signed-in dashboard (as a QR code and an 8-character typed form). The QR code works only inside the app: no
+    URL scheme, no link.
+  - **One token per phone.** Pairing gives the phone a random 256-bit token; only its SHA-256 is stored
+    (`devices.json`). Every upload needs it, and it must match the phone's own ID. Remove on the Connections page
+    revokes it at once and deletes that phone's raw uploads.
+  - **Home network only.** A connection from anywhere but a private, link-local or loopback address is dropped
+    before TLS starts, before anything else is read.
+  - **Limits.** 5 MB per request (gzip JSON, at most 64 MB unzipped), 120 requests a minute and 300 MB a day per
+    phone, JSON only, unknown data types refused before they touch anything. Device names lose control characters
+    before they reach the log or the page.
+  - **No late writes, no stray deletes.** A phone can delete only samples it sent. An upload still under way when
+    that phone was erased or removed is refused, so it can't bring erased data back; pairing and erasing never run at
+    the same time.
+  - **Nothing follows a redirect.** The app never follows one with its token, and the receiver never sends one.
+
+  **What a stranger on your Wi-Fi can and can't do.** They can see that port 8766 is open and that it speaks TLS.
+  Without a pairing code they can't pair, and without a phone's token they can't upload, delete or read anything:
+  every request gets "not paired". Guessing a live pairing code gets five tries, at a 128-bit code or its 8-character typed
+  form, before the code is burned. They can't pose as your computer to your phone (the certificate is pinned). What they can do is
+  make requests that are refused, which the per-phone limits and short timeouts keep cheap. Someone who steals a
+  phone's token can upload junk for that phone until you remove it, within its daily limit, but still can't read
+  anything. Tests: `tests/test_syncreceiver.py` drives all of this with a stand-in phone.
 - **Synced raw files are trimmed.** The Garmin sync drops personal and location fields (names, email, profile details, location and
   GPS tracks) before saving its raw responses.
 
