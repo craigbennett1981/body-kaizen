@@ -548,7 +548,8 @@ With stage 0 (the translation layer):
 - **CHANGELOG.md**: that some historical zone and intensity-minute numbers move slightly, and why.
 
 With stages 2 to 4 (the app): the app's privacy policy page, the App Store review notes, `ios/README.md` (how to
-build: Xcode, XcodeGen, the paid account) and a CHANGELOG entry when there is something to install.
+build: Xcode, XcodeGen, the paid account) and a CHANGELOG entry when there is something to install. When the app ships, change
+"the planned iPhone app" in the README's Acknowledgements to describe it as released.
 
 ## Open questions
 

@@ -105,7 +105,7 @@ files the dashboard does, so its answers match what you see.
 
 [Quick start](#quick-start) · [How it works](#how-it-works) · [Logging](#logging-you-need-an-ai-assistant) ·
 [Integrations](#integrations) · [Privacy in git](#keeping-your-data-private-in-git) · [FAQ](#faq) ·
-[Project layout](#project-layout) · [Contributing](#contributing)
+[Project layout](#project-layout) · [Contributing](#contributing) · [Acknowledgements](#acknowledgements)
 
 **Guides:** [Every page](docs/features.md) · [Logging with Claude](docs/logging-with-claude.md) ·
 [Integrations](docs/integrations.md) · [What kit is worth having](docs/kit.md) · [The data folder](docs/data-folder.md) ·
@@ -365,6 +365,22 @@ form with the version filled in. Start with [CONTRIBUTING.md](CONTRIBUTING.md); 
 on every merge. Everyone follows the
 [Code of Conduct](CODE_OF_CONDUCT.md). **Never include your own health data in an issue or pull request**; use the
 demo data.
+
+## Acknowledgements
+
+Body Kaizen stands on these open-source projects:
+
+- [PyYAML](https://pyyaml.org) reads and writes the data folder.
+- [garminconnect](https://github.com/cyberjunky/python-garminconnect) and
+  [curl_cffi](https://github.com/lexiforest/curl_cffi) for the Garmin sync, and
+  [pylibrelinkup](https://github.com/robberwick/pylibrelinkup) for the FreeStyle Libre sync.
+- [keyring](https://github.com/jaraco/keyring) keeps passwords in the computer's own keychain.
+- [Apache ECharts](https://echarts.apache.org) draws the charts, and the [Archivo](https://fonts.google.com/specimen/Archivo)
+  font sets the headings.
+
+The design of Body Kaizen Sync, the planned iPhone app ([design](docs/iphone-sync.md)), was informed by
+[healthkit-relay](https://github.com/leblancfg/healthkit-relay) by leblancfg, an open-source app and server for
+keeping your Apple Health data on a server you run. Body Kaizen doesn't include, use or depend on its code.
 
 ## Licence
 
